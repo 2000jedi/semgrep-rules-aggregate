@@ -1,0 +1,28 @@
+rules:
+  - id: codeql-cpp-command-injection-system
+    message: >-
+      Use of system() with potentially untrusted input may allow command
+      injection. Use execve() or similar functions with explicit arguments.
+    severity: ERROR
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-078: Improper Neutralization of Special Elements used in an OS Command"
+      technology:
+        - cpp
+      confidence: MEDIUM
+      likelihood: HIGH
+      impact: HIGH
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/78.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-078/ExecTainted.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-078/ExecTainted.ql
+    pattern-either:
+      - pattern: system($CMD)
+      - pattern: popen($CMD, ...)
+      - pattern: execl("/bin/sh", "sh", "-c", $CMD, ...)
+      - pattern: execlp("sh", "sh", "-c", $CMD, ...)

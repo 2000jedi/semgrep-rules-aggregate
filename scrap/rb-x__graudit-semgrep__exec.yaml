@@ -1,0 +1,547 @@
+rules:
+- id: graudit-exec-rce-1832
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 1
+    original_pattern: System\.Diagnostics\.Process\.Start\(.*
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: System\.Diagnostics\.Process\.Start\(.*
+- id: graudit-exec-rce-1833
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 2
+    original_pattern: new[[:space:]]+(System\.Diagnostic\.)?Process(StartInfo)?[[:space:]]*\(.*
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: new[ \t\r\n\v\f]+(System\.Diagnostic\.)?Process(StartInfo)?[ \t\r\n\v\f]*\(.*
+- id: graudit-exec-rce-1834
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 3
+    original_pattern: \.Start[[:space:]]\(.*
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: \.Start[ \t\r\n\v\f]\(.*
+- id: graudit-exec-rce-1835
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 5
+    original_pattern: new[[:space:]]+Cli[[:space:]]*\(.*
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: new[ \t\r\n\v\f]+Cli[ \t\r\n\v\f]*\(.*
+- id: graudit-exec-rce-1836
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 7
+    original_pattern: \.Shell[[:space:]]*\(.*
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: \.Shell[ \t\r\n\v\f]*\(.*
+- id: graudit-exec-rce-1837
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 8
+    original_pattern: \.Invoke[[:space:]]*\([^\)]+\)
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: \.Invoke[ \t\r\n\v\f]*\([^\)]+\)
+- id: graudit-exec-rce-1838
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 9
+    original_pattern: exec\.Command[[:space:]]*\(
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: exec\.Command[ \t\r\n\v\f]*\(
+- id: graudit-exec-rce-1839
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 10
+    original_pattern: syscall\.Exec[[:space:]]*\(
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: syscall\.Exec[ \t\r\n\v\f]*\(
+- id: graudit-exec-rce-1840
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 11
+    original_pattern: os\.StartProcess[[:space:]]*\(
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: os\.StartProcess[ \t\r\n\v\f]*\(
+- id: graudit-exec-rce-1841
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 12
+    original_pattern: session\.Run[[:space:]]*\(
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: session\.Run[ \t\r\n\v\f]*\(
+- id: graudit-exec-rce-1842
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 14
+    original_pattern: exec(\s*\(|\s+).*\$.*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: exec(\s*\(|\s+).*\$.*\)?
+- id: graudit-exec-rce-1843
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 15
+    original_pattern: fork(\s*\(|\s+).*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: fork(\s*\(|\s+).*\)?
+- id: graudit-exec-rce-1844
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 16
+    original_pattern: '`.*\$.*`'
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: '`.*\$.*`'
+- id: graudit-exec-rce-1845
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 17
+    original_pattern: system(\s*\(?|\s+)*\$.*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: system(\s*\(?|\s+)*\$.*\)?
+- id: graudit-exec-rce-1846
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 18
+    original_pattern: open(\s*\(?|\s+)*\$.*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: open(\s*\(?|\s+)*\$.*\)?
+- id: graudit-exec-rce-1847
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 20
+    original_pattern: assert([[:space:]]*\(|[[:space:]]+[\"\'])[^\)]+\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: assert([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+[\"\'])[^\)]+\)?
+- id: graudit-exec-rce-1848
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 21
+    original_pattern: exec([[:space:]]*\(|[[:space:]]+[\"\'])[^\)]+\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: exec([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+[\"\'])[^\)]+\)?
+- id: graudit-exec-rce-1849
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 22
+    original_pattern: '`[^`]*\$[^`]+`'
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: '`[^`]*\$[^`]+`'
+- id: graudit-exec-rce-1850
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 23
+    original_pattern: passthru([[:space:]]*\(|[[:space:]]+[\"\'])[^\)]+\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: passthru([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+[\"\'])[^\)]+\)?
+- id: graudit-exec-rce-1851
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 24
+    original_pattern: popen([[:space:]]*\(|[[:space:]]+[\"\'])[^\)]+\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: popen([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+[\"\'])[^\)]+\)?
+- id: graudit-exec-rce-1852
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 25
+    original_pattern: proc_close([[:space:]]*\(|[[:space:]]+[\"\'])[^\)]+\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: proc_close([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+[\"\'])[^\)]+\)?
+- id: graudit-exec-rce-1853
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 26
+    original_pattern: proc_open([[:space:]]*\(|[[:space:]]+).*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: proc_open([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+).*\)?
+- id: graudit-exec-rce-1854
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 27
+    original_pattern: proc_get_status([[:space:]]*\(|[[:space:]]+).*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: proc_get_status([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+).*\)?
+- id: graudit-exec-rce-1855
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 28
+    original_pattern: proc_nice([[:space:]]*\(|[[:space:]]+).*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: proc_nice([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+).*\)?
+- id: graudit-exec-rce-1856
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 29
+    original_pattern: proc_terminate([[:space:]]*\(|[[:space:]]+).*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: proc_terminate([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+).*\)?
+- id: graudit-exec-rce-1857
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 30
+    original_pattern: shell_exec([[:space:]]*\(|[[:space:]]+).*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: shell_exec([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+).*\)?
+- id: graudit-exec-rce-1858
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 31
+    original_pattern: system([[:space:]]*\(|[[:space:]]+[\"\']).*\)?
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: system([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+[\"\']).*\)?
+- id: graudit-exec-rce-1859
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 32
+    original_pattern: \.instance_eval.*
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: \.instance_eval.*
+- id: graudit-exec-rce-1860
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 33
+    original_pattern: eval([[:space:]]*\(|[[:space:]]+[^\(])
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: eval([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+[^\(])
+- id: graudit-exec-rce-1861
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 34
+    original_pattern: spawn([[:space:]]*\(|[[:space:]]+[^\(])
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: spawn([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+[^\(])
+- id: graudit-exec-rce-1862
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 35
+    original_pattern: system([[:space:]]*\(|[[:space:]]+").*\#\{[^\}]+\}
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: system([ \t\r\n\v\f]*\(|[ \t\r\n\v\f]+").*\#\{[^\}]+\}
+- id: graudit-exec-rce-1863
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 36
+    original_pattern: system[[:space:]]*\(
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: system[ \t\r\n\v\f]*\(
+- id: graudit-exec-rce-1864
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 37
+    original_pattern: \.open[[:space:]]*\(
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: \.open[ \t\r\n\v\f]*\(
+- id: graudit-exec-rce-1866
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 39
+    original_pattern: '`.*#\{[^`]+`'
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: '`.*#\{[^`]+`'
+- id: graudit-exec-rce-1867
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 40
+    original_pattern: .*\=.*\!\!
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: .*\=.*\!\!
+- id: graudit-exec-rce-1868
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 41
+    original_pattern: '[a-z0-9A-Z]\.\!'
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: '[a-z0-9A-Z]\.\!'
+- id: graudit-exec-rce-1869
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 42
+    original_pattern: \.execSync[[:space:]]*\(
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: \.execSync[ \t\r\n\v\f]*\(
+- id: graudit-exec-rce-1870
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 43
+    original_pattern: require[[:space:]]*\([[:space:]]*.(child_process|execa).
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: require[ \t\r\n\v\f]*\([ \t\r\n\v\f]*.(child_process|execa).
+- id: graudit-exec-rce-1871
+  message: Potential remote code execution vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/exec.db
+    original_line: 44
+    original_pattern: (spawn|execFile)(Sync)?[[:space:]]\(
+    vulnerability_type: rce
+    confidence: LOW
+  patterns:
+  - pattern-regex: (spawn|execFile)(Sync)?[ \t\r\n\v\f]\(

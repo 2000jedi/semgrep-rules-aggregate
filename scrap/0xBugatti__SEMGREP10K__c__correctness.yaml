@@ -1,0 +1,4873 @@
+rules:
+- id: c-string-equality
+  pattern: (char *$X) == (char *$Y)
+  message: Using == on char* performs pointer comparison, use strcmp instead
+  fix: strcmp($X, $Y) == 0
+  languages:
+  - c
+  severity: ERROR
+  metadata:
+    category: correctness
+- id: detect-buffer-overflow
+  languages:
+  - c
+  message: 'Potential Buffer Overflow detected. Avoid using unsafe functions such
+    as `strcpy` or `sprintf` without proper bounds checking.
+
+    '
+  severity: ERROR
+  patterns:
+  - pattern: 'strcpy($DST, $SRC);
+
+      '
+  - pattern: 'sprintf($BUF, $FMT, ...);
+
+      '
+  fix: 'Use safer alternatives like `strncpy` or `snprintf`, ensuring the buffer size
+    is properly checked. Example:
+
+
+    ```c
+
+    strncpy($DST, $SRC, sizeof($DST) - 1);
+
+    $DST[sizeof($DST) - 1] = ''\0'';
+
+    ```
+
+    '
+- id: detect-use-after-free
+  languages:
+  - c
+  message: 'Potential Use After Free detected. Using memory after it has been freed
+    can cause undefined behavior and vulnerabilities.
+
+    '
+  severity: ERROR
+  patterns:
+  - pattern: 'free($PTR);
+
+      $VAR = *$PTR;
+
+      '
+  fix: 'Ensure the pointer is set to NULL after freeing the memory to avoid accidental
+    use. Example:
+
+
+    ```c
+
+    free($PTR);
+
+    $PTR = NULL;
+
+    ```
+
+    '
+- id: detect-integer-overflow
+  languages:
+  - c
+  message: 'Possible Integer Overflow detected. Ensure proper checks are in place
+    when performing arithmetic operations on integers.
+
+    '
+  severity: ERROR
+  patterns:
+  - pattern: '$VAR = $X + $Y;
+
+      '
+  - pattern: '$VAR = $X * $Y;
+
+      '
+  fix: "Add checks to ensure that the result does not exceed the limits of the integer\
+    \ type. Example:\n\n```c\nif ($X > INT_MAX - $Y) {\n  // Handle overflow case\n\
+    }\n$VAR = $X + $Y;\n```\n"
+- id: raptor-double-free
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/415
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    - https://dustri.org/b/playing-with-weggli.html
+    confidence: MEDIUM
+  message: The software calls free() twice on the same memory address, potentially
+    leading to modification of unexpected memory locations. When a program calls free()
+    twice with the same argument, the program's memory management data structures
+    become corrupted. This corruption can cause the program to crash or, in some circumstances,
+    cause two later calls to malloc() to return the same pointer. If malloc() returns
+    the same value twice and the program later gives the attacker control over the
+    data that is written into this doubly-allocated memory, the program becomes vulnerable
+    to a buffer overflow attack.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: 'free($PTR);
+
+      ...
+
+      free($PTR);
+
+      '
+  - pattern-not: 'free($PTR);
+
+      ...
+
+      $PTR = $EXPR;
+
+      ...
+
+      free($PTR);
+
+      '
+- id: Format-string WARNING check 1
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: This function can easily cause a stack overflow if the parameters
+    are not well checked.'
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: '$TYPE * $BUF;
+
+          ...
+
+          $FUN($BUF, ...);
+
+          '
+      - pattern: '$TYPE $BUF[$SIZE];
+
+          ...
+
+          $FUN($BUF, ...);
+
+          '
+    - pattern-not: $FUN("...", ...)
+    - pattern-not: '$TYPE * $BUF = "...";
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - pattern-not: '$TYPE * $BUF;
+
+        ...
+
+        $BUF = "...";
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: printf
+        - pattern: vprintf
+        - pattern: wprintf
+        - pattern: vwprintf
+        - pattern: scanf
+        - pattern: wscanf
+        - pattern: vscanf
+        - pattern: vwscanf
+  - patterns:
+    - pattern-either:
+      - pattern: '$TYPE * $BUF;
+
+          ...
+
+          $FUN($ARG, $BUF, ...);
+
+          '
+      - pattern: '$TYPE $BUF[$SIZE];
+
+          ...
+
+          $FUN($ARG, $BUF, ...);
+
+          '
+    - pattern-not: $FUN($ARG, "...", ...)
+    - pattern-not: '$TYPE * $BUF = "...";
+
+        ...
+
+        $FUN($ARG, $BUF, ...);
+
+        '
+    - pattern-not: '$TYPE * $BUF;
+
+        ...
+
+        $BUF = "...";
+
+        ...
+
+        $FUN($ARG, $BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: fprintf
+        - pattern: vfprintf
+        - pattern: sprintf
+        - pattern: vsprintf
+        - pattern: vfscanf
+        - pattern: sscanf
+        - pattern: vsscanf
+        - pattern: swscanf
+        - pattern: syslog
+        - pattern: vsyslog
+  - patterns:
+    - pattern-either:
+      - pattern: "$TYPE * $BUF;\n ...\n $FUN($ARG, $ARG1, $BUF, ...);\n"
+      - pattern: '$TYPE $BUF[$SIZE];
+
+          ...
+
+          $FUN($ARG, $ARG1, $BUF, ...);
+
+          '
+    - pattern-not: $FUN($ARG, $ARG1, "...", ...)
+    - pattern-not: '$TYPE * $BUF = "...";
+
+        ...
+
+        $FUN($ARG, $ARG1, $BUF, ...);
+
+        '
+    - pattern-not: '$TYPE * $BUF;
+
+        ...
+
+        $BUF = "...";
+
+        ...
+
+        $FUN($ARG, $ARG1, $BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+- id: Heap-overflow INFO check 1
+  metadata:
+    author: FXC
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  message: 'INFO: There may be an off-by-null on the heap.'
+  pattern-either:
+  - patterns:
+    - pattern: '$PTR = $FUN($SIZE);
+
+        ...
+
+        strcpy($PTR, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: calloc
+        - pattern: realloc
+- id: Heap-overflow WARNING check 1
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: Obviously, there is an off-by-one on the heap.'
+  pattern-either:
+  - patterns:
+    - pattern: '$PTR = $FUN($SIZE);
+
+        ...
+
+        $PTR[$SIZE] = $BYTE;
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: calloc
+        - pattern: realloc
+  - patterns:
+    - pattern: '$PTR = $FUN($SIZE);
+
+        ...
+
+        for (<... $I = 0 ...>; <... $I <= $SIZE ...>; <... $I++ ...>)
+
+        $PTR[$I] = $BYTE;
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: calloc
+        - pattern: realloc
+  - patterns:
+    - pattern: '$PTR = $FUN($SIZE);
+
+        ...
+
+        for (<... $I = 0 ...>; <... $I <= $SIZE ...>; <... $I++ ...>){
+
+        ...
+
+        $PTR[$I] = $BYTE; ...}
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: calloc
+        - pattern: realloc
+  - patterns:
+    - pattern: '$PTR = $FUN($SIZE);
+
+        ...
+
+        for ($TYPE $I = 0; <... $I <= $SIZE ...>; <... $I++ ...>)
+
+        $PTR[$I] = $BYTE;
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: calloc
+        - pattern: realloc
+  - patterns:
+    - pattern: '$PTR = $FUN($SIZE);
+
+        ...
+
+        for ($TYPE $I = 0; <... $I <= $SIZE ...>; <... $I++ ...>){
+
+        ...
+
+        $PTR[$I] = $BYTE;...}
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: calloc
+        - pattern: realloc
+  - patterns:
+    - pattern: '$PTR = $FUN($SIZE);
+
+        ...
+
+        while (<... $I <= $SIZE ...>){
+
+        ...
+
+        $PTR[$I] = $BYTE;...}
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: calloc
+        - pattern: realloc
+- id: raptor-incorrect-unsigned-comparison
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/697
+    - https://g.co/kgs/PCHQjJ
+    confidence: HIGH
+  message: The software compares two entities in a security-relevant context, but
+    the comparison is incorrect, which may lead to resultant weaknesses. Checking
+    if an unsigned variable is negative makes no sense and is usually a good indication
+    that something is probably wrong with the code.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (unsigned short $UNSIGNED) < 0
+  - pattern: (unsigned short int $UNSIGNED) < 0
+  - pattern: (unsigned int $UNSIGNED) < 0
+  - pattern: (unsigned long $UNSIGNED) < 0
+  - pattern: (unsigned long int $UNSIGNED) < 0
+  - pattern: (size_t $UNSIGNED) < 0
+  - pattern: (unsigned short $UNSIGNED) <= 0
+  - pattern: (unsigned short int $UNSIGNED) <= 0
+  - pattern: (unsigned int $UNSIGNED) <= 0
+  - pattern: (unsigned long $UNSIGNED) <= 0
+  - pattern: (unsigned long int $UNSIGNED) <= 0
+  - pattern: (size_t $UNSIGNED) <= 0
+  - pattern: (unsigned short $UNSIGNED) >= 0
+  - pattern: (unsigned short int $UNSIGNED) >= 0
+  - pattern: (unsigned int $UNSIGNED) >= 0
+  - pattern: (unsigned long $UNSIGNED) >= 0
+  - pattern: (unsigned long int $UNSIGNED) >= 0
+  - pattern: (size_t $UNSIGNED) >= 0
+- id: raptor-incorrect-use-of-sizeof
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/467
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://dustri.org/b/playing-with-weggli.html
+    confidence: MEDIUM
+  message: The code calls sizeof() on a malloced pointer type, which always returns
+    the wordsize/8. This can produce an unexpected result if the programmer intended
+    to determine how much memory has been allocated. The use of sizeof() on a pointer
+    can sometimes generate useful information. An obvious case is to find out the
+    wordsize on a platform. More often than not, the appearance of sizeof(pointer)
+    indicates a bug.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: sizeof((char * $PTR))
+    - pattern-not: sizeof("...")
+  - pattern: sizeof((int * $PTR))
+  - pattern: sizeof((float * $PTR))
+  - pattern: sizeof((double * $PTR))
+  - patterns:
+    - pattern: sizeof($PTR)
+    - pattern-either:
+      - pattern-inside: '$TYPE * $PTR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $PTR = $EXPR;
+
+          ...
+
+          '
+- id: raptor-insecure-api-atoi-atol-atof
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://rules.sonarsource.com/c/type/Bug/RSPEC-989
+    confidence: HIGH
+  message: The atoi(), atol(), and atof() functions, which convert strings to numbers,
+    have undefined behavior when the strings cannot be converted, and should therefore
+    be avoided.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: atoi(...)
+  - pattern: atol(...)
+  - pattern: atof(...)
+- id: raptor-integer-truncation
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/197
+    - https://cwe.mitre.org/data/definitions/681
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    confidence: MEDIUM
+  message: Truncation errors occur when a primitive is cast to a primitive of a smaller
+    size and data is lost in the conversion. When a primitive is cast to a smaller
+    primitive, the high order bits of the large value are lost in the conversion,
+    potentially resulting in an unexpected value that is not equal to the original
+    value. This value may be required as an index into a buffer, a loop iterator,
+    or simply necessary state data. In any case, the value cannot be trusted and the
+    system will be in an undefined state. While this method may be employed viably
+    to isolate the low bits of a value, this usage is rare, and truncation usually
+    implies that an implementation error has occurred.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (char $NARROW) = <... (short $LARGE) ...>
+  - pattern: (char $NARROW) = <... (short int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned short $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned short int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (long $LARGE) ...>
+  - pattern: (char $NARROW) = <... (long int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned long int $LARGE) ...>
+  - pattern: 'char $FUN(...)
+
+      {
+
+      ...
+
+      return (short $LARGE);
+
+      }
+
+      '
+  - pattern: 'char $FUN(...)
+
+      {
+
+      ...
+
+      return (int $LARGE);
+
+      }
+
+      '
+  - pattern: 'char $FUN(...)
+
+      {
+
+      ...
+
+      return (long $LARGE);
+
+      }
+
+      '
+  - pattern: (short $NARROW) = <... (unsigned short $LARGE) ...>
+  - pattern: (short int $NARROW) = <... (unsigned short int $LARGE) ...>
+  - pattern: (short $NARROW) = <... (int $LARGE) ...>
+  - pattern: (short $NARROW) = <... (unsigned $LARGE) ...>
+  - pattern: (short int $NARROW) = <... (unsigned int $LARGE) ...>
+  - pattern: (short $NARROW) = <... (long $LARGE) ...>
+  - pattern: (short int $NARROW) = <... (long int $LARGE) ...>
+  - pattern: (short $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (short int $NARROW) = <... (unsigned long int $LARGE) ...>
+  - pattern: (unsigned short $NARROW) = <... (int $LARGE) ...>
+  - pattern: (unsigned short $NARROW) = <... (unsigned $LARGE) ...>
+  - pattern: (unsigned short int $NARROW) = <... (unsigned int $LARGE) ...>
+  - pattern: (unsigned short $NARROW) = <... (long $LARGE) ...>
+  - pattern: (unsigned short int $NARROW) = <... (long int $LARGE) ...>
+  - pattern: (unsigned short $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (unsigned short int $NARROW) = <... (unsigned long int $LARGE) ...>
+  - pattern: 'short $FUN(...)
+
+      {
+
+      ...
+
+      return (int $LARGE);
+
+      }
+
+      '
+  - pattern: 'short $FUN(...)
+
+      {
+
+      ...
+
+      return (long $LARGE);
+
+      }
+
+      '
+  - pattern: (int $NARROW) = <... (unsigned $LARGE) ...>
+  - pattern: (int $NARROW) = <... (unsigned int $LARGE) ...>
+  - pattern: (int $NARROW) = <... (long $LARGE) ...>
+  - pattern: (int $NARROW) = <... (long int $LARGE) ...>
+  - pattern: (int $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (int $NARROW) = <... (unsigned long int $LARGE) ...>
+  - pattern: 'int $FUN(...)
+
+      {
+
+      ...
+
+      return (long $LARGE);
+
+      }
+
+      '
+  - pattern: (long $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (long int $NARROW) = <... (unsigned long int $LARGE) ...>
+- id: raptor-integer-wraparound
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/190
+    - https://cwe.mitre.org/data/definitions/128
+    - https://cwe.mitre.org/data/definitions/131
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    - https://dustri.org/b/playing-with-weggli.html
+    confidence: MEDIUM
+  message: The software performs a calculation that can produce an integer overflow
+    or wraparound, when the logic assumes that the resulting value will always be
+    larger than the original value. This can introduce other weaknesses when the calculation
+    is used for resource management or execution control. An integer overflow or wraparound
+    occurs when an integer value is incremented to a value that is too large to store
+    in the associated representation. When this occurs, the value may wrap to become
+    a very small or negative number. While this may be intended behavior in circumstances
+    that rely on wrapping, it can have security consequences if the wrap is unexpected.
+    This is especially the case if the integer overflow can be triggered using user-supplied
+    inputs. This becomes security-critical when the result is used to control looping,
+    make a security decision, or determine the offset or size in behaviors such as
+    memory allocation, copying, concatenation, etc.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($X * $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($N)
+    - pattern-inside: '$N = $X * $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($ARG1, $X * $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+  - patterns:
+    - pattern: $FUN($ARG1, $N)
+    - pattern-inside: '$N = $X * $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+- id: raptor-integer-wraparound-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/190
+    - https://cwe.mitre.org/data/definitions/128
+    - https://cwe.mitre.org/data/definitions/131
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    - https://dustri.org/b/playing-with-weggli.html
+    confidence: LOW
+  message: The software performs a calculation that can produce an integer overflow
+    or wraparound, when the logic assumes that the resulting value will always be
+    larger than the original value. This can introduce other weaknesses when the calculation
+    is used for resource management or execution control.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($X * $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($N)
+    - pattern-inside: '$N = $X * $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($X + $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($N)
+    - pattern-inside: '$N = $X + $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($ARG1, $X * $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+  - patterns:
+    - pattern: $FUN($ARG1, $N)
+    - pattern-inside: '$N = $X * $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+  - patterns:
+    - pattern: $FUN($ARG1, $X + $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+  - patterns:
+    - pattern: $FUN($ARG1, $N)
+    - pattern-inside: '$N = $X + $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+  - pattern: $X > $MAX || ($X + $Y) > $MAX
+  - pattern: $X >= $MAX || ($X + $Y) > $MAX
+  - pattern: $X > $MAX || ($X + $Y) >= $MAX
+  - pattern: $X >= $MAX || ($X + $Y) >= $MAX
+  - pattern: $X < $MAX && ($X + $Y) < $MAX
+  - pattern: $X <= $MAX && ($X + $Y) < $MAX
+  - pattern: $X < $MAX && ($X + $Y) <= $MAX
+  - pattern: $X <= $MAX && ($X + $Y) <= $MAX
+  - pattern: $X > $MAX || ($X * $Y) > $MAX
+  - pattern: $X >= $MAX || ($X * $Y) > $MAX
+  - pattern: $X > $MAX || ($X * $Y) >= $MAX
+  - pattern: $X >= $MAX || ($X * $Y) >= $MAX
+  - pattern: $X < $MAX && ($X * $Y) < $MAX
+  - pattern: $X <= $MAX && ($X * $Y) < $MAX
+  - pattern: $X < $MAX && ($X * $Y) <= $MAX
+  - pattern: $X <= $MAX && ($X * $Y) <= $MAX
+- id: c-string-equality-2
+  patterns:
+  - pattern: (char *$X) == (char *$Y)
+  - metavariable-comparison:
+      metavariable: $X
+      comparison: $X != 0
+  - metavariable-comparison:
+      metavariable: $Y
+      comparison: $Y != 0
+  message: Using == on char* performs pointer comparison, use strcmp instead
+  fix: strcmp($X, $Y) == 0
+  languages:
+  - c
+  severity: ERROR
+  metadata:
+    category: correctness
+    technology:
+    - c
+- id: double_goto
+  pattern: "if ($COND)\n  goto $FAIL;\n  goto $FAIL;\n"
+  message: The second goto statement will always be executed.
+  languages:
+  - c
+  severity: WARNING
+  metadata:
+    category: correctness
+    technology:
+    - c
+- id: incorrect-use-ato-fn
+  pattern-either:
+  - pattern: atoi(...)
+  - pattern: atol(...)
+  - pattern: atoll(...)
+  message: Avoid the 'ato*()' family of functions. Their use can lead to undefined
+    behavior, integer overflows, and lack of appropriate error handling. Instead prefer
+    the 'strtol*()' family of functions.
+  metadata:
+    references:
+    - https://stackoverflow.com/q/38393162
+    - https://stackoverflow.com/q/14176123
+    category: correctness
+    technology:
+    - c
+  languages:
+  - c
+  severity: WARNING
+- id: incorrect-use-sscanf-fn
+  patterns:
+  - pattern: sscanf($STR, $FMT, $PTR);
+  - metavariable-regex:
+      metavariable: $FMT
+      regex: '"%(l{0,2}|L)([fegEa]|[dDiouxX])"'
+  message: Avoid 'sscanf()' for number conversions. Its use can lead to undefined
+    behavior, slow processing, and integer overflows. Instead prefer the 'strto*()'
+    family of functions.
+  metadata:
+    references:
+    - https://stackoverflow.com/q/22865622
+    - https://stackoverflow.com/q/7021725
+    - https://www.mattkeeter.com/blog/2021-03-01-happen/
+    category: correctness
+    technology:
+    - c
+  languages:
+  - c
+  severity: WARNING
+- id: c.lang.security.insecure-use-strcat-fn.insecure-use-strcat-fn
+  pattern-either:
+  - pattern: strcat(...)
+  - pattern: strncat(...)
+  message: Finding triggers whenever there is a strcat or strncat used. This is an
+    issue because strcat or strncat can lead to buffer overflow vulns. Fix this by
+    using strcat_s instead.
+  metadata:
+    references:
+    - https://nvd.nist.gov/vuln/detail/CVE-2019-12553
+    - https://techblog.mediaservice.net/2020/04/cve-2020-2851-stack-based-buffer-overflow-in-cde-libdtsvc/
+    category: security
+    technology:
+    - c
+    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+    source: https://semgrep.dev/r/c.lang.security.insecure-use-strcat-fn.insecure-use-strcat-fn
+  languages:
+  - c
+  severity: WARNING
+- id: raptor-signed-unsigned-conversion
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/195
+    - https://cwe.mitre.org/data/definitions/196
+    - https://cwe.mitre.org/data/definitions/194
+    - https://cwe.mitre.org/data/definitions/191
+    - https://cwe.mitre.org/data/definitions/681
+    - https://cwe.mitre.org/data/definitions/789
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    confidence: MEDIUM
+  message: The software uses a signed primitive and performs a cast to an unsigned
+    primitive, or uses an unsigned primitive and performs a cast to a signed primitive,
+    which can produce an unexpected value if the value of the signed primitive cannot
+    be represented using an unsigned primitive, or if the value of the unsigned primitive
+    cannot be represented using a signed primitive. It is dangerous to rely on implicit
+    casts between signed and unsigned numbers because the result can take on an unexpected
+    value and violate assumptions made by the program. Often, functions will return
+    negative values to indicate a failure. When the result of a function is to be
+    used as a size parameter, using these negative return values can have unexpected
+    results. For example, if negative size values are passed to the standard memory
+    copy or allocation functions they will be implicitly cast to a large unsigned
+    value. This may lead to an exploitable buffer overflow or underflow condition.
+    Although less frequent an issue than signed-to-unsigned conversion, unsigned-to-signed
+    conversion can be the perfect precursor to dangerous buffer underwrite conditions
+    that allow attackers to move down the stack where they otherwise might not have
+    access in a normal buffer overflow condition. Buffer underwrites occur frequently
+    when large unsigned values are cast to signed values, and then used as indexes
+    into a buffer or for pointer arithmetic.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (unsigned int $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: 'unsigned int $FUN(...)
+
+      {
+
+      ...
+
+      return (int $SIGNED);
+
+      }
+
+      '
+  - pattern: (unsigned $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: 'unsigned $FUN(...)
+
+      {
+
+      ...
+
+      return (int $SIGNED);
+
+      }
+
+      '
+  - pattern: (size_t $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: 'size_t $FUN(...)
+
+      {
+
+      ...
+
+      return (int $SIGNED);
+
+      }
+
+      '
+  - pattern: (size_t $UNSIGNED) = <... (off_t $SIGNED) ...>
+  - pattern: 'size_t $FUN(...)
+
+      {
+
+      ...
+
+      return (off_t $SIGNED);
+
+      }
+
+      '
+  - pattern: strncpy($DST, $SRC, (int $LEN))
+  - pattern: stpncpy($DST, $SRC, (int $LEN))
+  - pattern: strncat($DST, $SRC, (int $LEN))
+  - pattern: strlcpy($DST, $SRC, (int $LEN))
+  - pattern: strlcat($DST, $SRC, (int $LEN))
+  - pattern: snprintf($BUF, (int $LEN), ...)
+  - pattern: vsnprintf($BUF, (int $LEN), ...)
+  - pattern: getcwd($BUF, (int $LEN))
+  - pattern: memcpy($DST, $SRC, (int $LEN))
+  - pattern: memccpy($DST, $SRC, $CHAR, (int $LEN))
+  - pattern: memmove($DST, $SRC, (int $LEN))
+  - pattern: memset($DST, $CHAR, (int $LEN))
+  - pattern: bcopy($SRC, $DST, (int $LEN))
+  - pattern: alloca((int $LEN))
+  - pattern: malloc((int $LEN))
+  - pattern: calloc($CNT, (int $LEN))
+  - pattern: calloc((int $CNT), $LEN)
+  - pattern: realloc($PTR, (int $LEN))
+  - pattern: read($FD, $BUF, (int $LEN))
+  - pattern: recv($SD, $BUF, (int $LEN), $FL)
+  - pattern: recvfrom($SD, $BUF, (int $LEN), $FL, ...)
+  - pattern: (int $SIGNED) = <... (unsigned int $UNSIGNED) ...>
+  - pattern: 'int $FUN(...)
+
+      {
+
+      ...
+
+      return (unsigned int $UNSIGNED);
+
+      }
+
+      '
+  - pattern: (int $SIGNED) = <... (unsigned $UNSIGNED) ...>
+  - pattern: 'int $FUN(...)
+
+      {
+
+      ...
+
+      return (unsigned $UNSIGNED);
+
+      }
+
+      '
+  - pattern: (int $SIGNED) = <... (size_t $UNSIGNED) ...>
+  - pattern: 'int $FUN(...)
+
+      {
+
+      ...
+
+      return (size_t $UNSIGNED);
+
+      }
+
+      '
+  - pattern: (off_t $SIGNED) = <... (size_t $UNSIGNED) ...>
+  - pattern: 'off_t $FUN(...)
+
+      {
+
+      ...
+
+      return (size_t $UNSIGNED);
+
+      }
+
+      '
+- id: raptor-signed-unsigned-conversion-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/195
+    - https://cwe.mitre.org/data/definitions/196
+    - https://cwe.mitre.org/data/definitions/194
+    - https://cwe.mitre.org/data/definitions/191
+    - https://cwe.mitre.org/data/definitions/681
+    - https://cwe.mitre.org/data/definitions/789
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    confidence: LOW
+  message: The software uses a signed primitive and performs a cast to an unsigned
+    primitive, or uses an unsigned primitive and performs a cast to a signed primitive,
+    which can produce an unexpected value. When the result of a function is to be
+    used as a size parameter, using negative return values can have unexpected results.
+    Although less frequent an issue, unsigned-to-signed conversion can be  the precursor
+    to buffer underwrite conditions. Buffer underwrites  occur frequently when large
+    unsigned values are cast to signed values,  and then used as indexes into a buffer
+    or for pointer arithmetic.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (unsigned int $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: (unsigned $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: (size_t $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: (size_t $UNSIGNED) = <... (off_t $SIGNED) ...>
+  - patterns:
+    - pattern-either:
+      - pattern: 'unsigned int $FUN(...)
+
+          {
+
+          ...
+
+          return (int $SIGNED);
+
+          }
+
+          '
+      - pattern: 'unsigned $FUN(...)
+
+          {
+
+          ...
+
+          return (int $SIGNED);
+
+          }
+
+          '
+      - pattern: 'size_t $FUN(...)
+
+          {
+
+          ...
+
+          return (int $SIGNED);
+
+          }
+
+          '
+      - pattern: 'size_t $FUN(...)
+
+          {
+
+          ...
+
+          return (off_t $SIGNED);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+  - pattern: strncpy($DST, $SRC, (int $LEN))
+  - pattern: stpncpy($DST, $SRC, (int $LEN))
+  - pattern: strncat($DST, $SRC, (int $LEN))
+  - pattern: strlcpy($DST, $SRC, (int $LEN))
+  - pattern: strscpy($DST, $SRC, (int $LEN))
+  - pattern: strlcat($DST, $SRC, (int $LEN))
+  - pattern: snprintf($BUF, (int $LEN), ...)
+  - pattern: vsnprintf($BUF, (int $LEN), ...)
+  - pattern: getcwd($BUF, (int $LEN))
+  - pattern: memcpy($DST, $SRC, (int $LEN))
+  - pattern: memccpy($DST, $SRC, $CHAR, (int $LEN))
+  - pattern: memmove($DST, $SRC, (int $LEN))
+  - pattern: memset($DST, $CHAR, (int $LEN))
+  - pattern: bcopy($SRC, $DST, (int $LEN))
+  - pattern: alloca((int $LEN))
+  - pattern: malloc((int $LEN))
+  - pattern: calloc($CNT, (int $LEN))
+  - pattern: calloc((int $CNT), $LEN)
+  - pattern: realloc($PTR, (int $LEN))
+  - pattern: read($FD, $BUF, (int $LEN))
+  - pattern: recv($SD, $BUF, (int $LEN), $FL)
+  - pattern: recvfrom($SD, $BUF, (int $LEN), $FL, ...)
+  - pattern: fread($PTR, (int $LEN), $NITEMS, $FS)
+  - pattern: (int $SIGNED) = <... (unsigned int $UNSIGNED) ...>
+  - pattern: (int $SIGNED) = <... (unsigned $UNSIGNED) ...>
+  - pattern: (int $SIGNED) = <... (size_t $UNSIGNED) ...>
+  - pattern: (off_t $SIGNED) = <... (size_t $UNSIGNED) ...>
+  - patterns:
+    - pattern-either:
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (unsigned int $UNSIGNED);
+
+          }
+
+          '
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (unsigned $UNSIGNED);
+
+          }
+
+          '
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (size_t $UNSIGNED);
+
+          }
+
+          '
+      - pattern: 'off_t $FUN(...)
+
+          {
+
+          ...
+
+          return (size_t $UNSIGNED);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+- id: Stack-overflow INFO check 1
+  metadata:
+    author: FXC
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  message: 'INFO: This function can easily cause a stack overflow, if the length is
+    not well checked.'
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - pattern-not: $FUN($BUF, "...", ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: memcpy
+        - pattern: strncpy
+        - pattern: strncat
+- id: Stack-overflow INFO check 2
+  metadata:
+    author: FXC
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: This function can easily cause a stack overflow, if the format
+    string is not well checked.(snprintf)'
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, $SIZE, "...", ..., $BUF1, ...)
+    - pattern-either:
+      - pattern-inside: '$TYPE $BUF[$SIZE];
+
+          ...
+
+          $TYPE1 $BUF1[$SIZE1];
+
+          ...
+
+          $FUN($BUF, $SIZE, "...", ..., $BUF1, ...);
+
+          '
+      - pattern-inside: '$TYPE1 $BUF1[$SIZE1];
+
+          ...
+
+          $TYPE $BUF[$SIZE];
+
+          ...
+
+          $FUN($BUF, $SIZE, "...", ..., $BUF1, ...);
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+    - pattern-either:
+      - pattern-regex: '%s'
+- id: Stack-overflow INFO check 3
+  metadata:
+    author: FXC
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: This function can easily cause a stack overflow, if size in the
+    format string is not well checked.'
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, "...", ..., $BUF1, ...)
+    - pattern-either:
+      - pattern-inside: '$TYPE $BUF[$SIZE];
+
+          ...
+
+          $TYPE1 $BUF1[$SIZE1];
+
+          ...
+
+          $FUN($BUF, "...", ..., $BUF1, ...);
+
+          '
+      - pattern-inside: '$TYPE1 $BUF1[$SIZE1];
+
+          ...
+
+          $TYPE $BUF[$SIZE];
+
+          ...
+
+          $FUN($BUF, "...", ..., $BUF1, ...);
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: sscanf
+    - pattern-either:
+      - pattern-regex: a-z
+      - pattern-regex: A-Z
+      - pattern-regex: 0-9
+- id: Stack-overflow WARNING check 1
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: This function can easily cause a stack overflow if the parameters
+    are not well checked.'
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - pattern-not: $FUN($BUF, "...", ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: gets
+        - pattern: strcpy
+        - pattern: strcat
+- id: Stack-overflow WARNING check 2
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: This function can easily cause a stack overflow, if the format
+    string is not well checked.(sprintf, vsprintf)'
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, "...", ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, "...", ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: sprintf
+        - pattern: vsprintf
+    - pattern-either:
+      - pattern-regex: '%s'
+- id: Stack-overflow WARNING check 3
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: This function can easily cause a stack overflow, if the format
+    string is not well checked.(scanf, vscanf)'
+  pattern-either:
+  - patterns:
+    - pattern: $FUN("...", $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN("...", $BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: scanf
+        - pattern: vscanf
+    - pattern-either:
+      - pattern-regex: '%s'
+- id: Stack-overflow WARNING check 4
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: This function can easily cause a stack overflow, if the format
+    string is not well checked.(sscanf)'
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, "...", ..., $BUF1, ...)
+    - pattern-either:
+      - pattern-inside: '$TYPE $BUF[$SIZE];
+
+          ...
+
+          $TYPE1 $BUF1[$SIZE1];
+
+          ...
+
+          $FUN($BUF, "...", ..., $BUF1, ...);
+
+          '
+      - pattern-inside: '$TYPE1 $BUF1[$SIZE1];
+
+          ...
+
+          $TYPE $BUF[$SIZE];
+
+          ...
+
+          $FUN($BUF, "...", ..., $BUF1, ...);
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: sscanf
+    - pattern-either:
+      - pattern-regex: '%s'
+- id: raptor-unchecked-ret-malloc-calloc-realloc
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/252
+    - https://cwe.mitre.org/data/definitions/690
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: MEDIUM
+  message: The software does not check the return value from a method or function,
+    which can prevent it from detecting unexpected states and conditions. The software
+    does not check for an error after calling a function that can return with a NULL
+    pointer if the function fails, which leads to a resultant NULL pointer dereference
+    or, in some cases, even arbitrary code execution.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: $RET = malloc(...)
+      - pattern: $RET = ($CAST)malloc(...)
+    - pattern-not-inside: 'malloc(...);
+
+        ...
+
+        if (<... $RET == NULL ...>) ...
+
+        '
+    - pattern-not-inside: 'malloc(...);
+
+        ...
+
+        if (<... $RET != NULL ...>) ...
+
+        '
+    - pattern-not-inside: 'malloc(...);
+
+        ...
+
+        if (<... !$RET ...>) ...
+
+        '
+    - pattern-not-inside: 'malloc(...);
+
+        ...
+
+        if (<... $RET ...>) ...
+
+        '
+    - pattern-not-inside: <... $ALLOC == NULL ...>
+    - pattern-not-inside: <... $ALLOC != NULL ...>
+    - pattern-not-inside: <... !$ALLOC ...>
+  - patterns:
+    - pattern-either:
+      - pattern: $RET = calloc(...)
+      - pattern: $RET = ($CAST)calloc(...)
+    - pattern-not-inside: 'calloc(...);
+
+        ...
+
+        if (<... $RET == NULL ...>) ...
+
+        '
+    - pattern-not-inside: 'calloc(...);
+
+        ...
+
+        if (<... $RET != NULL ...>) ...
+
+        '
+    - pattern-not-inside: 'calloc(...);
+
+        ...
+
+        if (<... !$RET ...>) ...
+
+        '
+    - pattern-not-inside: 'calloc(...);
+
+        ...
+
+        if (<... $RET ...>) ...
+
+        '
+    - pattern-not-inside: <... $ALLOC == NULL ...>
+    - pattern-not-inside: <... $ALLOC != NULL ...>
+    - pattern-not-inside: <... !$ALLOC ...>
+  - patterns:
+    - pattern-either:
+      - pattern: $RET = realloc(...)
+      - pattern: $RET = ($CAST)realloc(...)
+    - pattern-not-inside: 'realloc(...);
+
+        ...
+
+        if (<... $RET == NULL ...>) ...
+
+        '
+    - pattern-not-inside: 'realloc(...);
+
+        ...
+
+        if (<... $RET != NULL ...>) ...
+
+        '
+    - pattern-not-inside: 'realloc(...);
+
+        ...
+
+        if (<... !$RET ...>) ...
+
+        '
+    - pattern-not-inside: 'realloc(...);
+
+        ...
+
+        if (<... $RET ...>) ...
+
+        '
+    - pattern-not-inside: <... $ALLOC == NULL ...>
+    - pattern-not-inside: <... $ALLOC != NULL ...>
+    - pattern-not-inside: <... !$ALLOC ...>
+- id: raptor-unsafe-strlen
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/190
+    - https://cwe.mitre.org/data/definitions/680
+    - https://github.com/struct/mms
+    confidence: MEDIUM
+  message: The software performs a calculation that can produce an integer overflow
+    or wraparound, when the logic assumes that the resulting value will always be
+    larger than the original value. This can introduce other weaknesses when the calculation
+    is used for resource management or execution control. An integer overflow or wraparound
+    occurs when an integer value is incremented to a value that is too large to store
+    in the associated representation. When this occurs, the value may wrap to become
+    a very small or negative number. While this may be intended behavior in circumstances
+    that rely on wrapping, it can have security consequences if the wrap is unexpected.
+    This is especially the case if the integer overflow can be triggered using user-supplied
+    inputs. This becomes security-critical when the result is used to control looping,
+    make a security decision, or determine the offset or size in behaviors such as
+    memory allocation, copying, concatenation, etc. When influenced by the size of
+    an input it is often easier to overflow a short than an int.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (short $LEN) = strlen(...);
+  - pattern: (short int $LEN) = strlen(...);
+  - pattern: (unsigned short $LEN) = strlen(...);
+  - pattern: (unsigned short int $LEN) = strlen(...);
+  - pattern: (short $LEN) = wcslen(...);
+  - pattern: (short int $LEN) = wcslen(...);
+  - pattern: (unsigned short $LEN) = wcslen(...);
+  - pattern: (unsigned short int $LEN) = wcslen(...);
+- id: raptor-write-into-stack-buffer
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/121
+    - https://github.com/googleprojectzero/weggli
+    confidence: LOW
+  message: The software directly writes into a stack buffer. This might lead to a
+    stack-based buffer overflow.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - pattern-not: $FUN($BUF, "...", ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strcpy
+        - pattern: strncpy
+        - pattern: stpcpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: wcscpy
+        - pattern: wcsncpy
+        - pattern: wcpcpy
+        - pattern: wcpncpy
+        - pattern: wcslcpy
+        - pattern: strcat
+        - pattern: strncat
+        - pattern: strlcat
+        - pattern: wcscat
+        - pattern: wcsncat
+        - pattern: wcslcat
+        - pattern: memcpy
+        - pattern: memccpy
+        - pattern: memmove
+        - pattern: memset
+        - pattern: wmemcpy
+        - pattern: wmemmove
+        - pattern: wmemset
+  - patterns:
+    - pattern: $FUN($BUF, $FMT, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, $FMT, ...);
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: sprintf
+        - pattern: vsprintf
+  - patterns:
+    - pattern: $FUN($BUF, $LEN, $FMT, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, $LEN, $FMT, ...);
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: gets
+        - pattern: fgets
+        - pattern: getwd
+        - pattern: getcwd
+  - patterns:
+    - pattern: $FUN($ARG1, $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($ARG1, $BUF, ...);
+
+        '
+    - pattern-not: $FUN("...", $BUF, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: bcopy
+  - patterns:
+    - pattern: $FUN($ARG1, $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($ARG1, $BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: read
+        - pattern: pread
+        - pattern: recv
+        - pattern: recvfrom
+- id: raptor-write-into-stack-buffer-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/121
+    - https://github.com/googleprojectzero/weggli
+    confidence: MEDIUM
+  message: The software directly writes into a stack buffer. This might lead to a
+    stack-based buffer overflow.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - pattern-not: $FUN($BUF, "...", ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strcpy
+        - pattern: strncpy
+        - pattern: stpcpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: strscpy
+        - pattern: wcscpy
+        - pattern: wcsncpy
+        - pattern: wcpcpy
+        - pattern: wcpncpy
+        - pattern: wcslcpy
+        - pattern: strcat
+        - pattern: strncat
+        - pattern: strlcat
+        - pattern: wcscat
+        - pattern: wcsncat
+        - pattern: wcslcat
+        - pattern: memcpy
+        - pattern: memccpy
+        - pattern: memmove
+        - pattern: memset
+        - pattern: wmemcpy
+        - pattern: wmemmove
+        - pattern: wmemset
+  - patterns:
+    - pattern: $FUN($BUF, $FMT, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($BUF, $FMT, ...);
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: sprintf
+        - pattern: vsprintf
+  - patterns:
+    - pattern: $FUN($BUF, $N, $FMT, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($BUF, $N, $FMT, ...);
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: gets
+        - pattern: fgets
+        - pattern: getwd
+        - pattern: getcwd
+        - pattern: fread
+  - patterns:
+    - pattern: $FUN($ARG1, $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($ARG1, $BUF, ...);
+
+        '
+    - pattern-not: $FUN("...", $BUF, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: bcopy
+  - patterns:
+    - pattern: $FUN($ARG1, $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($ARG1, $BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: read
+        - pattern: pread
+        - pattern: recv
+        - pattern: recvfrom
+- id: c.lang.security.double-free.double-free
+  patterns:
+  - pattern: 'free($VAR);
+
+      ...
+
+      free($VAR);
+
+      '
+  - pattern-not: 'free($VAR);
+
+      ...
+
+      $VAR = NULL;
+
+      ...
+
+      free($VAR);
+
+      '
+  - pattern-not: 'free($VAR);
+
+      ...
+
+      $VAR = malloc(...);
+
+      ...
+
+      free($VAR);
+
+      '
+  message: Variable '$VAR' was freed twice. This can lead to undefined behavior.
+  metadata:
+    references:
+    - https://owasp.org/www-community/vulnerabilities/Doubly_freeing_memory
+    category: security
+    technology:
+    - c
+    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+    source: https://semgrep.dev/r/c.lang.security.double-free.double-free
+  languages:
+  - c
+  severity: ERROR
+- id: c.lang.security.insecure-use-printf-fn.insecure-use-printf-fn
+  message: Avoid using user-controlled format strings passed into 'sprintf', 'printf'
+    and 'vsprintf'. These functions put you at risk of buffer overflow vulnerabilities
+    through the use of format string exploits. Instead, use 'snprintf' and 'vsnprintf'.
+  metadata:
+    references:
+    - https://doc.castsoftware.com/display/SBX/Never+use+sprintf%28%29+or+vsprintf%28%29+functions
+    - https://www.cvedetails.com/cwe-details/134/Uncontrolled-Format-String.html
+    category: security
+    technology:
+    - c
+    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+    source: https://semgrep.dev/r/c.lang.security.insecure-use-printf-fn.insecure-use-printf-fn
+  languages:
+  - c
+  severity: WARNING
+  pattern-either:
+  - pattern: '$FUNC($BUFFER, argv[$NUM], ...);
+
+      ...
+
+      vsprintf(..., $BUFFER, ...);
+
+      '
+  - pattern: vsprintf(..., argv[$NUM], ...)
+  - pattern: '$FUNC($BUFFER, argv[$NUM], ...);
+
+      ...
+
+      sprintf(..., $BUFFER, ...);
+
+      '
+  - pattern: sprintf(...,argv[$NUM],...)
+  - pattern: '$FUNC($BUFFER, argv[$NUM], ...);
+
+      ...
+
+      printf(..., $BUFFER, ...);
+
+      '
+  - pattern: printf(...,argv[$NUM],...)
+- id: raptor-incorrect-use-of-sprintf-snprintf
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://linux.die.net/man/3/sprintf
+    confidence: MEDIUM
+  message: C standards specify that the results are undefined if a call to sprintf(),
+    snprintf(), vsprintf(), or vsnprintf() would cause copying to take place between
+    objects that overlap (e.g., if the target string array and one of the supplied
+    input arguments refer to the same buffer).
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: sprintf($DST, ..., $DST, ...)
+  - pattern: snprintf($DST, $N, ..., $DST, ...)
+- id: raptor-insecure-api-ato
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Dangerous Method or Function
+    likelihood: LOW
+    impact: MEDIUM
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-839: Numeric Range Comparison Without Minimum Check'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://rules.sonarsource.com/c/type/Bug/RSPEC-989
+    - https://wiki.sei.cmu.edu/confluence/display/c/ERR34-C.+Detect+errors+when+converting+a+string+to+a+number
+    - https://github.com/vixie/cron/commit/9cc8ab1087bb9ab861dd5595c41200683c9f6712
+  message: The atoi(), atol(), atof(), and similar functions don't handle errors.
+    They don't check for integer overflow and can return a negative value.  They have
+    undefined behavior if the value of the result cannot be  represented. They return
+    0 (or 0.0) if the string does not represent  an integer (or decimal), which is
+    indistinguishable from a correctly  formatted, zero-denoting input string.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: atoi(...)
+  - pattern: atol(...)
+  - pattern: atof(...)
+  - pattern: atoll(...)
+- id: raptor-insecure-api-scanf-etc
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/676
+    - https://cwe.mitre.org/data/definitions/120
+    - https://cwe.mitre.org/data/definitions/787
+    - https://g.co/kgs/PCHQjJ
+    confidence: HIGH
+  message: A buffer overflow condition exists when a program attempts to put more
+    data in a buffer than it can hold, or when a program attempts to put data in a
+    memory area outside of the boundaries of a buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: scanf($FMT, ...)
+    - pattern: vscanf($FMT, ...)
+    - pattern: fscanf($FS, $FMT, ...)
+    - pattern: vfscanf($FS, $FMT, ...)
+    - pattern: sscanf($BUF, $FMT, ...)
+    - pattern: vsscanf($BUF, $FMT, ...)
+    - pattern: wscanf($FMT, ...)
+    - pattern: vwscanf($FMT, ...)
+    - pattern: fwscanf($FS, $FMT, ...)
+    - pattern: vfwscanf($FS, $FMT, ...)
+    - pattern: swscanf($BUF, $FMT, ...)
+    - pattern: vswscanf($BUF, $FMT, ...)
+  - metavariable-regex:
+      metavariable: $FMT
+      regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+- id: raptor-insecure-api-sprintf-vsprintf
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/676
+    - https://cwe.mitre.org/data/definitions/120
+    - https://cwe.mitre.org/data/definitions/787
+    - https://g.co/kgs/PCHQjJ
+    confidence: HIGH
+  message: A buffer overflow condition exists when a program attempts to put more
+    data in a buffer than it can hold, or when a program attempts to put data in a
+    memory area outside of the boundaries of a buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: sprintf($BUF, $FMT, ...)
+    - pattern: vsprintf($BUF, $FMT, ...)
+  - metavariable-regex:
+      metavariable: $FMT
+      regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+- id: raptor-insecure-api-strcpy-stpcpy-strcat
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/676
+    - https://cwe.mitre.org/data/definitions/120
+    - https://cwe.mitre.org/data/definitions/787
+    - https://g.co/kgs/PCHQjJ
+    confidence: HIGH
+  message: A buffer overflow condition exists when a program attempts to put more
+    data in a buffer than it can hold, or when a program attempts to put data in a
+    memory area outside of the boundaries of a buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: strcpy(...)
+    - pattern: stpcpy(...)
+    - pattern: strcat(...)
+    - pattern: wcscpy(...)
+    - pattern: wcpcpy(...)
+    - pattern: wcscat(...)
+  - pattern-not: $FUN($BUF, "...", ...)
+- id: raptor-integer-truncation-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/197
+    - https://cwe.mitre.org/data/definitions/681
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    confidence: MEDIUM
+  message: Truncation errors occur when a primitive is cast to a primitive of a  smaller
+    size and data is lost in the conversion. The value cannot be  trusted and the
+    application will be in an undefined state.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (char $NARROW) = <... (short $LARGE) ...>
+  - pattern: (char $NARROW) = <... (short int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned short $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned short int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (long $LARGE) ...>
+  - pattern: (char $NARROW) = <... (long int $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (char $NARROW) = <... (unsigned long int $LARGE) ...>
+  - patterns:
+    - pattern-either:
+      - pattern: 'char $FUN(...)
+
+          {
+
+          ...
+
+          return (short $LARGE);
+
+          }
+
+          '
+      - pattern: 'char $FUN(...)
+
+          {
+
+          ...
+
+          return (int $LARGE);
+
+          }
+
+          '
+      - pattern: 'char $FUN(...)
+
+          {
+
+          ...
+
+          return (long $LARGE);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+  - pattern: (short $NARROW) = <... (unsigned short $LARGE) ...>
+  - pattern: (short int $NARROW) = <... (unsigned short int $LARGE) ...>
+  - pattern: (short $NARROW) = <... (int $LARGE) ...>
+  - pattern: (short $NARROW) = <... (unsigned $LARGE) ...>
+  - pattern: (short int $NARROW) = <... (unsigned int $LARGE) ...>
+  - pattern: (short $NARROW) = <... (long $LARGE) ...>
+  - pattern: (short int $NARROW) = <... (long int $LARGE) ...>
+  - pattern: (short $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (short int $NARROW) = <... (unsigned long int $LARGE) ...>
+  - pattern: (unsigned short $NARROW) = <... (int $LARGE) ...>
+  - pattern: (unsigned short $NARROW) = <... (unsigned $LARGE) ...>
+  - pattern: (unsigned short int $NARROW) = <... (unsigned int $LARGE) ...>
+  - pattern: (unsigned short $NARROW) = <... (long $LARGE) ...>
+  - pattern: (unsigned short int $NARROW) = <... (long int $LARGE) ...>
+  - pattern: (unsigned short $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (unsigned short int $NARROW) = <... (unsigned long int $LARGE) ...>
+  - patterns:
+    - pattern-either:
+      - pattern: 'short $FUN(...)
+
+          {
+
+          ...
+
+          return (int $LARGE);
+
+          }
+
+          '
+      - pattern: 'short $FUN(...)
+
+          {
+
+          ...
+
+          return (long $LARGE);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+  - pattern: (int $NARROW) = <... (unsigned $LARGE) ...>
+  - pattern: (int $NARROW) = <... (unsigned int $LARGE) ...>
+  - pattern: (int $NARROW) = <... (long $LARGE) ...>
+  - pattern: (int $NARROW) = <... (long int $LARGE) ...>
+  - pattern: (int $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (int $NARROW) = <... (unsigned long int $LARGE) ...>
+  - patterns:
+    - pattern: 'int $FUN(...)
+
+        {
+
+        ...
+
+        return (long $LARGE);
+
+        }
+
+        '
+    - focus-metavariable: $FUN
+  - pattern: (long $NARROW) = <... (unsigned long $LARGE) ...>
+  - pattern: (long int $NARROW) = <... (unsigned long int $LARGE) ...>
+- id: raptor-missing-return
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/393
+    - https://cwe.mitre.org/data/definitions/394
+    confidence: LOW
+  message: A non-void function does not have a return statement. Hence, its return
+    value can be considered undefined.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: $TYPE $FUN($ARG, ...) { ... }
+  - pattern-not: $TYPE $FUN(...);
+  - pattern-not: $TYPE $FUN(...) { ... return $RET; }
+  - pattern-not: int main(...) { ... }
+  - pattern-not: void $FUN(...) { ... }
+  - focus-metavariable: $FUN
+- id: raptor-signed-unsigned-conversion-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/195
+    - https://cwe.mitre.org/data/definitions/196
+    - https://cwe.mitre.org/data/definitions/194
+    - https://cwe.mitre.org/data/definitions/191
+    - https://cwe.mitre.org/data/definitions/681
+    - https://cwe.mitre.org/data/definitions/789
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    confidence: LOW
+  message: The software uses a signed primitive and performs a cast to an unsigned
+    primitive, or uses an unsigned primitive and performs a cast to a signed primitive,
+    which can produce an unexpected value. When the result of a function is to be
+    used as a size parameter, using negative return values can have unexpected results.
+    Although less frequent an issue, unsigned-to-signed conversion can be  the precursor
+    to buffer underwrite conditions. Buffer underwrites  occur frequently when large
+    unsigned values are cast to signed values,  and then used as indexes into a buffer
+    or for pointer arithmetic.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (unsigned int $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: (unsigned $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: (size_t $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: (size_t $UNSIGNED) = <... (off_t $SIGNED) ...>
+  - patterns:
+    - pattern-either:
+      - pattern: 'unsigned int $FUN(...)
+
+          {
+
+          ...
+
+          return (int $SIGNED);
+
+          }
+
+          '
+      - pattern: 'unsigned $FUN(...)
+
+          {
+
+          ...
+
+          return (int $SIGNED);
+
+          }
+
+          '
+      - pattern: 'size_t $FUN(...)
+
+          {
+
+          ...
+
+          return (int $SIGNED);
+
+          }
+
+          '
+      - pattern: 'size_t $FUN(...)
+
+          {
+
+          ...
+
+          return (off_t $SIGNED);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+  - pattern: strncpy($DST, $SRC, (int $LEN))
+  - pattern: stpncpy($DST, $SRC, (int $LEN))
+  - pattern: strncat($DST, $SRC, (int $LEN))
+  - pattern: strlcpy($DST, $SRC, (int $LEN))
+  - pattern: strlcat($DST, $SRC, (int $LEN))
+  - pattern: snprintf($BUF, (int $LEN), ...)
+  - pattern: vsnprintf($BUF, (int $LEN), ...)
+  - pattern: getcwd($BUF, (int $LEN))
+  - pattern: memcpy($DST, $SRC, (int $LEN))
+  - pattern: memccpy($DST, $SRC, $CHAR, (int $LEN))
+  - pattern: memmove($DST, $SRC, (int $LEN))
+  - pattern: memset($DST, $CHAR, (int $LEN))
+  - pattern: bcopy($SRC, $DST, (int $LEN))
+  - pattern: alloca((int $LEN))
+  - pattern: malloc((int $LEN))
+  - pattern: calloc($CNT, (int $LEN))
+  - pattern: calloc((int $CNT), $LEN)
+  - pattern: realloc($PTR, (int $LEN))
+  - pattern: read($FD, $BUF, (int $LEN))
+  - pattern: recv($SD, $BUF, (int $LEN), $FL)
+  - pattern: recvfrom($SD, $BUF, (int $LEN), $FL, ...)
+  - pattern: fread($PTR, (int $LEN), $NITEMS, $FS)
+  - pattern: (int $SIGNED) = <... (unsigned int $UNSIGNED) ...>
+  - pattern: (int $SIGNED) = <... (unsigned $UNSIGNED) ...>
+  - pattern: (int $SIGNED) = <... (size_t $UNSIGNED) ...>
+  - pattern: (off_t $SIGNED) = <... (size_t $UNSIGNED) ...>
+  - patterns:
+    - pattern-either:
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (unsigned int $UNSIGNED);
+
+          }
+
+          '
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (unsigned $UNSIGNED);
+
+          }
+
+          '
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (size_t $UNSIGNED);
+
+          }
+
+          '
+      - pattern: 'off_t $FUN(...)
+
+          {
+
+          ...
+
+          return (size_t $UNSIGNED);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+- id: raptor-write-into-stack-buffer-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/121
+    - https://github.com/googleprojectzero/weggli
+    confidence: MEDIUM
+  message: The software directly writes into a stack buffer. This might lead to a
+    stack-based buffer overflow.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - pattern-not: $FUN($BUF, "...", ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strcpy
+        - pattern: strncpy
+        - pattern: stpcpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: wcscpy
+        - pattern: wcsncpy
+        - pattern: wcpcpy
+        - pattern: wcpncpy
+        - pattern: wcslcpy
+        - pattern: strcat
+        - pattern: strncat
+        - pattern: strlcat
+        - pattern: wcscat
+        - pattern: wcsncat
+        - pattern: wcslcat
+        - pattern: memcpy
+        - pattern: memccpy
+        - pattern: memmove
+        - pattern: memset
+        - pattern: wmemcpy
+        - pattern: wmemmove
+        - pattern: wmemset
+  - patterns:
+    - pattern: $FUN($BUF, $FMT, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($BUF, $FMT, ...);
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: sprintf
+        - pattern: vsprintf
+  - patterns:
+    - pattern: $FUN($BUF, $N, $FMT, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($BUF, $N, $FMT, ...);
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: gets
+        - pattern: fgets
+        - pattern: getwd
+        - pattern: getcwd
+        - pattern: fread
+  - patterns:
+    - pattern: $FUN($ARG1, $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($ARG1, $BUF, ...);
+
+        '
+    - pattern-not: $FUN("...", $BUF, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: bcopy
+  - patterns:
+    - pattern: $FUN($ARG1, $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $FUN($ARG1, $BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: read
+        - pattern: pread
+        - pattern: recv
+        - pattern: recvfrom
+- id: raptor-incorrect-unsigned-comparison-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Improper Validation
+    likelihood: LOW
+    impact: MEDIUM
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-697: Incorrect Comparison'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+  message: Checking if an unsigned variable is negative makes no sense and is usually
+    a good indication that something is probably wrong with the code.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (unsigned short $_) < 0
+  - pattern: (unsigned short int $_) < 0
+  - pattern: (unsigned int $_) < 0
+  - pattern: (unsigned long $_) < 0
+  - pattern: (unsigned long int $_) < 0
+  - pattern: (size_t $_) < 0
+  - pattern: (unsigned short $_) <= 0
+  - pattern: (unsigned short int $_) <= 0
+  - pattern: (unsigned int $_) <= 0
+  - pattern: (unsigned long $_) <= 0
+  - pattern: (unsigned long int $_) <= 0
+  - pattern: (size_t $_) <= 0
+  - pattern: (unsigned short $_) >= 0
+  - pattern: (unsigned short int $_) >= 0
+  - pattern: (unsigned int $_) >= 0
+  - pattern: (unsigned long $_) >= 0
+  - pattern: (unsigned long int $_) >= 0
+  - pattern: (size_t $_) >= 0
+- id: raptor-insecure-api-gets
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Dangerous Method or Function
+    likelihood: HIGH
+    impact: HIGH
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-242: Use of Inherently Dangerous Function'
+    - 'CWE-120: Buffer Copy without Checking Size of Input (''Classic Buffer Overflow'')'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+  message: The gets() function is always unsafe because it does not perform bounds  checking
+    on the size of its input. An attacker can easily send  arbitrarily-sized input
+    to gets() and overflow the destination buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern: gets(...)
+- id: raptor-insecure-api-scanf
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Dangerous Method or Function
+    likelihood: HIGH
+    impact: HIGH
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-676: Use of Potentially Dangerous Function'
+    - 'CWE-120: Buffer Copy without Checking Size of Input (''Classic Buffer Overflow'')'
+    - 'CWE-787: Out-of-bounds Write'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+  message: A buffer overflow condition exists when a program attempts to put more
+    data in a buffer than it can hold, or when a program attempts to put data in a
+    memory area outside of the boundaries of a buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: scanf($FMT, ...)
+    - pattern: __isoc99_scanf($FMT, ...)
+    - pattern: vscanf($FMT, ...)
+    - pattern: __isoc99_vscanf($FMT, ...)
+    - pattern: fscanf($_, $FMT, ...)
+    - pattern: __isoc99_fscanf($_, $FMT, ...)
+    - pattern: vfscanf($_, $FMT, ...)
+    - pattern: __isoc99_vfscanf($_, $FMT, ...)
+    - pattern: sscanf($_, $FMT, ...)
+    - pattern: __isoc99_sscanf($_, $FMT, ...)
+    - pattern: vsscanf($_, $FMT, ...)
+    - pattern: __isoc99_vsscanf($_, $FMT, ...)
+    - pattern: wscanf($FMT, ...)
+    - pattern: vwscanf($FMT, ...)
+    - pattern: fwscanf($_, $FMT, ...)
+    - pattern: vfwscanf($_, $FMT, ...)
+    - pattern: swscanf($_, $FMT, ...)
+    - pattern: vswscanf($_, $FMT, ...)
+  - pattern-not: sscanf("...", $FMT, ...)
+  - pattern-not: __isoc99_sscanf("...", $FMT, ...)
+  - pattern-not: vsscanf("...", $FMT, ...)
+  - pattern-not: __isoc99_vsscanf("...", $FMT, ...)
+  - pattern-not: swscanf("...", $FMT, ...)
+  - pattern-not: vswscanf("...", $FMT, ...)
+  - metavariable-regex:
+      metavariable: $FMT
+      regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+- id: raptor-insecure-api-sprintf-vsprintf-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Dangerous Method or Function
+    likelihood: HIGH
+    impact: HIGH
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-676: Use of Potentially Dangerous Function'
+    - 'CWE-120: Buffer Copy without Checking Size of Input (''Classic Buffer Overflow'')'
+    - 'CWE-787: Out-of-bounds Write'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+  message: A buffer overflow condition exists when a program attempts to put more
+    data in a buffer than it can hold, or when a program attempts to put data in a
+    memory area outside of the boundaries of a buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: sprintf($_, $FMT, ...)
+    - pattern: vsprintf($_, $FMT, ...)
+  - metavariable-regex:
+      metavariable: $FMT
+      regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+- id: raptor-insecure-api-strcpy-strcat
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Dangerous Method or Function
+    likelihood: HIGH
+    impact: HIGH
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-676: Use of Potentially Dangerous Function'
+    - 'CWE-120: Buffer Copy without Checking Size of Input (''Classic Buffer Overflow'')'
+    - 'CWE-787: Out-of-bounds Write'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+  message: A buffer overflow condition exists when a program attempts to put more
+    data in a buffer than it can hold, or when a program attempts to put data in a
+    memory area outside of the boundaries of a buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: strcpy(...)
+    - pattern: stpcpy(...)
+    - pattern: strcat(...)
+    - pattern: wcscpy(...)
+    - pattern: wcpcpy(...)
+    - pattern: wcscat(...)
+    - pattern: _mbscpy(...)
+    - pattern: _mbscat(...)
+    - pattern: strccpy(...)
+    - pattern: strcadd(...)
+    - pattern: streadd(...)
+    - pattern: strecpy(...)
+    - pattern: strtrns(...)
+  - pattern-not: $_($_, "...", ...)
+- id: raptor-integer-truncation-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Other Security
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: LOW
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-197: Numeric Truncation Error'
+    - 'CWE-681: Incorrect Conversion between Numeric Types'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+  message: Truncation errors occur when a primitive is cast to a primitive of a  smaller
+    size and data is lost in the conversion. The value cannot be  trusted and the
+    application will be in an undefined state.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: (char $_) = <... (short $_) ...>
+      - pattern: (char $_) = <... (short int $_) ...>
+      - pattern: (char $_) = <... (unsigned short $_) ...>
+      - pattern: (char $_) = <... (unsigned short int $_) ...>
+      - pattern: (char $_) = <... (int $_) ...>
+      - pattern: (char $_) = <... (unsigned $_) ...>
+      - pattern: (char $_) = <... (unsigned int $_) ...>
+      - pattern: (char $_) = <... (long $_) ...>
+      - pattern: (char $_) = <... (long int $_) ...>
+      - pattern: (char $_) = <... (unsigned long $_) ...>
+      - pattern: (char $_) = <... (unsigned long int $_) ...>
+    - pattern-not: $_ = 0
+  - patterns:
+    - pattern-either:
+      - pattern: 'char $FUN(...)
+
+          {
+
+          ...
+
+          return (short $_);
+
+          }
+
+          '
+      - pattern: 'char $FUN(...)
+
+          {
+
+          ...
+
+          return (int $_);
+
+          }
+
+          '
+      - pattern: 'char $FUN(...)
+
+          {
+
+          ...
+
+          return (long $_);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+  - patterns:
+    - pattern-either:
+      - pattern: (short $_) = <... (unsigned short $_) ...>
+      - pattern: (short int $_) = <... (unsigned short int $_) ...>
+      - pattern: (short $_) = <... (int $_) ...>
+      - pattern: (short $_) = <... (unsigned $_) ...>
+      - pattern: (short int $_) = <... (unsigned int $_) ...>
+      - pattern: (short $_) = <... (long $_) ...>
+      - pattern: (short int $_) = <... (long int $_) ...>
+      - pattern: (short $_) = <... (unsigned long $_) ...>
+      - pattern: (short int $_) = <... (unsigned long int $_) ...>
+      - pattern: (unsigned short $_) = <... (int $_) ...>
+      - pattern: (unsigned short int $_) = <... (unsigned int $_) ...>
+      - pattern: (unsigned short $_) = <... (long $_) ...>
+      - pattern: (unsigned short int $_) = <... (long int $_) ...>
+      - pattern: (unsigned short $_) = <... (unsigned long $_) ...>
+      - pattern: (unsigned short int $_) = <... (unsigned long int $_) ...>
+    - pattern-not: $_ = 0
+  - patterns:
+    - pattern-either:
+      - pattern: 'short $FUN(...)
+
+          {
+
+          ...
+
+          return (int $_);
+
+          }
+
+          '
+      - pattern: 'short $FUN(...)
+
+          {
+
+          ...
+
+          return (long $_);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+  - patterns:
+    - pattern-either:
+      - pattern: (int $_) = <... (unsigned $_) ...>
+      - pattern: (int $_) = <... (unsigned int $_) ...>
+      - pattern: (int $_) = <... (long $_) ...>
+      - pattern: (int $_) = <... (long int $_) ...>
+      - pattern: (int $_) = <... (unsigned long $_) ...>
+      - pattern: (int $_) = <... (unsigned long int $_) ...>
+    - pattern-not: $_ = 0
+  - patterns:
+    - pattern: 'int $FUN(...)
+
+        {
+
+        ...
+
+        return (long $_);
+
+        }
+
+        '
+    - focus-metavariable: $FUN
+  - patterns:
+    - pattern-either:
+      - pattern: (long $_) = <... (unsigned long $_) ...>
+      - pattern: (long int $_) = <... (unsigned long int $_) ...>
+    - pattern-not: $_ = 0
+- id: raptor-integer-wraparound-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Memory Issues
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-190: Integer Overflow or Wraparound'
+    - 'CWE-128: Wrap-around Error'
+    - 'CWE-131: Incorrect Calculation of Buffer Size'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    - https://dustri.org/b/playing-with-weggli.html
+  message: The software performs a calculation that can produce an integer overflow
+    or wraparound, when the logic assumes that the resulting value will always be
+    larger than the original value. This can introduce other weaknesses when the calculation
+    is used for resource management or execution control.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: $FUN($_ * $_)
+      - pattern: $FUN($_ *= $_)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($N)
+    - pattern-either:
+      - pattern-inside: '$N = $_ * $_;
+
+          ...
+
+          '
+      - pattern-inside: '$N *= $_;
+
+          ...
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern-either:
+      - pattern: $FUN($_ + $_)
+      - pattern: $FUN($_ += $_)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($N)
+    - pattern-either:
+      - pattern-inside: '$N = $_ + $_;
+
+          ...
+
+          '
+      - pattern-inside: '$N += $_;
+
+          ...
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern-either:
+      - pattern: $FUN($_, $_ * $_, ...)
+      - pattern: $FUN($_, $_ *= $_, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+        - pattern: VirtualAlloc
+  - patterns:
+    - pattern: $FUN($_, $N, ...)
+    - pattern-either:
+      - pattern-inside: '$N = $_ * $_;
+
+          ...
+
+          '
+      - pattern-inside: '$N *= $_;
+
+          ...
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+        - pattern: VirtualAlloc
+  - patterns:
+    - pattern-either:
+      - pattern: $FUN($_, $_ + $_, ...)
+      - pattern: $FUN($_, $_ += $_, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+        - pattern: VirtualAlloc
+  - patterns:
+    - pattern: $FUN($_, $N, ...)
+    - pattern-either:
+      - pattern-inside: '$N = $_ + $_;
+
+          ...
+
+          '
+      - pattern-inside: '$N += $_;
+
+          ...
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+        - pattern: VirtualAlloc
+  - patterns:
+    - pattern-either:
+      - pattern: $FUN($_ * $_, $_)
+      - pattern: $FUN($_ *= $_, $_)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+  - patterns:
+    - pattern: $FUN($N, $_)
+    - pattern-either:
+      - pattern-inside: '$N = $_ * $_;
+
+          ...
+
+          '
+      - pattern-inside: '$N *= $_;
+
+          ...
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+  - patterns:
+    - pattern-either:
+      - pattern: $FUN($_ + $_, $_)
+      - pattern: $FUN($_ += $_, $_)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+  - patterns:
+    - pattern: $FUN($N, $_)
+    - pattern-either:
+      - pattern-inside: '$N = $_ + $_;
+
+          ...
+
+          '
+      - pattern-inside: '$N += $_;
+
+          ...
+
+          '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+  - pattern: $X > $MAX || ($X + $_) > $MAX
+  - pattern: $X >= $MAX || ($X + $_) > $MAX
+  - pattern: $X > $MAX || ($X + $_) >= $MAX
+  - pattern: $X >= $MAX || ($X + $_) >= $MAX
+  - pattern: $X < $MAX && ($X + $_) < $MAX
+  - pattern: $X <= $MAX && ($X + $_) < $MAX
+  - pattern: $X < $MAX && ($X + $_) <= $MAX
+  - pattern: $X <= $MAX && ($X + $_) <= $MAX
+  - pattern: $X > $MAX || ($X * $_) > $MAX
+  - pattern: $X >= $MAX || ($X * $_) > $MAX
+  - pattern: $X > $MAX || ($X * $_) >= $MAX
+  - pattern: $X >= $MAX || ($X * $_) >= $MAX
+  - pattern: $X < $MAX && ($X * $_) < $MAX
+  - pattern: $X <= $MAX && ($X * $_) < $MAX
+  - pattern: $X < $MAX && ($X * $_) <= $MAX
+  - pattern: $X <= $MAX && ($X * $_) <= $MAX
+- id: raptor-missing-return-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Other Security
+    likelihood: LOW
+    impact: LOW
+    confidence: LOW
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-393: Return of Wrong Status Code'
+    - 'CWE-394: Unexpected Status Code or Return Value'
+    owasp:
+    - A08:2025 - Software or Data Integrity Failures
+    references:
+    - https://stackoverflow.com/questions/10858391/why-do-programs-in-c-compile-even-when-the-return-statement-is-missing
+  message: A non-void function does not have a return statement. Hence, its return
+    value can be considered undefined.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: $_ $FUN(...) { ... }
+  - pattern-not: $_ $FUN(...);
+  - pattern-not: $_ $FUN(...) { ... return $_; }
+  - pattern-not: int main(...) { ... }
+  - pattern-not: void $FUN(...) { ... }
+  - focus-metavariable: $FUN
+- id: raptor-overlapping-source-destination
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Memory Issues
+    likelihood: LOW
+    impact: MEDIUM
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-1260: Improper Handling of Overlap Between Protected Memory Ranges'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://linux.die.net/man/3/sprintf
+  message: C standards specify that the results are undefined if a call to copy functions,
+    with the exception of memmove(), would cause copying to take place between objects
+    that overlap (e.g., if the target string array and one of the supplied input arguments
+    refer to the same buffer).
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($DST, $DST, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strcpy
+        - pattern: strncpy
+        - pattern: stpcpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: strscpy
+        - pattern: wcscpy
+        - pattern: wcsncpy
+        - pattern: wcpcpy
+        - pattern: wcpncpy
+        - pattern: wcslcpy
+        - pattern: _mbscpy
+        - pattern: _mbsncpy
+        - pattern: _mbpcpy
+        - pattern: _mbpncpy
+        - pattern: _mbslcpy
+        - pattern: strccpy
+        - pattern: strcadd
+        - pattern: streadd
+        - pattern: strecpy
+        - pattern: strcat
+        - pattern: strncat
+        - pattern: strlcat
+        - pattern: wcscat
+        - pattern: wcsncat
+        - pattern: wcslcat
+        - pattern: _mbscat
+        - pattern: _mbsncat
+        - pattern: _mbslcat
+        - pattern: memcpy
+        - pattern: memccpy
+        - pattern: wmemcpy
+        - pattern: mempcpy
+        - pattern: wmempcpy
+        - pattern: bcopy
+  - pattern: sprintf($DST, ..., $DST, ...)
+  - pattern: snprintf($DST, $_, ..., $DST, ...)
+- id: raptor-signed-unsigned-conversion-4
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Other Security
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: LOW
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-195: Signed to Unsigned Conversion Error'
+    - 'CWE-196: Unsigned to Signed Conversion Error'
+    - 'CWE-194: Unexpected Sign Extension'
+    - 'CWE-191: Integer Underflow (Wrap or Wraparound)'
+    - 'CWE-681: Incorrect Conversion between Numeric Types'
+    - 'CWE-789: Memory Allocation with Excessive Size Value'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+  message: The software uses a signed primitive and performs a cast to an unsigned
+    primitive, or uses an unsigned primitive and performs a cast to a signed primitive,
+    which can produce an unexpected value. When the result of a function is to be
+    used as a size parameter, using negative return values can have unexpected results.
+    Although less frequent an issue, unsigned-to-signed conversion can be  the precursor
+    to buffer underwrite conditions. Buffer underwrites  occur frequently when large
+    unsigned values are cast to signed values,  and then used as indexes into a buffer
+    or for pointer arithmetic.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: (unsigned int $_) = <... (int $_) ...>
+      - pattern: (unsigned $_) = <... (int $_) ...>
+      - pattern: (size_t $_) = <... (int $_) ...>
+      - pattern: (size_t $_) = <... (off_t $_) ...>
+    - pattern-not: $_ = 0
+  - patterns:
+    - pattern-either:
+      - pattern: 'unsigned int $FUN(...)
+
+          {
+
+          ...
+
+          return (int $_);
+
+          }
+
+          '
+      - pattern: 'unsigned $FUN(...)
+
+          {
+
+          ...
+
+          return (int $_);
+
+          }
+
+          '
+      - pattern: 'size_t $FUN(...)
+
+          {
+
+          ...
+
+          return (int $_);
+
+          }
+
+          '
+      - pattern: 'size_t $FUN(...)
+
+          {
+
+          ...
+
+          return (off_t $_);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+  - pattern: strncpy($_, $_, (int $_))
+  - pattern: stpncpy($_, $_, (int $_))
+  - pattern: strncat($_, $_, (int $_))
+  - pattern: strlcpy($_, $_, (int $_))
+  - pattern: strscpy($_, $_, (int $_))
+  - pattern: strlcat($_, $_, (int $_))
+  - pattern: snprintf($_, (int $_), ...)
+  - pattern: vsnprintf($_, (int $_), ...)
+  - pattern: swprintf($_, (int $_), ...)
+  - pattern: vswprintf($_, (int $_), ...)
+  - pattern: getcwd($_, (int $_))
+  - pattern: memcpy($_, $_, (int $_))
+  - pattern: mempcpy($_, $_, (int $_))
+  - pattern: memccpy($_, $_, $_, (int $_))
+  - pattern: memmove($_, $_, (int $_))
+  - pattern: memset($_, $_, (int $_))
+  - pattern: bcopy($_, $_, (int $_))
+  - pattern: alloca((int $_))
+  - pattern: malloc((int $_))
+  - pattern: calloc($_, (int $_))
+  - pattern: calloc((int $_), $_)
+  - pattern: realloc($_, (int $_))
+  - pattern: read($_, $_, (int $_))
+  - pattern: recv($_, $_, (int $_), $_)
+  - pattern: recvfrom($_, $_, (int $_), $_, ...)
+  - pattern: fread($_, (int $_), $_, $_)
+  - pattern: (int $_) = <... (unsigned int $_) ...>
+  - pattern: (int $_) = <... (unsigned $_) ...>
+  - pattern: (int $_) = <... (size_t $_) ...>
+  - pattern: (off_t $_) = <... (size_t $_) ...>
+  - patterns:
+    - pattern-either:
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (unsigned int $_);
+
+          }
+
+          '
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (unsigned $_);
+
+          }
+
+          '
+      - pattern: 'int $FUN(...)
+
+          {
+
+          ...
+
+          return (size_t $_);
+
+          }
+
+          '
+      - pattern: 'off_t $FUN(...)
+
+          {
+
+          ...
+
+          return (size_t $_);
+
+          }
+
+          '
+    - focus-metavariable: $FUN
+- id: raptor-typos
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Other Security
+    likelihood: LOW
+    impact: LOW
+    confidence: LOW
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-480: Use of Incorrect Operator'
+    - 'CWE-481: Assigning instead of Comparing'
+    - 'CWE-482: Comparing instead of Assigning'
+    - 'CWE-483: Incorrect Block Delimitation'
+    - 'CWE-705: Incorrect Control Flow Scoping'
+    - 'CWE-561: Dead Code'
+    - 'CWE-1164: Irrelevant Code'
+    owasp:
+    - A08:2025 - Software or Data Integrity Failures
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+  message: The programmer accidentally uses the wrong operator, which changes the
+    application logic in security-relevant ways. This rule also covers some other
+    common typo patterns.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: for ($_ == $_; $_; $_) ...
+  - patterns:
+    - pattern: $_ == $_;
+    - pattern-not-inside: return $_;
+    - pattern-not-inside: assert(...);
+  - patterns:
+    - pattern: if (<... $EXPR1 = $EXPR2 ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) == $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) != $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) < $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) <= $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) > $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) >= $_ ...>) ...
+  - patterns:
+    - pattern: if (<... $EXPR1 & $EXPR2 ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) == $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) != $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) < $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) <= $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) > $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) >= $_ ...>) ...
+  - patterns:
+    - pattern: if (<... $EXPR1 | $EXPR2 ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) == $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) != $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) < $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) <= $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) > $_ ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) >= $_ ...>) ...
+  - pattern: $_ =+ $_
+  - pattern: ($EXPR && $EXPR)
+  - pattern: ($EXPR || $EXPR)
+  - pattern: ($EXPR == $EXPR)
+  - pattern: ($EXPR != $EXPR)
+  - pattern: ($EXPR < $EXPR)
+  - pattern: ($EXPR <= $EXPR)
+  - pattern: ($EXPR > $EXPR)
+  - pattern: ($EXPR >= $EXPR)
+  - pattern: (char * $_) = '\0'
+  - pattern: (char * $_) == '\0'
+  - pattern: (char * $_) != '\0'
+  - pattern: if (<... strcpy(...) ...>) ...
+  - pattern: if (<... strncpy(...) ...>) ...
+  - pattern: if ($_);
+  - pattern: for ($_; $_; $_);
+  - patterns:
+    - pattern-either:
+      - pattern: $_ $_[$LEN];
+      - pattern: $_ $_[$LEN] = ...;
+    - metavariable-regex:
+        metavariable: $LEN
+        regex: ^0[^xX].*
+- id: raptor-unchecked-ret-malloc
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Memory Issues
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-252: Unchecked Return Value'
+    - 'CWE-690: Unchecked Return Value to NULL Pointer Dereference'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+  message: The software does not check the return value from a method or function,
+    which can prevent it from detecting unexpected states and conditions.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: $RET = $FUN(...)
+    - pattern: $RET = ($_)$FUN(...)
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: malloc
+      - pattern: calloc
+      - pattern: realloc
+      - pattern: reallocf
+      - pattern: valloc
+      - pattern: aligned_alloc
+      - pattern: strdup
+      - pattern: strndup
+  - pattern-not-inside: '$FUN(...);
+
+      ...
+
+      if (<... $RET ...>) ...
+
+      '
+  - pattern-not-inside: <... $_ == NULL ...>
+  - pattern-not-inside: <... NULL == $_ ...>
+  - pattern-not-inside: <... $_ != NULL ...>
+  - pattern-not-inside: <... NULL != $_ ...>
+  - pattern-not-inside: <... !$_ ...>
+- id: raptor-unsafe-strlen-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Other Security
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-190: Integer Overflow or Wraparound'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://github.com/struct/mms
+  message: The software performs a calculation that can produce an integer overflow
+    or wraparound, when the logic assumes that the resulting value will always be
+    larger than the original value. This can introduce other weaknesses when the calculation
+    is used for resource management or execution control. When influenced by the size
+    of an  input it is often easier to overflow a short than an int.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: (short $_) = $FUN(...);
+    - pattern: (short int $_) = $FUN(...);
+    - pattern: (unsigned short $_) = $FUN(...);
+    - pattern: (unsigned short int $_) = $FUN(...);
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: strlen
+      - pattern: lstrlen
+      - pattern: strnlen
+      - pattern: wcslen
+      - pattern: wcsnlen
+- id: raptor-write-into-stack-buffer-4
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Memory Issues
+    likelihood: LOW
+    impact: LOW
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-121: Stack-based Buffer Overflow'
+    owasp:
+    - A08:2025 - Software or Data Integrity Failures
+    references:
+    - https://github.com/googleprojectzero/weggli
+  message: The software directly writes into a stack buffer. This might lead to a
+    stack-based buffer overflow.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$_ $BUF[$_];
+
+        ...
+
+        '
+    - pattern-not-inside: 'static $_ $BUF[$_];
+
+        ...
+
+        '
+    - pattern-not: $FUN($BUF, "...", ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strcpy
+        - pattern: strncpy
+        - pattern: stpcpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: strscpy
+        - pattern: wcscpy
+        - pattern: wcsncpy
+        - pattern: wcpcpy
+        - pattern: wcpncpy
+        - pattern: wcslcpy
+        - pattern: _mbscpy
+        - pattern: _mbsncpy
+        - pattern: _mbpcpy
+        - pattern: _mbpncpy
+        - pattern: _mbslcpy
+        - pattern: strccpy
+        - pattern: strcadd
+        - pattern: streadd
+        - pattern: strecpy
+        - pattern: strcat
+        - pattern: strncat
+        - pattern: strlcat
+        - pattern: wcscat
+        - pattern: wcsncat
+        - pattern: wcslcat
+        - pattern: _mbscat
+        - pattern: _mbsncat
+        - pattern: _mbslcat
+        - pattern: memcpy
+        - pattern: memccpy
+        - pattern: mempcpy
+        - pattern: memmove
+        - pattern: memset
+        - pattern: wmemcpy
+        - pattern: wmempcpy
+        - pattern: wmemmove
+        - pattern: wmemset
+  - patterns:
+    - pattern: $FUN($BUF, $FMT, ...)
+    - pattern-inside: '$_ $BUF[$_];
+
+        ...
+
+        '
+    - pattern-not-inside: 'static $_ $BUF[$_];
+
+        ...
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: sprintf
+        - pattern: vsprintf
+  - patterns:
+    - pattern: $FUN($BUF, $_, $FMT, ...)
+    - pattern-inside: '$_ $BUF[$_];
+
+        ...
+
+        '
+    - pattern-not-inside: 'static $_ $BUF[$_];
+
+        ...
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+        - pattern: swprintf
+        - pattern: vswprintf
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$_ $BUF[$_];
+
+        ...
+
+        '
+    - pattern-not-inside: 'static $_ $BUF[$_];
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: gets
+        - pattern: fgets
+        - pattern: getwd
+        - pattern: getcwd
+        - pattern: fread
+  - patterns:
+    - pattern: $FUN($_, $BUF, ...)
+    - pattern-inside: '$_ $BUF[$_];
+
+        ...
+
+        '
+    - pattern-not-inside: 'static $_ $BUF[$_];
+
+        ...
+
+        '
+    - pattern-not: $FUN("...", $BUF, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: bcopy
+  - patterns:
+    - pattern: $FUN($_, $BUF, ...)
+    - pattern-inside: '$_ $BUF[$_];
+
+        ...
+
+        '
+    - pattern-not-inside: 'static $_ $BUF[$_];
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: read
+        - pattern: pread
+        - pattern: recv
+        - pattern: recvfrom
+- id: c_integer_rule-atoi-atol
+  languages:
+  - c
+  message: 'The `atoi` family of functions can potentially overflow or underflow integer
+    values. Consider
+
+    using `stroul` instead.
+
+
+    For more information please see:
+
+    https://wiki.sei.cmu.edu/confluence/display/c/ERR34-C.+Detect+errors+when+converting+a+string+to+a+number
+
+    '
+  metadata:
+    shortDescription: Possible integer overflow or underflow
+    cwe: CWE-190
+    owasp: A1:2017-Injection
+  pattern-either:
+  - pattern: atoi(...)
+  - pattern: atol(...)
+  - pattern: _wtoi(...)
+  - pattern: _wtoi64(...)
+  severity: INFO
+- id: raptor-integer-wraparound-4
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/190
+    - https://cwe.mitre.org/data/definitions/128
+    - https://cwe.mitre.org/data/definitions/131
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    - https://dustri.org/b/playing-with-weggli.html
+    confidence: LOW
+  message: The software performs a calculation that can produce an integer overflow
+    or wraparound, when the logic assumes that the resulting value will always be
+    larger than the original value. This can introduce other weaknesses when the calculation
+    is used for resource management or execution control.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($X * $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($N)
+    - pattern-inside: '$N = $X * $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($X + $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($N)
+    - pattern-inside: '$N = $X + $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: malloc
+        - pattern: valloc
+  - patterns:
+    - pattern: $FUN($ARG1, $X * $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+  - patterns:
+    - pattern: $FUN($ARG1, $N)
+    - pattern-inside: '$N = $X * $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+  - patterns:
+    - pattern: $FUN($ARG1, $X + $Y)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+  - patterns:
+    - pattern: $FUN($ARG1, $N)
+    - pattern-inside: '$N = $X + $Y;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: calloc
+        - pattern: realloc
+        - pattern: reallocf
+        - pattern: aligned_alloc
+- id: function-use-after-free
+  patterns:
+  - pattern-either:
+    - pattern: $FUNC(..., <... $VAR ...>, ...)
+    - pattern: $FUNC(..., <... $VAR->$ACCESSOR ...>, ...)
+    - pattern: $FUNC(..., <... (*$VAR).$ACCESSOR ...>, ...)
+    - pattern: $FUNC(..., <... $VAR[$NUM] ...>, ...)
+  - metavariable-regex:
+      metavariable: $FUNC
+      regex: (?!^free$)
+  - pattern-inside: free($VAR); ...
+  - pattern-not-inside: free($VAR); ... $VAR = NULL; ...
+  - pattern-not-inside: free($VAR); ... $VAR = malloc(...); ...
+  message: Variable '$VAR' was passed to a function after being freed. This can lead
+    to undefined behavior.
+  metadata:
+    cwe:
+    - 'CWE-416: Use After Free'
+    references:
+    - https://cwe.mitre.org/data/definitions/416.html
+    - https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/use_after_free/
+    category: security
+    technology:
+    - c
+    confidence: MEDIUM
+    cwe2022-top25: true
+    cwe2021-top25: true
+    subcategory:
+    - vuln
+    likelihood: LOW
+    impact: HIGH
+  languages:
+  - c
+  severity: WARNING
+- id: insecure-use-printf-fn-2
+  message: Avoid using user-controlled format strings passed into 'sprintf', 'printf'
+    and 'vsprintf'. These functions put you at risk of buffer overflow vulnerabilities
+    through the use of format string exploits. Instead, use 'snprintf' and 'vsnprintf'.
+  metadata:
+    cwe:
+    - 'CWE-134: Use of Externally-Controlled Format String'
+    references:
+    - https://doc.castsoftware.com/display/SBX/Never+use+sprintf%28%29+or+vsprintf%28%29+functions
+    - https://www.cvedetails.com/cwe-details/134/Uncontrolled-Format-String.html
+    category: security
+    technology:
+    - c
+    confidence: MEDIUM
+    subcategory:
+    - vuln
+    likelihood: MEDIUM
+    impact: HIGH
+  languages:
+  - c
+  severity: WARNING
+  patterns:
+  - pattern-either:
+    - pattern: '$FUNC($BUFFER, argv[$NUM], ...);
+
+        ...
+
+        vsprintf(..., $BUFFER, ...);
+
+        '
+    - pattern: vsprintf(..., argv[$NUM], ...)
+    - pattern: '$FUNC($BUFFER, argv[$NUM], ...);
+
+        ...
+
+        sprintf(..., $BUFFER, ...);
+
+        '
+    - pattern: sprintf(...,argv[$NUM],...)
+    - pattern: '$FUNC($BUFFER, argv[$NUM], ...);
+
+        ...
+
+        printf(..., $BUFFER, ...);
+
+        '
+    - pattern: printf(...,argv[$NUM],...)
+  - metavariable-comparison:
+      metavariable: $NUM
+      comparison: int($NUM) > 0
+- id: use-after-free
+  patterns:
+  - pattern-either:
+    - pattern: $VAR->$ACCESSOR
+    - pattern: (*$VAR).$ACCESSOR
+    - pattern: $VAR[$NUM]
+  - pattern-inside: free($VAR); ...
+  - pattern-not-inside: $VAR = NULL; ...
+  - pattern-not-inside: free($VAR); ... $VAR = malloc(...); ...
+  message: Variable '$VAR' was used after being freed. This can lead to undefined
+    behavior.
+  metadata:
+    cwe:
+    - 'CWE-416: Use After Free'
+    references:
+    - https://cwe.mitre.org/data/definitions/416.html
+    - https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/use_after_free/
+    category: security
+    technology:
+    - c
+    confidence: MEDIUM
+    cwe2022-top25: true
+    cwe2021-top25: true
+    subcategory:
+    - vuln
+    likelihood: LOW
+    impact: HIGH
+  languages:
+  - c
+  severity: WARNING
+- id: raptor-signed-unsigned-conversion-5
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/195
+    - https://cwe.mitre.org/data/definitions/196
+    - https://cwe.mitre.org/data/definitions/194
+    - https://cwe.mitre.org/data/definitions/191
+    - https://cwe.mitre.org/data/definitions/681
+    - https://cwe.mitre.org/data/definitions/789
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - http://www.phrack.org/issues/60/10.html#article
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    confidence: LOW
+  message: The software uses a signed primitive and performs a cast to an unsigned
+    primitive, or uses an unsigned primitive and performs a cast to a signed primitive,
+    which can produce an unexpected value. When the result of a function is to be
+    used as a size parameter, using negative return values can have unexpected results.
+    Although less frequent an issue, unsigned-to-signed conversion can be  the precursor
+    to buffer underwrite conditions. Buffer underwrites  occur frequently when large
+    unsigned values are cast to signed values,  and then used as indexes into a buffer
+    or for pointer arithmetic.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (unsigned int $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: 'unsigned int $FUN(...)
+
+      {
+
+      ...
+
+      return (int $SIGNED);
+
+      }
+
+      '
+  - pattern: (unsigned $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: 'unsigned $FUN(...)
+
+      {
+
+      ...
+
+      return (int $SIGNED);
+
+      }
+
+      '
+  - pattern: (size_t $UNSIGNED) = <... (int $SIGNED) ...>
+  - pattern: 'size_t $FUN(...)
+
+      {
+
+      ...
+
+      return (int $SIGNED);
+
+      }
+
+      '
+  - pattern: (size_t $UNSIGNED) = <... (off_t $SIGNED) ...>
+  - pattern: 'size_t $FUN(...)
+
+      {
+
+      ...
+
+      return (off_t $SIGNED);
+
+      }
+
+      '
+  - pattern: strncpy($DST, $SRC, (int $LEN))
+  - pattern: stpncpy($DST, $SRC, (int $LEN))
+  - pattern: strncat($DST, $SRC, (int $LEN))
+  - pattern: strlcpy($DST, $SRC, (int $LEN))
+  - pattern: strlcat($DST, $SRC, (int $LEN))
+  - pattern: snprintf($BUF, (int $LEN), ...)
+  - pattern: vsnprintf($BUF, (int $LEN), ...)
+  - pattern: getcwd($BUF, (int $LEN))
+  - pattern: memcpy($DST, $SRC, (int $LEN))
+  - pattern: memccpy($DST, $SRC, $CHAR, (int $LEN))
+  - pattern: memmove($DST, $SRC, (int $LEN))
+  - pattern: memset($DST, $CHAR, (int $LEN))
+  - pattern: bcopy($SRC, $DST, (int $LEN))
+  - pattern: alloca((int $LEN))
+  - pattern: malloc((int $LEN))
+  - pattern: calloc($CNT, (int $LEN))
+  - pattern: calloc((int $CNT), $LEN)
+  - pattern: realloc($PTR, (int $LEN))
+  - pattern: read($FD, $BUF, (int $LEN))
+  - pattern: recv($SD, $BUF, (int $LEN), $FL)
+  - pattern: recvfrom($SD, $BUF, (int $LEN), $FL, ...)
+  - pattern: fread($PTR, (int $SIZE), $NITEMS, $FS)
+  - pattern: (int $SIGNED) = <... (unsigned int $UNSIGNED) ...>
+  - pattern: 'int $FUN(...)
+
+      {
+
+      ...
+
+      return (unsigned int $UNSIGNED);
+
+      }
+
+      '
+  - pattern: (int $SIGNED) = <... (unsigned $UNSIGNED) ...>
+  - pattern: 'int $FUN(...)
+
+      {
+
+      ...
+
+      return (unsigned $UNSIGNED);
+
+      }
+
+      '
+  - pattern: (int $SIGNED) = <... (size_t $UNSIGNED) ...>
+  - pattern: 'int $FUN(...)
+
+      {
+
+      ...
+
+      return (size_t $UNSIGNED);
+
+      }
+
+      '
+  - pattern: (off_t $SIGNED) = <... (size_t $UNSIGNED) ...>
+  - pattern: 'off_t $FUN(...)
+
+      {
+
+      ...
+
+      return (size_t $UNSIGNED);
+
+      }
+
+      '
+- id: raptor-write-into-stack-buffer-5
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/121
+    - https://github.com/googleprojectzero/weggli
+    confidence: MEDIUM
+  message: The software directly writes into a stack buffer. This might lead to a
+    stack-based buffer overflow.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - pattern-not: $FUN($BUF, "...", ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strcpy
+        - pattern: strncpy
+        - pattern: stpcpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: wcscpy
+        - pattern: wcsncpy
+        - pattern: wcpcpy
+        - pattern: wcpncpy
+        - pattern: wcslcpy
+        - pattern: strcat
+        - pattern: strncat
+        - pattern: strlcat
+        - pattern: wcscat
+        - pattern: wcsncat
+        - pattern: wcslcat
+        - pattern: memcpy
+        - pattern: memccpy
+        - pattern: memmove
+        - pattern: memset
+        - pattern: wmemcpy
+        - pattern: wmemmove
+        - pattern: wmemset
+  - patterns:
+    - pattern: $FUN($BUF, $FMT, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, $FMT, ...);
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: sprintf
+        - pattern: vsprintf
+  - patterns:
+    - pattern: $FUN($BUF, $LEN, $FMT, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, $LEN, $FMT, ...);
+
+        '
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: (".*%l?s.*"|".*%S.*"|[a-zA-Z_][a-zA-Z0-9_]*)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+  - patterns:
+    - pattern: $FUN($BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: gets
+        - pattern: fgets
+        - pattern: getwd
+        - pattern: getcwd
+        - pattern: fread
+  - patterns:
+    - pattern: $FUN($ARG1, $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($ARG1, $BUF, ...);
+
+        '
+    - pattern-not: $FUN("...", $BUF, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: bcopy
+  - patterns:
+    - pattern: $FUN($ARG1, $BUF, ...)
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $FUN($ARG1, $BUF, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: read
+        - pattern: pread
+        - pattern: recv
+        - pattern: recvfrom
+- id: c.lang.security.insecure-use-string-copy-fn.insecure-use-string-copy-fn
+  pattern-either:
+  - pattern: strcpy(...)
+  - pattern: strncpy(...)
+  message: Finding triggers whenever there is a strcpy or strncpy used. This is an
+    issue because strcpy or strncpy can lead to buffer overflow vulns. Fix this by
+    using strcpy_s instead.
+  metadata:
+    references:
+    - https://cwe.mitre.org/data/definitions/676
+    - https://nvd.nist.gov/vuln/detail/CVE-2019-11365
+    category: security
+    technology:
+    - c
+    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+    source: https://semgrep.dev/r/c.lang.security.insecure-use-string-copy-fn.insecure-use-string-copy-fn
+  languages:
+  - c
+  severity: WARNING
+- id: c.lang.security.use-after-free.use-after-free
+  pattern-either:
+  - patterns:
+    - pattern: 'free($VAR);
+
+        ...
+
+        $VAR->$FUNC(...);
+
+        '
+    - pattern-not: 'free($VAR);
+
+        ...
+
+        $VAR = NULL;
+
+        ...
+
+        $VAR->$FUNC(...);
+
+        '
+  - patterns:
+    - pattern: 'free($VAR);
+
+        ...
+
+        $FUNC(..., $VAR->$MEMBER, ...);
+
+        '
+    - pattern-not: 'free($VAR);
+
+        ...
+
+        $VAR = NULL;
+
+        ...
+
+        $FUNC(..., $VAR->$MEMBER, ...);
+
+        '
+  message: Variable '$VAR' was used after being freed. This can lead to undefined
+    behavior.
+  metadata:
+    references:
+    - https://ctf-wiki.github.io/ctf-wiki/pwn/linux/glibc-heap/use_after_free/
+    category: security
+    technology:
+    - c
+    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+    source: https://semgrep.dev/r/c.lang.security.use-after-free.use-after-free
+  languages:
+  - c
+  severity: ERROR
+- id: arrays-passed-to-functions
+  metadata:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: MEDIUM
+    category: security
+    cwe:
+    - CWE-120: Buffer Copy without Checking Size of Input ('Classic Buffer Overflow')
+    vulnerability_class:
+    - Memory Issues
+    references:
+    - https://cwe.mitre.org/data/definitions/120.html
+    technology:
+    - c
+    - cpp
+  languages:
+  - c
+  - c++
+  severity: WARNING
+  message: "'$BUF' is an array or buffer. It's passed to '$FUNC'. \nIf the function\
+    \ does not receive an explicit size limit, \nit may cause buffer over-read or\
+    \ over-write. \nEnsure that the function is safe for unbounded input, \nor that\
+    \ the size is properly validated/limited.\n"
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: $TYPE $BUF[$SIZE] = $EXPR;
+      - pattern: $TYPE $BUF[$SIZE];
+      - pattern: $TYPE $BUF[] = $EXPR;
+      - pattern: $TYPE $BUF[$SIZE1][$SIZE2];
+    - pattern-not-inside: free($BUF);
+    - pattern-not-inside: delete $BUF;
+    - pattern-not-inside: delete[] $BUF;
+    - pattern-not-inside: sizeof($BUF);
+    - metavariable-regex:
+        metavariable: $BUF
+        regex: (?![A-Z0-9_]+\b)
+    - pattern: $FUNC(..., $BUF, ...);
+    - pattern-not: $FUNC(..., $BUF, ...) where $FUNC in (strlen, strnlen, strchr,
+        strrchr, memchr, strstr, strspn, strcspn, strpbrk)
+  - patterns:
+    - pattern-either:
+      - pattern: $BUF = ($CAST) malloc($SIZE);
+      - pattern: $BUF = ($CAST) calloc($NUM, $SIZE);
+      - pattern: $BUF = ($CAST) realloc($OLD, $SIZE);
+    - pattern-not-inside: free($BUF);
+    - pattern-not-inside: delete $BUF;
+    - pattern-not-inside: delete[] $BUF;
+    - pattern-not-inside: sizeof($BUF);
+    - metavariable-regex:
+        metavariable: $BUF
+        regex: (?![A-Z0-9_]+\b)
+    - pattern: $FUNC(..., $BUF, ...);
+    - pattern-not: $FUNC(..., $BUF, ...) where $FUNC in (strlen, strnlen, strchr,
+        strrchr, memchr, strstr, strspn, strcspn, strpbrk)
+  - patterns:
+    - pattern: $BUF = new $TYPE[$SIZE];
+    - pattern-not-inside: delete[] $BUF;
+    - metavariable-regex:
+        metavariable: $BUF
+        regex: (?![A-Z0-9_]+\b)
+    - pattern: $FUNC(..., $BUF, ...);
+    - pattern-not: $FUNC(..., $BUF, ...) where $FUNC in (strlen, strnlen, strchr,
+        strrchr, memchr, strstr, strspn, strcspn, strpbrk)
+  - patterns:
+    - pattern: $TYPE $BUF[$SIZE];
+    - metavariable-regex:
+        metavariable: $SIZE
+        regex: ^(?!\d+$).*
+    - pattern-not-inside: free($BUF);
+    - metavariable-regex:
+        metavariable: $BUF
+        regex: (?![A-Z0-9_]+\b)
+    - pattern: $FUNC(..., $BUF, ...);
+    - pattern-not: $FUNC(..., $BUF, ...) where $FUNC in (strlen, strnlen, strchr,
+        strrchr, memchr, strstr, strspn, strcspn, strpbrk)
+  - patterns:
+    - pattern-either:
+      - pattern: $BUF = alloca($SIZE);
+      - pattern: $BUF = _malloca($SIZE);
+    - metavariable-regex:
+        metavariable: $BUF
+        regex: (?![A-Z0-9_]+\b)
+    - pattern: $FUNC(..., $BUF, ...);
+    - pattern-not: "$FUNC(..., $BUF, ...) where $FUNC in (strlen, strnlen, strchr,\
+        \ strrchr, memchr, strstr, strspn, strcspn, strpbrk)\u044B"
+- id: NULL-Pointer-Dereference
+  meta:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: MEDIUM
+    category: security
+    cwe:
+    - 'CWE-476: NULL Pointer Dereference'
+    vulnerability_class:
+    - Memory Issues
+    owasp:
+    - A06:2021 - Vulnerable and Outdated Components
+    references:
+    - https://cwe.mitre.org/data/definitions/476.html
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    technology:
+    - c
+    - cpp
+  languages:
+  - c
+  - c++
+  severity: ERROR
+  message: 'Potential NULL pointer dereference detected. The pointer may be NULL when
+    dereferenced, which can cause a crash or undefined behavior. Add NULL checks before
+    dereferencing or ensure the pointer is always initialized to a valid value.
+
+    '
+  pattern-either:
+  - patterns:
+    - pattern-inside: '$TYPE *$PTR = NULL;
+
+        ...
+
+        '
+    - pattern-either:
+      - pattern: $PTR->$FIELD
+      - pattern: $PTR->$FUNC(...)
+      - pattern: $PTR[$INDEX]
+      - pattern: $PTR->$FIELD = $VAL
+      - pattern: $PTR->$FIELD++
+      - pattern: $PTR->$FIELD--
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern-inside: '$TYPE *$PTR = nullptr;
+
+        ...
+
+        '
+    - pattern-either:
+      - pattern: $PTR->$FIELD
+      - pattern: $PTR->$FUNC(...)
+      - pattern: $PTR[$INDEX]
+      - pattern: $PTR->$FIELD = $VAL
+      - pattern: $PTR->$FIELD++
+      - pattern: $PTR->$FIELD--
+    - pattern-not: if ($PTR != nullptr)
+    - pattern-not: if ($PTR == nullptr)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+  - patterns:
+    - pattern: $PTR = malloc(...);
+    - pattern-inside: '$TYPE *$PTR;
+
+        ...
+
+        $PTR = malloc(...);
+
+        ...
+
+        $PTR->$FIELD;
+
+        ...
+
+        '
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern: $PTR = malloc(...);
+    - pattern-inside: '$TYPE *$PTR;
+
+        ...
+
+        $PTR = malloc(...);
+
+        ...
+
+        $PTR->$FIELD = $VAL;
+
+        ...
+
+        '
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern: $PTR = malloc(...);
+    - pattern-inside: '$TYPE *$PTR;
+
+        ...
+
+        $PTR = malloc(...);
+
+        ...
+
+        $FUNC($PTR, ...);
+
+        ...
+
+        '
+    - metavariable-regex:
+        metavariable: $FUNC
+        regex: ^(strcpy|strncpy|strcat|strncat|memcpy|memmove|memset|sprintf|snprintf|strlen|strcmp|strncmp|printf|fprintf|sprintf|scanf|sscanf|fgets|fputs|fscanf|free).*
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern: $PTR = calloc(...);
+    - pattern-inside: '$TYPE *$PTR;
+
+        ...
+
+        $PTR = calloc(...);
+
+        ...
+
+        $PTR->$FIELD;
+
+        ...
+
+        '
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern: $PTR = calloc(...);
+    - pattern-inside: '$TYPE *$PTR;
+
+        ...
+
+        $PTR = calloc(...);
+
+        ...
+
+        $PTR[$INDEX];
+
+        ...
+
+        '
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern: $PTR = $FUNC(...);
+    - metavariable-regex:
+        metavariable: $FUNC
+        regex: .*(create|new|alloc|make|get|load|open|read|fetch).*
+    - pattern-inside: '$TYPE *$PTR;
+
+        ...
+
+        $PTR = $FUNC(...);
+
+        ...
+
+        $PTR->$FIELD;
+
+        ...
+
+        '
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern: $PTR = $FUNC(...);
+    - metavariable-regex:
+        metavariable: $FUNC
+        regex: .*(create|new|alloc|make|get|load|open|read|fetch).*
+    - pattern-inside: '$TYPE *$PTR;
+
+        ...
+
+        $PTR = $FUNC(...);
+
+        ...
+
+        $PTR->$FIELD = $VAL;
+
+        ...
+
+        '
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern-inside: "void $F(..., $TYPE *$PTR, ...) {\n  ...\n}\n"
+    - pattern-either:
+      - pattern: $PTR->$FIELD
+      - pattern: $PTR->$FUNC(...)
+      - pattern: $PTR[$INDEX]
+      - pattern: $PTR->$FIELD = $VAL
+      - pattern: $PTR->$FIELD++
+      - pattern: $PTR->$FIELD--
+      - pattern: $FUNC($PTR, ...)
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+    - pattern-not: assert($PTR != NULL);
+    - pattern-not: assert($PTR);
+  - patterns:
+    - pattern: $ARRAY[$INDEX]->FIELD
+    - pattern-inside: "void $F(..., $TYPE *$ARRAY, ...) {\n  ...\n}\n"
+    - pattern-not: if ($ARRAY != NULL)
+    - pattern-not: if ($ARRAY == NULL)
+    - pattern-not: if (!$ARRAY)
+    - pattern-not: if ($ARRAY)
+  - patterns:
+    - pattern: $ARRAY[$INDEX]->FIELD
+    - pattern-inside: '$TYPE **$ARRAY;
+
+        ...
+
+        $ARRAY[$INDEX]->FIELD;
+
+        ...
+
+        '
+    - pattern-not: if ($ARRAY != NULL)
+    - pattern-not: if ($ARRAY == NULL)
+    - pattern-not: if (!$ARRAY)
+    - pattern-not: if ($ARRAY)
+  - patterns:
+    - pattern: $ARRAY[$INDEX]->FIELD
+    - pattern-inside: '$TYPE2 *$ARRAY[$SIZE];
+
+        ...
+
+        $ARRAY[$INDEX]->FIELD;
+
+        ...
+
+        '
+    - pattern-not: if ($ARRAY[$INDEX] != NULL)
+    - pattern-not: if ($ARRAY[$INDEX] == NULL)
+    - pattern-not: if (!$ARRAY[$INDEX])
+    - pattern-not: if ($ARRAY[$INDEX])
+  - patterns:
+    - pattern: $PTR1->$FIELD1->$FIELD2
+    - pattern-inside: "void $F(..., $TYPE *$PTR1, ...) {\n  ...\n}\n"
+    - pattern-not: if ($PTR1 != NULL)
+    - pattern-not: if ($PTR1 == NULL)
+    - pattern-not: if (!$PTR1)
+    - pattern-not: if ($PTR1)
+  - patterns:
+    - pattern: $PTR1->$FIELD1[$INDEX]->FIELD2
+    - pattern-inside: "void $F(..., $TYPE *$PTR1, ...) {\n  ...\n}\n"
+    - pattern-not: if ($PTR1 != NULL)
+    - pattern-not: if ($PTR1 == NULL)
+    - pattern-not: if (!$PTR1)
+    - pattern-not: if ($PTR1)
+  - patterns:
+    - pattern: $PTR1->$FIELD1[$INDEX]
+    - pattern-inside: "void $F(..., $TYPE *$PTR1, ...) {\n  ...\n}\n"
+    - pattern-not: if ($PTR1 != NULL)
+    - pattern-not: if ($PTR1 == NULL)
+    - pattern-not: if (!$PTR1)
+    - pattern-not: if ($PTR1)
+  - patterns:
+    - pattern: $PTR->CALLBACK(...)
+    - pattern-inside: "void $F(..., $TYPE *$PTR, ...) {\n  ...\n}\n"
+    - pattern-not: if ($PTR != NULL)
+    - pattern-not: if ($PTR == NULL)
+    - pattern-not: if (!$PTR)
+    - pattern-not: if ($PTR)
+  - patterns:
+    - pattern: std::shared_ptr<$TYPE> $PTR;
+    - pattern: $PTR->$FIELD
+  - patterns:
+    - pattern: std::unique_ptr<$TYPE> $PTR;
+    - pattern: $PTR->$FIELD
+  - patterns:
+    - pattern: std::shared_ptr<$TYPE> $PTR;
+    - pattern: $PTR->$FUNC(...)
+  - patterns:
+    - pattern: std::unique_ptr<$TYPE> $PTR;
+    - pattern: $PTR->$FUNC(...)
+  - patterns:
+    - pattern: $PTR->get()
+    - pattern-inside: 'std::shared_ptr<$TYPE> $PTR;
+
+        ...
+
+        '
+    - pattern-not: if ($PTR)
+    - pattern-not: if (!$PTR)
+  - patterns:
+    - pattern: $FUNC($DEST, $SRC, ...)
+    - metavariable-regex:
+        metavariable: $FUNC
+        regex: ^(strcpy|strncpy|strcat|strncat|memcpy|memmove|memset|sprintf|snprintf).*
+    - pattern-inside: '$TYPE *$DEST = NULL;
+
+        ...
+
+        $FUNC($DEST, $SRC, ...);
+
+        ...
+
+        '
+    - pattern-not: if ($DEST != NULL)
+    - pattern-not: if ($DEST == NULL)
+    - pattern-not: if (!$DEST)
+    - pattern-not: if ($DEST)
+  - patterns:
+    - pattern: $FUNC($DEST, $SRC, ...)
+    - metavariable-regex:
+        metavariable: $FUNC
+        regex: ^(strcpy|strncpy|strcat|strncat|memcpy|memmove|memset|sprintf|snprintf|strcmp|strncmp).*
+    - pattern-inside: '$TYPE *$SRC = NULL;
+
+        ...
+
+        $FUNC($DEST, $SRC, ...);
+
+        ...
+
+        '
+    - pattern-not: if ($SRC != NULL)
+    - pattern-not: if ($SRC == NULL)
+    - pattern-not: if (!$SRC)
+    - pattern-not: if ($SRC)
+- id: Stack-based-Buffer-Overflow
+  metadata:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: MEDIUM
+    category: security
+    cwe:
+    - 'CWE-121: Stack-based Buffer Overflow'
+    vulnerability_class:
+    - Memory Issues
+    owasp:
+    - A06:2021 - Vulnerable and Outdated Components
+    references:
+    - https://cwe.mitre.org/data/definitions/121.html
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    technology:
+    - c
+    - cpp
+  languages:
+  - c
+  - c++
+  severity: ERROR
+  message: 'Potential stack-based buffer overflow: function may write beyond the bounds
+    of stack-allocated buffer. Use bounded functions (strncpy, snprintf) with proper
+    size checks, or prefer safer alternatives.
+
+    '
+  pattern-either:
+  - pattern: gets($BUF)
+  - patterns:
+    - pattern-either:
+      - pattern: strcpy($BUF, $SRC)
+      - pattern: std::strcpy($BUF, $SRC)
+    - pattern-not: strcpy($BUF, "...")
+    - pattern-not: std::strcpy($BUF, "...")
+    - pattern-not: strcpy($BUF, $BUF)
+  - patterns:
+    - pattern-either:
+      - pattern: wcscpy($BUF, $SRC)
+      - pattern: std::wcscpy($BUF, $SRC)
+    - pattern-not: wcscpy($BUF, L"...")
+    - pattern-not: std::wcscpy($BUF, L"...")
+  - patterns:
+    - pattern-either:
+      - pattern: strcat($BUF, $SRC)
+      - pattern: std::strcat($BUF, $SRC)
+    - pattern-not: strcat($BUF, "...")
+    - pattern-not: std::strcat($BUF, "...")
+  - patterns:
+    - pattern-either:
+      - pattern: wcscat($BUF, $SRC)
+      - pattern: std::wcscat($BUF, $SRC)
+    - pattern-not: wcscat($BUF, L"...")
+    - pattern-not: std::wcscat($BUF, L"...")
+  - patterns:
+    - pattern-either:
+      - pattern: sprintf($BUF, $FMT, ...)
+      - pattern: std::sprintf($BUF, $FMT, ...)
+    - pattern-not: sprintf($BUF, "...")
+    - pattern-not: std::sprintf($BUF, "...")
+  - patterns:
+    - pattern-either:
+      - pattern: vsprintf($BUF, $FMT, $ARGS)
+      - pattern: std::vsprintf($BUF, $FMT, $ARGS)
+    - pattern-not: vsprintf($BUF, "...", $ARGS)
+    - pattern-not: std::vsprintf($BUF, "...", $ARGS)
+  - patterns:
+    - pattern-either:
+      - pattern: scanf($FMT, $BUF)
+      - pattern: std::scanf($FMT, $BUF)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+  - patterns:
+    - pattern-either:
+      - pattern: fscanf($FP, $FMT, $BUF)
+      - pattern: std::fscanf($FP, $FMT, $BUF)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+  - patterns:
+    - pattern-either:
+      - pattern: sscanf($SRC, $FMT, $BUF)
+      - pattern: std::sscanf($SRC, $FMT, $BUF)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+  - patterns:
+    - pattern-either:
+      - pattern: wscanf($FMT, $BUF)
+      - pattern: std::wscanf($FMT, $BUF)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+  - patterns:
+    - pattern-either:
+      - pattern: fwscanf($FP, $FMT, $BUF)
+      - pattern: std::fwscanf($FP, $FMT, $BUF)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+  - patterns:
+    - pattern-either:
+      - pattern: swscanf($SRC, $FMT, $BUF)
+      - pattern: std::swscanf($SRC, $FMT, $BUF)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+  - patterns:
+    - pattern-either:
+      - pattern: memcpy($DEST, $SRC, $LEN)
+      - pattern: std::memcpy($DEST, $SRC, $LEN)
+    - pattern-not: memcpy($DEST, $SRC, sizeof($DEST))
+    - pattern-not: std::memcpy($DEST, $SRC, sizeof($DEST))
+    - pattern-not: memcpy($DEST, "...", $LEN)
+    - pattern-not: std::memcpy($DEST, "...", $LEN)
+  - patterns:
+    - pattern-either:
+      - pattern: memmove($DEST, $SRC, $LEN)
+      - pattern: std::memmove($DEST, $SRC, $LEN)
+    - pattern-not: memmove($DEST, $SRC, sizeof($DEST))
+    - pattern-not: std::memmove($DEST, $SRC, sizeof($DEST))
+  - patterns:
+    - pattern-either:
+      - pattern: wmemcpy($DEST, $SRC, $COUNT)
+      - pattern: std::wmemcpy($DEST, $SRC, $COUNT)
+    - pattern-not: wmemcpy($DEST, $SRC, sizeof($DEST))
+    - pattern-not: std::wmemcpy($DEST, $SRC, sizeof($DEST))
+  - patterns:
+    - pattern-either:
+      - pattern: wmemmove($DEST, $SRC, $COUNT)
+      - pattern: std::wmemmove($DEST, $SRC, $COUNT)
+    - pattern-not: wmemmove($DEST, $SRC, sizeof($DEST))
+    - pattern-not: std::wmemmove($DEST, $SRC, sizeof($DEST))

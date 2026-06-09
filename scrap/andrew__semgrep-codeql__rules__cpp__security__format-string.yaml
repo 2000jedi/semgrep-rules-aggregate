@@ -1,0 +1,28 @@
+rules:
+  - id: codeql-cpp-format-string-printf
+    message: >-
+      Format string passed to printf-like function may be controlled by user
+      input. Use a constant format string.
+    severity: ERROR
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-134: Use of Externally-Controlled Format String"
+      technology:
+        - cpp
+      confidence: MEDIUM
+      likelihood: HIGH
+      impact: HIGH
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/134.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-134/UncontrolledFormatString.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-134/UncontrolledFormatString.ql
+    pattern-either:
+      - pattern: printf($VAR)
+      - pattern: fprintf($FILE, $VAR)
+      - pattern: sprintf($BUF, $VAR)
+      - pattern: snprintf($BUF, $SIZE, $VAR)

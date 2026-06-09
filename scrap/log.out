@@ -1,0 +1,594 @@
+~/Documents/eboss/semgrep-rules-aggregate (master) » ./scrape_github_c_rules.py
+Found 295 repos for query: semgrep-rules
+Skipping 1 repo(s) already listed in scrap/log.txt
+[1/295] semgrep/semgrep-rules (skipped)
+[2/295] 0xdea/semgrep-rules
+  copied 48
+[3/295] MobSF/mobsfscan
+  copied 0
+[4/295] Decurity/semgrep-smart-contracts
+  copied 0
+[5/295] trailofbits/semgrep-rules
+  copied 0
+[6/295] dgryski/semgrep-go
+  copied 0
+[7/295] mindedsecurity/semgrep-rules-android-security
+  copied 0
+[8/295] apiiro/PRevent
+  copied 0
+[9/295] elttam/semgrep-rules
+  copied 1
+[10/295] apiiro/malicious-code-ruleset
+  copied 0
+[11/295] iosifache/semgrep-rules-manager
+  copied 0
+[12/295] lambdasec/autogrep
+  copied 1288
+[13/295] semgrep/ai-best-practices
+  copied 0
+[14/295] frappe/semgrep-rules
+  copied 0
+[15/295] federicodotta/semgrep-rules
+  copied 0
+[16/295] akabe1/akabe1-semgrep-rules
+  copied 0
+[17/295] doyensec/Unsafe-Unpacking
+  copied 0
+[18/295] hashicorp-forge/semgrep-rules
+  copied 0
+[19/295] semgrep-old/rules-owasp-asvs
+  copied 0
+[20/295] patched-codes/semgrep-rules
+  copied 0
+[21/295] tuannq2299/semgrep-rules
+  copied 0
+[22/295] vmnguyen/semgrep-rules
+  copied 0
+[23/295] tintinweb/semgrep-rules
+  copied 0
+[24/295] j3ssie/curated-semgrep-rules
+  copied 109
+[25/295] mrnfrancesco/GreedyForSQLi
+  copied 0
+[26/295] wahyuhadi/semgrep-server-rules
+  copied 1
+[27/295] avnu-labs/semgrep-cairo-rules
+  copied 0
+[28/295] ligurio/semgrep-rules
+  copied 0
+[29/295] fullstorydev/semgrep-rules
+  copied 0
+[30/295] kondukto-io/semgrep-rules
+  copied 0
+[31/295] JuliaComputing/semgrep-rules-julia
+  copied 0
+[32/295] Santandersecurityresearch/e-Skimming-Detection
+  copied 0
+[33/295] dipa96/semgrep-rules
+  copied 0
+[34/295] silentsignal/SemGWT
+  copied 0
+[35/295] bumahkib7/qryon
+  copied 17
+[36/295] Decurity/compound-semgrep-rules
+  copied 0
+[37/295] imfht/my-semgrep-rules
+  copied 14
+[38/295] s0rcy/semgrep-rules
+  copied 0
+[39/295] aptos-labs/semgrep-move-rules
+  copied 0
+[40/295] kondukto-io/dockerfile-bestpractice-rules
+  copied 0
+[41/295] salecharohit/semhound
+  copied 0
+[42/295] CodeVigilant/codevigilant_semgrep_rules
+  copied 0
+[43/295] mind2hex/semgrep_rules
+  copied 0
+[44/295] takutoy/my-semgrep-rules
+  copied 0
+[45/295] semgrep-old/rules-nodejsscan
+  copied 0
+[46/295] opengrep/opengrep-rules
+  copied 17
+[47/295] eldstal/semgrep-rules
+  copied 3
+[48/295] parsiya/semgrep-hotspots
+  copied 6
+[49/295] insideapp-oss/mobile-application-security-rules
+  copied 0
+[50/295] hamzamiladin/Vulnchain
+  copied 0
+[51/295] DummyKitty/semgrep-rules-for-CTF
+  copied 0
+[52/295] dkorunic/semgrep-go
+  copied 0
+[53/295] docfate111/static-analysis-rules
+  copied 46
+[54/295] iter-malum/semgrep_rules
+  copied 19
+[55/295] DenisPodgurskii/semgrep-rules
+  copied 0
+[56/295] ZeeshanSultan/semgrep-php-critical-rules
+  copied 0
+[57/295] MaxPowell/semgrep-android-ios-config
+  copied 0
+[58/295] banditakshat/semgrep_php
+  copied 0
+[59/295] MetaMask/semgrep-action
+  copied 0
+[60/295] SafeAck/semgrep-rules
+  copied 0
+[61/295] swieja/my_semgrep_rules
+  copied 0
+[62/295] chenlvtang/MySemgrepRules
+  copied 0
+[63/295] DOCtorActoAntohich/iv-semgrep
+  copied 0
+[64/295] atlassian-labs/atlassian-sast-ruleset
+  copied 0
+[65/295] kh4sh3i/semgrep
+  copied 0
+[66/295] semgrep-old/template-rules
+  copied 0
+[67/295] anshumanbh/semgrep-rules-poc
+  copied 0
+[68/295] g-wilson/action-semgrep
+  copied 0
+[69/295] affix/SemgrepRules
+  copied 0
+[70/295] convisolabs/semgrep_rules
+  copied 1
+[71/295] SecNotice/semgrep-rules
+  copied 0
+[72/295] rootstock/semgrep-rules-rust
+  copied 0
+[73/295] lockcy/semgrep-rules-custom
+  copied 0
+[74/295] giga-b/wordpress-semgrep-rules
+  copied 0
+[75/295] Banno/semgrep-scalafix
+  copied 0
+[76/295] geminishkv/semgrep_java_custom_ruleset
+  copied 0
+[77/295] Open-Paws/semgrep-rules-no-animal-violence
+  copied 0
+[78/295] rahmansec/Semgrep-Ruls
+  copied 0
+[79/295] ToxicSnail/CVE-Path
+  copied 0
+[80/295] theinfosecguy/semgrep-rules-seasides
+  copied 0
+[81/295] CissiWong/opencode-config
+  copied 1
+[82/295] impost0r/semgrep-rules-aggregate
+  copied 35
+[83/295] Scraber202/SemgrepRules
+  copied 0
+[84/295] McCzarny/semgrep-cpp
+  copied 0
+[85/295] minusworld/semgrep-library
+  copied 0
+[86/295] anhkhoa14592/semgrep-test-repository
+  copied 0
+[87/295] 0xdbe/semgrep-rules-set
+  copied 0
+[88/295] RomTourpe/Semgrep-rules
+  copied 0
+[89/295] rationalpsyche/semgrep-rules
+  copied 0
+[90/295] mschwager/semgrepsec-rules
+  copied 1
+[91/295] danieldavidson/semgrep-rules
+  copied 0
+[92/295] Ayrx/semgrep-rules
+  copied 0
+[93/295] saleor/semgrep-rules
+  copied 0
+[94/295] fentech-ai/semgrep-rules
+  copied 0
+[95/295] violet-devsec/semgrep-rules
+  copied 0
+[96/295] zazathomas/semgrep-rules
+  copied 0
+[97/295] haunt98/semgrep-rules
+  copied 0
+[98/295] jasayosep/rules-semgrep
+  copied 0
+[99/295] dicoding-dev/semgrep-rules
+  copied 0
+[100/295] CloudSecurityPartners/terraform-research
+  copied 0
+[101/295] wingyplus/semgrep-elixir-rules
+  copied 0
+[102/295] neolead/Semgrep_rules_and_converter
+  copied 63
+[103/295] Poatan222/Semgrep-rules-1
+  copied 0
+[104/295] mathis2001/Android-Semgrep-Rules
+  copied 0
+[105/295] SCParrot/starkSemgrepRules
+  copied 0
+[106/295] stasos24/my-semgrep-rules
+  copied 0
+[107/295] GurdipSCode/devops-rules-semgrep
+  copied 0
+[108/295] andrew/semgrep-codeql
+  copied 9
+[109/295] rileydakota/semgrep-aws-cdk-rules
+  copied 0
+[110/295] muhanLuo/wordpress-plugin-semgrep-rules
+  copied 0
+[111/295] vquelque/semgrep-solidity-vquelque-rules
+  copied 0
+[112/295] ekufta0530/redacted_rules
+  copied 0
+[113/295] ekufta0530/Interfile-Only-Semgrep
+  copied 0
+[114/295] fee-191/security-template
+  copied 0
+[115/295] 0xBugatti/SEMGREP10K
+  copied 89
+[116/295] 649abhinav/semgrep_dom_sink_rule
+  copied 0
+[117/295] the-commits/opencode-config
+  copied 1
+[118/295] iter-malum/Itero
+  copied 0
+[119/295] Binye234/semgrep-demo
+  copied 0
+[120/295] psyf8t/spring-security-rules
+  copied 0
+[121/295] codebytemirza/LLMgrep
+  copied 0
+[122/295] AI-Security-Research-Group/Semgrep-AI
+  copied 0
+[123/295] frankentini/ai-sec-scan
+  copied 0
+[124/295] muhammedabdelkader/Micro-Sprint
+  copied 0
+[125/295] srijan-deepsource/django-antipatterns
+  copied 0
+[126/295] eteryko/semgrep-rules-test-action
+  copied 0
+[127/295] boostsecurityio/demo-semgrep-custom-rules
+  copied 0
+[128/295] Dominik-Stocker/semgrep-rules
+  copied 0
+[129/295] IkerSaint/semgrep-rules
+  copied 0
+[130/295] anjaliahlawat/data-model-quality-model
+  copied 0
+[131/295] IkeMurami/semgrep-rules
+  copied 0
+[132/295] dubs3c/semgrep-rules
+  copied 0
+[133/295] Shad0w112/Semgrep-Rules
+  copied 0
+[134/295] OffByQuant/semgrep-rules
+  copied 0
+[135/295] Holidaynosec/semgrepRules
+  copied 0
+[136/295] amrish148/semgrep-practice
+  copied 0
+[137/295] EvtDanya/semgrep-rules
+  copied 0
+[138/295] Bhanunamikaze/SemgrepRules-PHP
+  copied 0
+[139/295] Aduda-Shem/Semgrep_Rules
+  copied 0
+[140/295] smith-xyz/argus-observe-rules
+  copied 37
+[141/295] moonkit02/wrong-semgrep-rules
+  copied 17
+[142/295] shukilagama/semgrep-rules
+  copied 17
+[143/295] igoroppo/custom-rule
+  copied 0
+[144/295] mellenburg/manicode-semgrep-rules
+  copied 0
+[145/295] GurdipSCode/devops-policies-semgrep
+  copied 0
+[146/295] andyrat33/semgrep_test
+  copied 0
+[147/295] shaygrantt/semgrep-rules
+  copied 0
+[148/295] jemtucker/semgrep-rules
+  copied 0
+[149/295] postfix/tree-sitter-semgrep
+  copied 0
+[150/295] ZloyShadow/testsemgreprules
+  copied 2
+[151/295] jtraglia/semgrep-rules
+  copied 0
+[152/295] swathisudhakar56-tech/semgrep-rules
+  copied 0
+[153/295] theodo/semgrep-rules
+  copied 0
+[154/295] drumin/semgrep-rules
+  copied 0
+[155/295] kdpsirt/semgrep-rules
+  copied 0
+[156/295] narqo/semgrep-rules
+  copied 0
+[157/295] kawing-ho/semgrep-rules
+  copied 0
+[158/295] mostafaelnakeb/semgrep_rules
+  copied 0
+[159/295] shwetankarora/semgrep-rules
+  copied 0
+[160/295] SuprajaBKrollC/Semgrep-Rules
+  copied 0
+[161/295] aaronhmiller/semgrep-rules
+  copied 0
+[162/295] sttor/semgrep-rules
+  copied 47
+[163/295] anuraagbaishya/semgrep-rules
+  copied 0
+[164/295] noncat-lang/semgrep-rules
+  copied 0
+[165/295] tomorroisnew/Semgrep-Rules
+  copied 0
+[166/295] NovigoTechnology/semgrep-rules
+  copied 0
+[167/295] joubin/semgrep_rules
+  copied 0
+[168/295] RajuGanapathiraju/semgrep-rules
+  copied 0
+[169/295] mccleod1290/semgrep-rules
+  copied 0
+[170/295] janakaperera/semgrep_rules
+  copied 0
+[171/295] krunal-simform/semgrep-rules
+  copied 1
+[172/295] jonnystewart/semgrep-rules
+  copied 0
+[173/295] Farhad931164/semgrep-ruleset
+  copied 0
+[174/295] shreyashjain06/semgrep-rules
+  copied 0
+[175/295] a-chernobrov/semgrep-rules
+  copied 0
+[176/295] pagewiser/semgrep-rules
+  copied 0
+[177/295] securingapps/semgrep_rules
+  copied 0
+[178/295] zam0x1ma/semgrep-rules
+  copied 0
+[179/295] GuilhermeSolutionsGroup/semgrep-rules
+  copied 0
+[180/295] ohadApiiro/semgrep-rules
+  copied 0
+[181/295] MrW0l05zyn/semgrep-rules
+  copied 0
+[182/295] PacktDev/semgrep-rules
+  copied 0
+[183/295] madebyTimo/semgrep-rules
+  copied 1
+[184/295] sbaker-cs/semgrep-rules
+  copied 0
+[185/295] bunnyhopkinton/semgrep-rules
+  copied 0
+[186/295] kasterma/semgrep-rules
+  copied 0
+[187/295] ekse/semgrep-rules
+  copied 0
+[188/295] IkeMurami/semgrep-merge-rules
+  copied 0
+[189/295] rb-x/graudit-semgrep
+  copied 11
+[190/295] santhoshmuthineni/appsec-policies
+  copied 0
+[191/295] saianmk/c4_semgrep
+  copied 0
+[192/295] thotakartheek004/php-semgrep-rules
+  copied 0
+[193/295] thomisza/semgrep_test
+  copied 0
+[194/295] k-gruenberg/semgrep-rules-stats
+  copied 0
+[195/295] stilwellc/ash-semgrep-rules
+  copied 0
+[196/295] TheRealMal/Semgrep-Rules-Parser
+  copied 0
+[197/295] 63n0/semgrep-rules-wordpress
+  copied 0
+[198/295] meranelzayat/mutillidae-semgrep-rules
+  copied 0
+[199/295] BenjaminHae/iobroker-semgrep-rules
+  copied 0
+[200/295] Akhilam-Inc/akhilam-semgrep-rules
+  copied 0
+[201/295] tfairyt/semgrep_rules_test
+  copied 0
+[202/295] teamgtry/Semgrep_Custom_Ruleset
+  copied 0
+[203/295] ohadApiiro/semgrep-rules-good
+  copied 0
+[204/295] wahyuhadi/semgrep-frisidea-rules
+  copied 0
+[205/295] 0x234/gr-semgrep-rules
+  copied 0
+[206/295] X1pherW0lf/Solidity_Semgrep_Rules
+  copied 0
+[207/295] Nosferatuvjr/my-semgrep-rules
+  copied 0
+[208/295] kendrallamar/semgrep_rules_kotlin
+  copied 0
+[209/295] wintermute404/custom_semgrep_rules
+  copied 0
+[210/295] Pechenka-ovsynka/semgrep-parsig-rules
+  copied 0
+[211/295] azkingston/semgrep-rules-production
+  copied 0
+[212/295] reutshasha/semgrep-nosql-rules
+  copied 0
+[213/295] nophlycloud/semgrep-custom-rules
+  copied 0
+[214/295] chcg823/mulesoft-semgrep-rules
+  copied 0
+[215/295] loveoverdose/terraform-semgrep-rules
+  copied 0
+[216/295] moonkit02/korek-semgrep-rules
+  copied 0
+[217/295] stipmonster/networking-semgrep-rules
+  copied 0
+[218/295] liam-ng/gitlab-semgrep-rules
+  copied 2
+[219/295] pe-version/pqc-semgrep-rules
+  copied 0
+[220/295] swe-train/returntocorp__semgrep-rules
+  copied 0
+[221/295] bibiwars/combines-semgrep-rules
+  copied 0
+[222/295] orsahar-codedolphin/custom_semgrep_rules
+  copied 0
+[223/295] l4mb0san/semgrep.dev-rules
+  copied 1
+[224/295] swanagentic/forkchop-semgrep-rules
+  copied 0
+[225/295] timehash13/semgrep-security-rules
+  copied 0
+[226/295] roquie/semgrep-rules-autoreleases
+  copied 0
+[227/295] elijahleep/php-semgrep-rules
+  copied 0
+[228/295] srikanthramu/semgrep_rules_examples
+  copied 0
+[229/295] fcanogab/open-semgrep-rules
+  copied 0
+[230/295] mikee531/my_semgrep_rules
+  copied 0
+[231/295] DT-Entertainment-Studios/semgrep-rules-unity
+  copied 0
+[232/295] Leyart/sonar-java4semgrep
+  copied 0
+[233/295] syllogy/semgrep-rules-test-action-develop
+  copied 0
+[234/295] kylie-dot/semgrep-rules-spring-mybatisplus
+  copied 0
+[235/295] anishkam98/semgrep-salesforce-security-rules
+  copied 0
+[236/295] nitaiapiiro/gitlab-semgrep-rules-testfiles
+  copied 0
+[237/295] pearlyna01/semgrep-js-java-rules
+  copied 0
+[238/295] webplode/iosifache_semgrep-rules-manager
+  copied 0
+[239/295] maynardcjm/semgrep_ruleset_generator.sh
+  copied 0
+[240/295] scournomad/scour-nomad-semgrep-rules
+  copied 0
+[241/295] serwikk/semgrep-rules-security-audit
+  copied 0
+[242/295] 0GiS0/semgrep-csharp-custom-rules
+  copied 0
+[243/295] endpointlabs/semgrep-rules-v2
+  copied 17
+[244/295] pythonSB/WordPress-Semgrep-Rules
+  copied 0
+[245/295] danielcuthbert/MageCart-Semgrep
+  copied 0
+[246/295] red-assassin/automation-scripts
+  copied 0
+[247/295] r2c-CSE/vba-rules
+  copied 0
+[248/295] h4sh5/h4sh-semgrep-rules
+  copied 0
+[249/295] KhoaHoang01012003/nextjs-public-env-semgrep-rules
+  copied 0
+[250/295] EMaurer71/Advanced-Semgrep-Rules-Github-workflow
+  copied 0
+[251/295] OriginalGary/semgrep-rules-no-animal-violence
+  copied 0
+[252/295] 88MARK08/semgrep-docker-ci-security-rules
+  copied 0
+[253/295] s-santillan/semgrep4techwriting
+  copied 0
+[254/295] rashley-iqt/semgrep-rule-bundler
+  copied 0
+[255/295] Ozark-Security-Labs/forkguard-rulegen
+  copied 0
+[256/295] jgutierrezdtt/security-platform
+  copied 0
+[257/295] Elkasitu/semserv
+  copied 0
+[258/295] sergio-kushki/goberbot-semgrep
+  copied 0
+[259/295] mjambon/minimal-semgrep-rule
+  copied 0
+[260/295] Zyad-Ehab/OWASP-Mutillidae-II-Semgrep-Custom-Rules-Scanning-Reporting
+  copied 0
+[261/295] abdelrahaman-sameh03/sast-lab4
+  copied 0
+[262/295] RedHatProductSecurity/django-migration-rules
+  copied 0
+[263/295] ifuensan/btc-sec-toolkit
+  copied 0
+[264/295] Hardenator/hardenator-rules
+  copied 0
+[265/295] hermcardona/ai-sec-static-analysis-lab
+  copied 0
+[266/295] mehdi-semgrep/quarkus-rule-pack
+  copied 0
+[267/295] ferrosasfp/nexus-quality-gate
+  copied 0
+[268/295] jpurnell/swift-security-rules
+  copied 0
+[269/295] KryptoXVX/gitlab-semgrep-project
+  copied 0
+[270/295] KryptoXVX/sast-custom-rules
+  copied 0
+[271/295] trainerday/code-review
+  copied 0
+[272/295] Semgrep-CLI/.github
+  copied 0
+[273/295] bk-security/auth-header-trust-rules
+  copied 0
+[274/295] AlephSF/aleph-code-mine
+  copied 0
+[275/295] Potat0-0/marauders-map
+  copied 0
+[276/295] costrict-plugins-repo/trailofbits-trailofbits-semgrep-rule-creator
+  copied 0
+[277/295] CelestialCmd/ModSentinel
+  copied 0
+[278/295] costrict-plugins-repo/trailofbits-trailofbits-semgrep-rule-variant-creator
+  copied 0
+[279/295] NISHOKKUMAR/CLI-based-Tool-for-Blended-Static-and-Dynamic-Analysis-for-Modern-Web-Application
+  copied 0
+[280/295] mingshenhk/forge-sentinel-community
+  copied 17
+[281/295] astrogilda/idna-ip-literal-smuggle-rules
+  copied 0
+[282/295] abdelrahaman-sameh03/Full-Spectrum-Web-App-Hardening
+  copied 0
+[283/295] Mark13100/full-spectrum-web-app-hardening-project
+  copied 0
+[284/295] camgrimsec/ai-codegen-security-linter
+  copied 0
+[285/295] adnan-hussen/deepsec
+  copied 0
+[286/295] Vashisth81/sec-code-review
+  copied 0
+[287/295] jzissimos/kai-sandbox-ci
+  copied 0
+[288/295] dmijic/owasp-top10-2025-security-review-kit-codex-claude
+  copied 0
+[289/295] Diamondarvestibule/semgrep-pro-full-version
+  copied 0
+[290/295] Rajupanta/LLM-Code-Auditor
+  copied 0
+[291/295] faultlabs/Pentest_RuleGen
+  copied 0
+[292/295] viridis-security/vulncanon
+  copied 0
+[293/295] archimedes-market/mcp-semgrep-scanner
+  copied 0
+[294/295] Code-Security-Solution/Code_Nova_Guardian
+  copied 0
+[295/295] pyl0v3r/phishing_detector
+  copied 0
+Skipped 1 repo(s); cloned 294 repo(s); copied 1939 C Semgrep YAML file(s) to scrap
+

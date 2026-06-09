@@ -1,0 +1,605 @@
+rules:
+- id: detect-command-injection
+  languages:
+  - c
+  message: 'Potential Command Injection detected. Avoid using functions like `system`
+    or `popen` with untrusted input.
+
+    '
+  severity: ERROR
+  patterns:
+  - pattern: 'system($CMD);
+
+      '
+  - pattern: 'popen($CMD, $MODE);
+
+      '
+  fix: "Use safer alternatives and sanitize inputs before executing commands. Example:\n\
+    \n```c\nif (validate_input($CMD)) {\n  system($CMD);\n}\n```\n"
+- id: Command-inject INFO check 1
+  metadata:
+    author: FXC
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  message: 'INFO: The parameter includes dangerous string, which may lead a backdoor
+    or DOS.'
+  patterns:
+  - pattern-either:
+    - pattern: system("...")
+    - pattern: popen("...", ...)
+    - pattern: execve("/bin/sh", "...", ...)
+  - pattern-regex: (telnet|ssh|reboot)
+- id: raptor-command-injection
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/676
+    - https://cwe.mitre.org/data/definitions/78
+    - https://cwe.mitre.org/data/definitions/88
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: HIGH
+  message: The program invokes a potentially dangerous function that could introduce
+    a vulnerability if it is used incorrectly, but the function can also be used safely.
+    The software constructs all or part of an OS command using externally-influenced
+    input from an upstream component, but it does not neutralize or incorrectly neutralizes
+    special elements that could modify the intended OS command when it is sent to
+    a downstream component.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: system(...)
+    - pattern: popen(...)
+  - pattern-not: $FUN("...", ...)
+- id: Command-inject WARNING check 2
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: The first parameter is "/bin/sh" and the second parameter is
+    not a constant and may be controlled, which may be passed with some dangerous
+    character.'
+  patterns:
+  - pattern-either:
+    - pattern: execve("/bin/sh", ...)
+  - pattern-not: $FUN("/bin/sh", "...", ...)
+- id: Command-inject WARNING check 3
+  metadata:
+    author: FXC
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  message: 'ERROR: The parameter can be controlled by user.'
+  patterns:
+  - pattern-either:
+    - pattern: '$FUN(..., $ARG, ...);
+
+        ...
+
+        system($ARG);
+
+        '
+    - pattern: '$FUN(..., $ARG, ...);
+
+        ...
+
+        popen($ARG, ...);
+
+        '
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: gets
+      - pattern: read
+      - pattern: fread
+      - pattern: recv
+      - pattern: recvfrom
+- id: flawfinder.execl-1.execlp-1.execle-1.execv-1.execvp-1.popen-1.WinExec-1.ShellExecute-1
+  languages:
+  - c
+  - cpp
+  message: 'It is generally not recommended to call out to the operating system to
+    execute commands.
+
+    When the application is executing file system based commands, user input should
+    never be used
+
+    in
+
+    constructing commands or command arguments. If possible, determine if a library
+    can be used
+
+    instead to provide the same functionality. Otherwise, consider hard coding both
+    the command
+
+    and arguments to be used, or at the very least restricting which arguments can
+    be passed
+
+    to the command execution function.
+
+
+    Please see the compliant solutions in the following page:
+
+    https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152177
+
+    '
+  metadata:
+    shortDescription: Potential for OS command injection
+    cwe: CWE-78
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.execl-1.execlp-1.execle-1.execv-1.execvp-1.popen-1.WinExec-1.ShellExecute-1
+    secondary_identifiers:
+    - name: Flawfinder - execl
+      type: flawfinder_func_name
+      value: execl
+    - name: Flawfinder - execlp
+      type: flawfinder_func_name
+      value: execlp
+    - name: Flawfinder - execle
+      type: flawfinder_func_name
+      value: execle
+    - name: Flawfinder - execv
+      type: flawfinder_func_name
+      value: execv
+    - name: Flawfinder - execvp
+      type: flawfinder_func_name
+      value: execvp
+    - name: Flawfinder - popen
+      type: flawfinder_func_name
+      value: popen
+    - name: Flawfinder - WinExec
+      type: flawfinder_func_name
+      value: WinExec
+    - name: Flawfinder - ShellExecute
+      type: flawfinder_func_name
+      value: ShellExecute
+  pattern-either:
+  - pattern: execl(...)
+  - pattern: execlp(...)
+  - pattern: execle(...)
+  - pattern: execv(...)
+  - pattern: execvp(...)
+  - pattern: popen(...)
+  - pattern: WinExec(...)
+  - pattern: ShellExecute(...)
+  severity: ERROR
+- id: raptor-argv-envp-access
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://www.gnu.org/software/libc/manual/html_node/Program-Arguments.html
+    confidence: MEDIUM
+  message: The program accesses command-line arguments or environment variables, which
+    are controlled by potential attackers.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: argv
+    - pattern: envp
+- id: raptor-command-injection-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Command Injection
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-78: Improper Neutralization of Special Elements used in an OS Command (''OS
+      Command Injection'')'
+    - 'CWE-88: Improper Neutralization of Argument Delimiters in a Command (''Argument
+      Injection'')'
+    - 'CWE-676: Use of Potentially Dangerous Function'
+    owasp:
+    - A05:2025 - Injection
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+  message: The software constructs an OS command using externally-influenced input,  but
+    it does not neutralize or incorrectly neutralizes special elements  that could
+    modify the intended OS command.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: system(...)
+    - pattern: popen(...)
+    - pattern: p2open(...)
+    - pattern: wordexp(...)
+  - pattern-not: $_("...", ...)
+- id: OS-Command-Injection
+  meta:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: HIGH
+    category: security
+    cwe:
+    - 'CWE-78: Improper Neutralization of Special Elements used in an OS Command (''OS
+      Command Injection'')'
+    vulnerability_class:
+    - Injection
+    owasp:
+    - A03:2021 - Injection
+    references:
+    - https://cwe.mitre.org/data/definitions/78.html
+    - https://owasp.org/www-community/attacks/Command_Injection
+    technology:
+    - c
+    - cpp
+  languages:
+  - c
+  - c++
+  severity: ERROR
+  message: 'Potential OS command injection detected. User-controlled input is passed
+    to  a system command execution function without proper sanitization. This allows  attackers
+    to execute arbitrary commands. Use allowlists or parameterized APIs.
+
+    '
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: system($CMD)
+      - pattern: _wsystem($CMD)
+      - pattern: std::system($CMD)
+    - pattern-not: $FUNC("...", ...)
+    - pattern-not: $FUNC(L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: popen($CMD, $MODE)
+      - pattern: _popen($CMD, $MODE)
+      - pattern: _wpopen($CMD, $MODE)
+    - pattern-not: $FUNC("...", ...)
+    - pattern-not: $FUNC(L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: execl($PATH, $ARG0, ...)
+      - pattern: execlp($PATH, $ARG0, ...)
+      - pattern: execle($PATH, $ARG0, ...)
+      - pattern: execv($PATH, $ARGV)
+      - pattern: execvp($PATH, $ARGV)
+      - pattern: execvpe($PATH, $ARGV, $ENVP)
+    - pattern-not: $FUNC("...", ...)
+    - pattern-not: $FUNC(L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: CreateProcessA($APP, $CMD, ...)
+      - pattern: CreateProcessW($APP, $CMD, ...)
+    - pattern-not: $FUNC($APP, "...", ...)
+    - pattern-not: $FUNC($APP, L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: ShellExecuteA($HWND, $OP, $FILE, $PARAMS, ...)
+      - pattern: ShellExecuteW($HWND, $OP, $FILE, $PARAMS, ...)
+    - pattern-not: $FUNC($HWND, $OP, "...", ...)
+    - pattern-not: $FUNC($HWND, $OP, L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: posix_spawn($PID, $PATH, ...)
+      - pattern: _spawnl($MODE, $PATH, ...)
+      - pattern: _wspawnl($MODE, $PATH, ...)
+      - pattern: _spawnlp($MODE, $PATH, ...)
+      - pattern: _wspawnlp($MODE, $PATH, ...)
+      - pattern: _spawnv($MODE, $PATH, ...)
+      - pattern: _wspawnv($MODE, $PATH, ...)
+      - pattern: _spawnvp($MODE, $PATH, ...)
+      - pattern: _wspawnvp($MODE, $PATH, ...)
+    - pattern-not: $FUNC($MODE, "...", ...)
+    - pattern-not: $FUNC($MODE, L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: sprintf($BUF, $FMT, $INPUT, ...)
+      - pattern: snprintf($BUF, $SIZE, $FMT, $INPUT, ...)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+    - pattern-not: sprintf($BUF, "...", "...")
+    - pattern-not: snprintf($BUF, $SIZE, "...", "...")
+  - patterns:
+    - pattern-either:
+      - pattern: sprintf($BUF, $FMT, $INPUT, ...)
+      - pattern: snprintf($BUF, $SIZE, $FMT, $INPUT, ...)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+    - pattern-inside: 'char $BUF[$SIZE];
+
+        ...
+
+        '
+    - pattern-either:
+      - pattern: system($BUF)
+      - pattern: _wsystem($BUF)
+      - pattern: std::system($BUF)
+      - pattern: popen($BUF, $MODE)
+      - pattern: _popen($BUF, $MODE)
+      - pattern: _wpopen($BUF, $MODE)
+  - patterns:
+    - pattern-either:
+      - pattern: strcat($DEST, $SRC)
+      - pattern: strncat($DEST, $SRC, $N)
+    - pattern-inside: 'char $DEST[$SIZE];
+
+        ...
+
+        '
+    - pattern-not: strcat($DEST, "...")
+    - pattern-not: strcat($DEST, '/' )
+    - pattern-not: strncat($DEST, "...", $N)
+  - patterns:
+    - pattern-either:
+      - pattern: strcat($DEST, $SRC)
+      - pattern: strncat($DEST, $SRC, $N)
+    - pattern-inside: 'char $DEST[$SIZE];
+
+        ...
+
+        strcat($DEST, $SRC);
+
+        ...
+
+        system($DEST);
+
+        ...
+
+        '
+    - pattern-not: strcat($DEST, "...")
+    - pattern-not: strncat($DEST, "...", $N)
+  - patterns:
+    - pattern-either:
+      - pattern: strcat($DEST, $SRC)
+      - pattern: strncat($DEST, $SRC, $N)
+    - pattern-inside: 'char $DEST[$SIZE];
+
+        ...
+
+        strcat($DEST, $SRC);
+
+        ...
+
+        popen($DEST, $MODE);
+
+        ...
+
+        '
+    - pattern-not: strcat($DEST, "...")
+    - pattern-not: strncat($DEST, "...", $N)
+  - patterns:
+    - pattern-either:
+      - pattern: wcscat($DEST, $SRC)
+      - pattern: wcsncat($DEST, $SRC, $N)
+    - pattern-inside: 'wchar_t $DEST[$SIZE];
+
+        ...
+
+        '
+    - pattern-not: wcscat($DEST, L"...")
+    - pattern-not: wcsncat($DEST, L"...", $N)
+  - patterns:
+    - pattern-either:
+      - pattern: strcpy($DEST, $SRC)
+      - pattern: strncpy($DEST, $SRC, $N)
+    - pattern-inside: 'char $DEST[$SIZE];
+
+        ...
+
+        '
+    - pattern-not: strcpy($DEST, "...")
+    - pattern-not: strncpy($DEST, "...", $N)
+  - patterns:
+    - pattern-either:
+      - pattern: wcscpy($DEST, $SRC)
+      - pattern: wcsncpy($DEST, $SRC, $N)
+    - pattern-inside: 'wchar_t $DEST[$SIZE];
+
+        ...
+
+        '
+    - pattern-not: wcscpy($DEST, L"...")
+    - pattern-not: wcsncpy($DEST, L"...", $N)
+  - patterns:
+    - pattern: $VAR = $BASE + $USER_INPUT
+    - pattern-not: $VAR = "..." + "..."
+    - pattern-not: $VAR = "..." + CONST_...
+    - pattern-not: $VAR = CONST_... + "..."
+    - pattern-either:
+      - pattern: std::system($VAR.c_str())
+      - pattern: std::system($VAR)
+  - patterns:
+    - pattern-either:
+      - pattern: QProcess::start($CMD, ...)
+      - pattern: QProcess::execute($CMD, ...)
+      - pattern: QProcess::startDetached($CMD, ...)
+    - pattern-not: QProcess::start("...", ...)
+    - pattern-not: QProcess::execute("...", ...)
+    - pattern-not: QProcess::startDetached("...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: system($CMD)
+      - pattern: popen($CMD, $MODE)
+      - pattern: std::system($CMD)
+    - pattern-inside: '$TYPE $CMD = argv[$IDX];
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: system($CMD)
+      - pattern: popen($CMD, $MODE)
+      - pattern: std::system($CMD)
+    - pattern-inside: '$TYPE $CMD = getenv(...);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: system($CMD)
+      - pattern: popen($CMD, $MODE)
+    - pattern-inside: 'char $CMD[$SIZE];
+
+        ...
+
+        fgets($CMD, ...);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: system($CMD)
+      - pattern: popen($CMD, $MODE)
+    - pattern-inside: 'char $CMD[$SIZE];
+
+        ...
+
+        scanf("%s", $CMD);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: setenv($NAME, $VALUE, $OVERRIDE)
+      - pattern: putenv($STRING)
+      - pattern: _putenv($STRING)
+      - pattern: _wputenv($STRING)
+    - pattern-not: setenv("...", "...", ...)
+    - pattern-not: putenv("...")
+    - pattern-not: _putenv("...")
+  - patterns:
+    - pattern-either:
+      - pattern: setenv($NAME, $VALUE, $OVERRIDE)
+      - pattern: putenv($STRING)
+    - pattern-inside: 'char $VALUE[$SIZE];
+
+        ...
+
+        fgets($VALUE, ...);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: setenv($NAME, $VALUE, $OVERRIDE)
+      - pattern: putenv($STRING)
+    - pattern-inside: 'char $VALUE[$SIZE];
+
+        ...
+
+        $VALUE = fgets(...);
+
+        ...
+
+        '
+    - pattern-not: setenv($NAME, "...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: dlopen($PATH, $FLAGS)
+      - pattern: _wopen($PATH, ...)
+    - pattern-not: dlopen("...", ...)
+    - pattern-not: dlopen(L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: LoadLibraryA($PATH)
+      - pattern: LoadLibraryW($PATH)
+    - pattern-not: LoadLibraryA("...", ...)
+    - pattern-not: LoadLibraryW(L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: system($CMD)
+      - pattern: popen($CMD, $MODE)
+      - pattern: std::system($CMD)
+    - pattern-inside: '$TYPE $CMD;
+
+        ...
+
+        $CMD = $INPUT;
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $INPUT
+        patterns:
+        - pattern: argv[$IDX]
+        - pattern: getenv(...)
+        - pattern: fgets(...)
+        - pattern: scanf(...)
+  - patterns:
+    - pattern-either:
+      - pattern: sprintf($BUF, $FMT, $INPUT, ...)
+      - pattern: snprintf($BUF, $SIZE, $FMT, $INPUT, ...)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+    - pattern-inside: 'char $BUF[$SIZE];
+
+        ...
+
+        '
+    - pattern-either:
+      - pattern: CreateProcessA($APP, $BUF, ...)
+      - pattern: CreateProcessW($APP, $BUF, ...)
+      - pattern: ShellExecuteA($HWND, $OP, $BUF, ...)
+      - pattern: ShellExecuteW($HWND, $OP, $BUF, ...)
+  - patterns:
+    - pattern-either:
+      - pattern: strcat($DEST, $SRC)
+      - pattern: strcpy($DEST, $SRC)
+    - pattern-inside: 'char $DEST[$SIZE];
+
+        ...
+
+        '
+    - pattern-either:
+      - pattern: CreateProcessA($APP, $DEST, ...)
+      - pattern: ShellExecuteA($HWND, $OP, $DEST, ...)
+    - pattern-not: strcat($DEST, "...")
+    - pattern-not: strcpy($DEST, "...")
+  - patterns:
+    - pattern-either:
+      - pattern: strcat($DEST, $SRC)
+      - pattern: strncat($DEST, $SRC, $N)
+      - pattern: strcpy($DEST, $SRC)
+      - pattern: strncpy($DEST, $SRC, $N)
+    - pattern-inside: 'char $DEST[$SIZE];
+
+        ...
+
+        '
+    - pattern-not: strcat($DEST, "...")
+    - pattern-not: strncat($DEST, "...", $N)
+    - pattern-not: strcpy($DEST, "...")
+    - pattern-not: strncpy($DEST, "...", $N)
+  - patterns:
+    - pattern: $EXEC($CMD)
+    - metavariable-pattern:
+        metavariable: $EXEC
+        patterns:
+        - pattern: exec
+        - pattern: $FUNC
+    - pattern-not: $EXEC("...", ...)
+    - pattern-not: $EXEC(L"...", ...)

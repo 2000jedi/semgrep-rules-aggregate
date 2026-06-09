@@ -1,0 +1,577 @@
+rules:
+- id: flawfinder.EVP_des_ecb-1.EVP_des_cbc-1.EVP_des_cfb-1.EVP_des_ofb-1.EVP_desx_cbc-1
+  languages:
+  - c
+  - cpp
+  message: "The DES algorithm has not been recommended for over 15 years and was withdrawn\
+    \ from NIST (FIPS\n46-3) in 2005.\n\nConsider using libsodium's `crypto_secretbox_easy`\
+    \ authenticated encryption functions instead.\n\nFor more information please see:\n\
+    \ https://libsodium.gitbook.io/doc/secret-key_cryptography/secretbox.\n\nIf you\
+    \ must be FIPS compliant, consider using OpenSSLs AES or 3DES ciphers.\n"
+  metadata:
+    shortDescription: Insecure encryption algorithm (DES)
+    cwe: CWE-327
+    owasp:
+    - A3:2017-Sensitive Data Exposure
+    - A02:2021-Cryptographic Failures
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.EVP_des_ecb-1.EVP_des_cbc-1.EVP_des_cfb-1.EVP_des_ofb-1.EVP_desx_cbc-1
+    secondary_identifiers:
+    - name: Flawfinder - EVP_des_ecb
+      type: flawfinder_func_name
+      value: EVP_des_ecb
+    - name: Flawfinder - EVP_des_cbc
+      type: flawfinder_func_name
+      value: EVP_des_cbc
+    - name: Flawfinder - EVP_des_cfb
+      type: flawfinder_func_name
+      value: EVP_des_cfb
+    - name: Flawfinder - EVP_des_ofb
+      type: flawfinder_func_name
+      value: EVP_des_ofb
+    - name: Flawfinder - EVP_desx_cbc
+      type: flawfinder_func_name
+      value: EVP_desx_cbc
+  pattern-either:
+  - pattern: EVP_des_ecb(...)
+  - pattern: EVP_des_cbc(...)
+  - pattern: EVP_des_cfb(...)
+  - pattern: EVP_des_ofb(...)
+  - pattern: EVP_desx_cbc(...)
+  severity: ERROR
+- id: flawfinder.EVP_rc4_40-1.EVP_rc2_40_cbc-1.EVP_rc2_64_cbc-1
+  languages:
+  - c
+  - cpp
+  message: 'The RC4 algorithm is vulnerable to many attacks and should no longer be
+    used for encrypting
+
+    data streams.
+
+
+    Consider using libsodium''s `crypto_secretstream_xchacha20poly1305` stream cipher
+    encryption
+
+    functions instead. For more information please see:
+
+    https://libsodium.gitbook.io/doc/secret-key_cryptography/secretstream
+
+
+    If you must be FIPS compliant, consider using OpenSSLs AES or 3DES ciphers.
+
+    '
+  metadata:
+    shortDescription: Insecure stream cipher (RC4)
+    cwe: CWE-327
+    owasp:
+    - A3:2017-Sensitive Data Exposure
+    - A02:2021-Cryptographic Failures
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.EVP_rc4_40-1.EVP_rc2_40_cbc-1.EVP_rc2_64_cbc-1
+    secondary_identifiers:
+    - name: Flawfinder - EVP_rc4_40
+      type: flawfinder_func_name
+      value: EVP_rc4_40
+    - name: Flawfinder - EVP_rc2_40_cbc
+      type: flawfinder_func_name
+      value: EVP_rc2_40_cbc
+    - name: Flawfinder - EVP_rc2_64_cbc
+      type: flawfinder_func_name
+      value: EVP_rc2_64_cbc
+  pattern-either:
+  - pattern: EVP_rc4_40(...)
+  - pattern: EVP_rc2_40_cbc(...)
+  - pattern: EVP_rc2_64_cbc(...)
+  severity: ERROR
+- id: flawfinder.crypt-1.crypt_r-1
+  languages:
+  - c
+  - cpp
+  message: 'The crypt functions are not recommended due to the significantly small
+
+    key space. Modern hardware can crack crypt produced passwords relatively quickly.
+
+
+    Consider using the Argon2id password hashing algorithm provided by libsodium.
+
+    For more information please see: https://libsodium.gitbook.io/doc/password_hashing.
+
+    '
+  metadata:
+    shortDescription: Insecure hashing algorithm
+    cwe: CWE-327
+    owasp:
+    - A3:2017-Sensitive Data Exposure
+    - A02:2021-Cryptographic Failures
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.crypt-1.crypt_r-1
+    secondary_identifiers:
+    - name: Flawfinder - crypt
+      type: flawfinder_func_name
+      value: crypt
+    - name: Flawfinder - crypt_r
+      type: flawfinder_func_name
+      value: crypt_r
+  pattern-either:
+  - pattern: crypt(...)
+  - pattern: crypt_r(...)
+  severity: ERROR
+- id: flawfinder.drand48-1.erand48-1.jrand48-1.lcong48-1.lrand48-1.mrand48-1.nrand48-1.random-1.seed48-1.setstate-1.srand-1.strfry-1.srandom-1.g_rand_boolean-1.g_rand_int-1.g_rand_int_range-1.g_rand_double-1.g_rand_double_range-1.g_random_boolean-1.g_random_int-1.g_random_int_range-1.g_random_double-1.g_random_double_range-1
+  languages:
+  - c
+  - cpp
+  message: 'The detected function is not sufficient at generating security-related
+    random numbers,
+
+    such as those used in key and nonce creation. Consider using the libsodium library''s
+
+    `randombytes_random` function instead. More information on libsodium''s random
+    number
+
+    generators can be found here: https://libsodium.gitbook.io/doc/generating_random_data.
+
+
+    If FIPS validation is required, consider using OpenSSLs `RAND_bytes` family of
+    functions after
+
+    enabling the `FIPS_mode_set`.
+
+
+    For more information on OpenSSL random numbers please see:
+
+    https://wiki.openssl.org/index.php/Random_Numbers
+
+    '
+  metadata:
+    shortDescription: Usage of insufficient random number generators
+    cwe: CWE-327
+    owasp:
+    - A3:2017-Sensitive Data Exposure
+    - A02:2021-Cryptographic Failures
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.drand48-1.erand48-1.jrand48-1.lcong48-1.lrand48-1.mrand48-1.nrand48-1.random-1.seed48-1.setstate-1.srand-1.strfry-1.srandom-1.g_rand_boolean-1.g_rand_int-1.g_rand_int_range-1.g_rand_double-1.g_rand_double_range-1.g_random_boolean-1.g_random_int-1.g_random_int_range-1.g_random_double-1.g_random_double_range-1
+    secondary_identifiers:
+    - name: Flawfinder - drand48
+      type: flawfinder_func_name
+      value: drand48
+    - name: Flawfinder - erand48
+      type: flawfinder_func_name
+      value: erand48
+    - name: Flawfinder - jrand48
+      type: flawfinder_func_name
+      value: jrand48
+    - name: Flawfinder - lcong48
+      type: flawfinder_func_name
+      value: lcong48
+    - name: Flawfinder - lrand48
+      type: flawfinder_func_name
+      value: lrand48
+    - name: Flawfinder - mrand48
+      type: flawfinder_func_name
+      value: mrand48
+    - name: Flawfinder - nrand48
+      type: flawfinder_func_name
+      value: nrand48
+    - name: Flawfinder - random
+      type: flawfinder_func_name
+      value: random
+    - name: Flawfinder - seed48
+      type: flawfinder_func_name
+      value: seed48
+    - name: Flawfinder - setstate
+      type: flawfinder_func_name
+      value: setstate
+    - name: Flawfinder - srand
+      type: flawfinder_func_name
+      value: srand
+    - name: Flawfinder - strfry
+      type: flawfinder_func_name
+      value: strfry
+    - name: Flawfinder - srandom
+      type: flawfinder_func_name
+      value: srandom
+    - name: Flawfinder - g_rand_boolean
+      type: flawfinder_func_name
+      value: g_rand_boolean
+    - name: Flawfinder - g_rand_int
+      type: flawfinder_func_name
+      value: g_rand_int
+    - name: Flawfinder - g_rand_int_range
+      type: flawfinder_func_name
+      value: g_rand_int_range
+    - name: Flawfinder - g_rand_double
+      type: flawfinder_func_name
+      value: g_rand_double
+    - name: Flawfinder - g_rand_double_range
+      type: flawfinder_func_name
+      value: g_rand_double_range
+    - name: Flawfinder - g_random_boolean
+      type: flawfinder_func_name
+      value: g_random_boolean
+    - name: Flawfinder - g_random_int
+      type: flawfinder_func_name
+      value: g_random_int
+    - name: Flawfinder - g_random_int_range
+      type: flawfinder_func_name
+      value: g_random_int_range
+    - name: Flawfinder - g_random_double
+      type: flawfinder_func_name
+      value: g_random_double
+    - name: Flawfinder - g_random_double_range
+      type: flawfinder_func_name
+      value: g_random_double_range
+  pattern-either:
+  - pattern: drand48(...)
+  - pattern: erand48(...)
+  - pattern: jrand48(...)
+  - pattern: lcong48(...)
+  - pattern: lrand48(...)
+  - pattern: mrand48(...)
+  - pattern: nrand48(...)
+  - pattern: random(...)
+  - pattern: seed48(...)
+  - pattern: setstate(...)
+  - pattern: srand(...)
+  - pattern: strfry(...)
+  - pattern: srandom(...)
+  - pattern: g_rand_boolean(...)
+  - pattern: g_rand_int(...)
+  - pattern: g_rand_int_range(...)
+  - pattern: g_rand_double(...)
+  - pattern: g_rand_double_range(...)
+  - pattern: g_random_boolean(...)
+  - pattern: g_random_int(...)
+  - pattern: g_random_int_range(...)
+  - pattern: g_random_double(...)
+  - pattern: g_random_double_range(...)
+  - pattern-regex: (long|short|double|int|float|void)\s(\*|)(\s|)(seed48|lcong48)(\(.*\))\;
+  severity: WARNING
+- id: raptor-insecure-api-rand-srand
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/338
+    - https://cwe.mitre.org/data/definitions/330
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: HIGH
+  message: The software uses a Pseudo-Random Number Generator (PRNG) in a security
+    context, but the PRNG's algorithm is not cryptographically strong. When a non-cryptographic
+    PRNG is used in a cryptographic context, it can expose the cryptography to certain
+    types of attacks. Often a pseudo-random number generator (PRNG) is not designed
+    for cryptography. Sometimes a mediocre source of randomness is sufficient or preferable
+    for algorithms that use random numbers. Weak generators generally take less processing
+    power and/or do not use the precious, finite, entropy sources on a system. While
+    such PRNGs might have very useful features, these same features could be used
+    to break the cryptography.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: rand(...)
+  - pattern: srand(...)
+- id: random-fd-exhaustion
+  pattern-either:
+  - patterns:
+    - pattern: '$FD = open("/dev/urandom", ...);
+
+        ...
+
+        read($FD, ...);
+
+        '
+    - pattern-not: '$FD = open("/dev/urandom", ...);
+
+        ...
+
+        $BYTES_READ = read($FD, ...);
+
+        '
+  - patterns:
+    - pattern: '$FD = open("/dev/random", ...);
+
+        ...
+
+        read($FD, ...);
+
+        '
+    - pattern-not: '$FD = open("/dev/random", ...);
+
+        ...
+
+        $BYTES_READ = read($FD, ...);
+
+        '
+  message: Call to 'read()' without error checking is susceptible to file descriptor
+    exhaustion. Consider using the 'getrandom()' function.
+  metadata:
+    cwe:
+    - 'CWE-774: Allocation of File Descriptors or Handles Without Limits or Throttling'
+    references:
+    - https://lwn.net/Articles/606141/
+    category: security
+    technology:
+    - c
+    confidence: MEDIUM
+    subcategory:
+    - audit
+    likelihood: LOW
+    impact: HIGH
+  languages:
+  - c
+  severity: WARNING
+- id: raptor-incorrect-use-of-memset
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Mishandled Sensitive Information
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-683: Function Call With Incorrect Order of Arguments'
+    owasp:
+    - A04:2025 - Cryptographic Failures
+    references:
+    - https://lkml.org/lkml/2009/11/11/336
+    - https://bugs.mysql.com/bug.php?id=23181
+  message: The invocation of memset() is easy to get wrong. The second argument is
+    the character and the third argument is the size, but sometimes these arguments
+    are in the wrong order. This results in a no-op.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: memset($_, $_, 0);
+  - pattern: memset($_, $_, '\0');
+  - pattern: memset($_, sizeof(...), $_);
+  - pattern: memset_explicit($_, $_, 0);
+  - pattern: memset_explicit($_, $_, '\0');
+  - pattern: memset_explicit($_, sizeof(...), $_);
+- id: raptor-insecure-api-rand-srand-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Cryptographic Issues
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-338: Use of Cryptographically Weak Pseudo-Random Number Generator (PRNG)'
+    - 'CWE-330: Use of Insufficiently Random Values'
+    owasp:
+    - A04:2025 - Cryptographic Failures
+    references:
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+  message: The rand() PRNG should not be used in applications intended to be  portable
+    when good randomness is needed. Instead, the use of random()  is recommended.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: rand(...)
+  - pattern: srand(...)
+  - pattern: drand48(...)
+  - pattern: erand48(...)
+  - pattern: lrand48(...)
+  - pattern: nrand48(...)
+  - pattern: mrand48(...)
+  - pattern: jrand48(...)
+  - pattern: lcong48(...)
+  - pattern: srand48(...)
+  - pattern: seed48(...)
+- id: raptor-memory-address-exposure
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Mishandled Sensitive Information
+    likelihood: LOW
+    impact: MEDIUM
+    confidence: LOW
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-209: Generation of Error Message Containing Sensitive Information'
+    - 'CWE-497: Exposure of Sensitive System Information to an Unauthorized Control
+      Sphere'
+    owasp:
+    - A04:2025 - Cryptographic Failures
+    references:
+    - https://github.com/struct/mms
+  message: The software generates an error message that includes sensitive information
+    about its environment, users, or associated data. In particular, exposure of memory
+    addresses might defeat ASLR.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: printf($FMT, ...)
+    - pattern: vprintf($FMT, ...)
+    - pattern: wprintf($FMT, ...)
+    - pattern: vwprintf($FMT, ...)
+    - pattern: vcprintf($FMT, ...)
+    - pattern: vcwprintf($FMT, ...)
+    - pattern: vscprintf($FMT, ...)
+    - pattern: vscwprintf($FMT, ...)
+    - pattern: printk($FMT, ...)
+    - pattern: warn($FMT, ...)
+    - pattern: vwarn($FMT, ...)
+    - pattern: warnx($FMT, ...)
+    - pattern: vwarnx($FMT, ...)
+    - pattern: fprintf($_, $FMT, ...)
+    - pattern: vfprintf($_, $FMT, ...)
+    - pattern: fwprintf($_, $FMT, ...)
+    - pattern: vfwprintf($_, $FMT, ...)
+    - pattern: sprintf($_, $FMT, ...)
+    - pattern: vsprintf($_, $FMT, ...)
+    - pattern: asprintf($_, $FMT, ...)
+    - pattern: vasprintf($_, $FMT, ...)
+    - pattern: dprintf($_, $FMT, ...)
+    - pattern: vdprintf($_, $FMT, ...)
+    - pattern: wsprintf($_, $FMT, ...)
+    - pattern: syslog($_, $FMT, ...)
+    - pattern: vsyslog($_, $FMT, ...)
+    - pattern: err($_, $FMT, ...)
+    - pattern: verr($_, $FMT, ...)
+    - pattern: errx($_, $FMT, ...)
+    - pattern: verrx($_, $FMT, ...)
+    - pattern: warnc($_, $FMT, ...)
+    - pattern: vwarnc($_, $FMT, ...)
+    - pattern: snprintf($_, $_, $FMT, ...)
+    - pattern: vsnprintf($_, $_, $FMT, ...)
+    - pattern: swprintf($_, $_, $FMT, ...)
+    - pattern: vswprintf($_, $_, $FMT, ...)
+    - pattern: errc($_, $_, $FMT, ...)
+    - pattern: verrc($_, $_, $FMT, ...)
+  - metavariable-regex:
+      metavariable: $FMT
+      regex: (".*%\w*x.*"|".*%\w*X.*"|".*%\w*p.*")
+- id: raptor-mismatched-memory-management-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Memory Issues
+    likelihood: LOW
+    impact: MEDIUM
+    confidence: LOW
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-762: Mismatched Memory Management Routines'
+    owasp:
+    - A06:2025 - Insecure Design
+    references:
+    - https://github.com/struct/mms
+  message: The software attempts to return a memory resource to the system, but it
+    calls a release function that is not compatible with the function that was originally
+    used to allocate that resource. Due to inherent limitations of Semgrep, this rule
+    might generate many false positives and should therefore be customized for your
+    codebase.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: free($PTR);
+    - pattern-not-inside: '$PTR = malloc(...);
+
+        ...
+
+        '
+    - pattern-not-inside: '$PTR = ($_)malloc(...);
+
+        ...
+
+        '
+    - pattern-not-inside: '$PTR = calloc(...);
+
+        ...
+
+        '
+    - pattern-not-inside: '$PTR = ($_)calloc(...);
+
+        ...
+
+        '
+    - pattern-not-inside: '$PTR = realloc(...);
+
+        ...
+
+        '
+    - pattern-not-inside: '$PTR = ($_)realloc(...);
+
+        ...
+
+        '
+    - pattern-not-inside: '$PTR = strdup(...);
+
+        ...
+
+        '
+    - pattern-not-inside: '$PTR = strndup(...);
+
+        ...
+
+        '
+- id: v4.insecure-strcpy-usage
+  languages:
+  - c
+  - cpp
+  message: Avoid using strcpy; it can cause buffer overflows. Consider using strncpy
+    or safer alternatives.
+  severity: WARNING
+  pattern: strcpy($DEST, $SRC)
+  metadata:
+    category: security
+    subcategory:
+    - vuln
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+- id: encrypt-decrypt-function-name
+  patterns:
+  - pattern: '$FUNC(...);
+
+      '
+  - metavariable-regex:
+      metavariable: $FUNC
+      regex: .*(encrypt|decrypt).*
+  message: '$FUNC name contains encrypt/decrypt. These functions are usually intersting.
+
+    '
+  languages:
+  - cpp
+  - c
+  severity: WARNING
+  metadata:
+    category: hotspot
+    references:
+    - https://parsiya.net/blog/2022-04-07-code-review-hotspots-with-semgrep/#function-with-encode-and-decode-in-their-names

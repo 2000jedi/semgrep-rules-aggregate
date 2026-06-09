@@ -1,0 +1,113 @@
+rules:
+  - id: codeql-cpp-goto-usage
+    message: >-
+      Use of goto statement. Goto can make code harder to understand and
+      maintain. Consider structured control flow.
+    severity: WARNING
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-705: Incorrect Control Flow Scoping"
+      technology:
+        - cpp
+      confidence: HIGH
+      likelihood: LOW
+      impact: LOW
+      subcategory:
+        - audit
+      references:
+        - https://cwe.mitre.org/data/definitions/705.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Best%20Practices/Likely%20Errors/UseOfGoto.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Best%20Practices/Likely%20Errors/UseOfGoto.ql
+    pattern: "goto $LABEL;"
+
+  - id: codeql-cpp-assert-side-effect
+    message: >-
+      Assert with side effects. Side effects in assertions are removed in
+      release builds.
+    severity: ERROR
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-617: Reachable Assertion"
+      technology:
+        - cpp
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/617.html
+    pattern-either:
+      - pattern: assert($VAR++);
+      - pattern: assert($VAR--);
+      - pattern: assert(++$VAR);
+      - pattern: assert(--$VAR);
+
+  - id: codeql-cpp-malloc-no-null-check
+    message: >-
+      Memory allocation without null check. malloc() can return NULL if
+      allocation fails.
+    severity: WARNING
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-690: Unchecked Return Value to NULL Pointer Dereference"
+      technology:
+        - cpp
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: HIGH
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/690.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-570/IncorrectAllocationErrorHandling.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-570/IncorrectAllocationErrorHandling.ql
+    patterns:
+      - pattern: |
+          $PTR = malloc(...);
+          ...
+          *$PTR = ...;
+      - pattern-not: |
+          $PTR = malloc(...);
+          if ($PTR == NULL) { ... }
+          ...
+          *$PTR = ...;
+      - pattern-not: |
+          $PTR = malloc(...);
+          if (!$PTR) { ... }
+          ...
+          *$PTR = ...;
+
+  - id: codeql-cpp-divide-by-zero
+    message: >-
+      Potential division by zero. Check divisor before division.
+    severity: ERROR
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-369: Divide By Zero"
+      technology:
+        - cpp
+      confidence: LOW
+      likelihood: MEDIUM
+      impact: MEDIUM
+      subcategory:
+        - audit
+      references:
+        - https://cwe.mitre.org/data/definitions/369.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/experimental/Security/CWE-369/DivideByZeroUsingReturnValue.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/experimental/Security/CWE-369/DivideByZeroUsingReturnValue.ql
+    pattern-either:
+      - pattern: $X / 0
+      - pattern: $X % 0

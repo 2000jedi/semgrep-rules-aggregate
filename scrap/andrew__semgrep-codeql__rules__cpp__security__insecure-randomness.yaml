@@ -1,0 +1,26 @@
+rules:
+  - id: codeql-cpp-insecure-randomness
+    message: >-
+      Use of rand() or srand() provides weak randomness. Use a
+      cryptographically secure random number generator for security purposes.
+    severity: WARNING
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-330: Use of Insufficiently Random Values"
+      technology:
+        - cpp
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/330.html
+    pattern-either:
+      - pattern: rand()
+      - pattern: srand(...)
+      - pattern: random()
+      - pattern: srandom(...)

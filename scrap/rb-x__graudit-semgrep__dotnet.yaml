@@ -1,0 +1,15 @@
+rules:
+- id: graudit-dotnet-xss-749
+  message: Potential cross-site scripting vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/dotnet.db
+    original_line: 58
+    original_pattern: printf
+    vulnerability_type: xss
+    confidence: LOW
+  patterns:
+  - pattern-regex: printf

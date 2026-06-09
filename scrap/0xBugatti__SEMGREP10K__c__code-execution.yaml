@@ -1,0 +1,1105 @@
+rules:
+- id: raptor-incorrect-use-of-strncpy-stpncpy-strlcpy
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/806
+    - https://github.com/0xdea/advisories/blob/master/2020-07-solaris-whodo-w.txt
+    - https://dustri.org/b/playing-with-weggli.html
+    confidence: MEDIUM
+  message: The software uses the size of a source buffer when reading from or writing
+    to a destination buffer, which may cause it to access memory that is outside of
+    the bounds of the buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($DST, $SRC, $LEN)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strncpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: strscpy
+    - pattern-either:
+      - pattern-inside: '$TYPE $SRC[$LEN];
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $SRC[$LEN] = $EXPR;
+
+          ...
+
+          '
+  - patterns:
+    - pattern: $FUN($DST, $SRC, <... $SRC ...>)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strncpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: strscpy
+- id: raptor-mismatched-memory-management
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/762
+    - https://cwe.mitre.org/data/definitions/590
+    - https://github.com/struct/mms
+    confidence: LOW
+  message: The software attempts to return a memory resource to the system, but it
+    calls a release function that is not compatible with the function that was originally
+    used to allocate that resource. When the memory management functions are mismatched,
+    the consequences may be as severe as code execution, memory corruption, or program
+    crash. Consequences and ease of exploit will vary depending on the implementation
+    of the routines and the object being managed. Due to inherent limitations of Semgrep,
+    this rule might generate many false positives and should therefore be customized
+    for your codebase.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: free($PTR);
+    - pattern-not-inside: '$PTR = malloc(...);
+
+        ...
+
+        free($PTR);
+
+        '
+    - pattern-not-inside: '$PTR = ($CAST)malloc(...);
+
+        ...
+
+        free($PTR);
+
+        '
+    - pattern-not-inside: '$PTR = calloc(...);
+
+        ...
+
+        free($PTR);
+
+        '
+    - pattern-not-inside: '$PTR = ($CAST)calloc(...);
+
+        ...
+
+        free($PTR);
+
+        '
+    - pattern-not-inside: '$PTR = realloc(...);
+
+        ...
+
+        free($PTR);
+
+        '
+    - pattern-not-inside: "$PTR = ($CAST)realloc(...);\n...\nfree($PTR); \n"
+- id: raptor-missing-break-in-switch
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/484
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://github.com/returntocorp/semgrep/issues/4939
+    confidence: LOW
+  message: The software omits a break statement within a switch or similar construct,
+    causing code associated with multiple conditions to execute. This can cause problems
+    when the programmer only intended to execute code associated with one condition.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: 'switch ($VAR) { case $VAL1: ... case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... break; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: break; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... exit($RET); case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: exit($RET); case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... return; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: return; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... return $RET; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: return $RET; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... goto $LOC; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: goto $LOC; case $VAL2: ... }
+
+      '
+  - focus-metavariable: $VAR
+- id: raptor-unsafe-ret-strlcpy-strlcat
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://lwn.net/Articles/507319/
+    - https://g.co/kgs/PCHQjJ
+    confidence: MEDIUM
+  message: The strlcpy() and strlcat() functions return the total length of the string
+    they tried to create. For strlcpy() that means the length of the source string.
+    For strlcat() that means the initial length of the destination string plus the
+    length of of the source string. Therefore, this return value can be larger than
+    the size of the destination buffer. If it is used unsafely, e.g. as an index to
+    write to the destination buffer, memory corruption might occur. Vulnerabilities
+    such as this are not common because the return value is usually discarded. However,
+    ignoring the result of these functions can result in data truncation.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: $RET = strlcpy(...)
+  - pattern: $RET = strlcat(...)
+  - pattern: $RET = wcslcpy(...)
+  - pattern: $RET = wcslcat(...)
+  - pattern: $RET += strlcpy(...)
+  - pattern: $RET += strlcat(...)
+  - pattern: $RET += wcslcpy(...)
+  - pattern: $RET += wcslcat(...)
+- id: bidirectional-char
+  patterns:
+  - pattern-either:
+    - pattern-regex: "\u202A"
+    - pattern-regex: "\u202B"
+    - pattern-regex: "\u202D"
+    - pattern-regex: "\u202E"
+    - pattern-regex: "\u2066"
+    - pattern-regex: "\u2067"
+    - pattern-regex: "\u2068"
+    - pattern-regex: "\u202C"
+    - pattern-regex: "\u2069"
+  message: This code contains bidirectional (bidi) characters. While this is useful
+    for support of right-to-left languages such as Arabic or Hebrew, it can also be
+    used to trick language parsers into executing code in a manner that is different
+    from how it is displayed in code editing and review tools. If this is not what
+    you were expecting, please review this code in an editor that can reveal hidden
+    Unicode characters.
+  metadata:
+    category: security
+    technology:
+    - unicode
+    references:
+    - https://trojansource.codes/
+    confidence: MEDIUM
+    license: Commons Clause License Condition v1.0[LGPL-2.1-only]
+  languages:
+  - bash
+  - c
+  - csharp
+  - go
+  - java
+  - javascript
+  - json
+  - kotlin
+  - lua
+  - ocaml
+  - php
+  - python
+  - ruby
+  - rust
+  - scala
+  - sh
+  - typescript
+  - yaml
+  severity: WARNING
+- id: exec
+  message: Process execution detected $EXEC
+  severity: INFO
+  metadata:
+    category: security
+    subcategory: audit
+    likelihood: LOW
+    impact: LOW
+    confidence: LOW
+    technology:
+    - c
+  languages:
+  - c
+  pattern-either:
+  - patterns:
+    - pattern: '$EXEC(...)
+
+        '
+    - metavariable-regex:
+        metavariable: $EXEC
+        regex: ^(exec|execl|execle|execlp|execv|execve|execvp|exect|fexecve|spawn|spawnp|__spawn2|__spawnp2|posix_spawn|posix_spawnp|system|clone|clone3|sys_clone3)$
+  - patterns:
+    - pattern: 'syscall($SYSCALL, ...)
+
+        '
+    - metavariable-regex:
+        metavariable: $SYSCALL
+        regex: (sys_|__NR_)(exec|execl|execle|execlp|execv|execve|execvp|exect|fexecve|spawn|spawnp|__spawn2|__spawnp2|posix_spawn|posix_spawnp|system|clone|clone3)
+- id: raptor-use-after-free
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/416
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    confidence: MEDIUM
+  message: The use of previously-freed memory can have any number of adverse consequences,
+    ranging from the corruption of valid data to the execution of arbitrary code,
+    depending on the instantiation and timing of the flaw. The simplest way data corruption
+    may occur involves the system's reuse of the freed memory.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: $PTR->$MEM
+    - pattern: $PTR[$POS]
+    - pattern: (*$PTR)
+    - pattern: return $PTR;
+    - patterns:
+      - pattern-either:
+        - pattern: $FUN(..., <... $PTR ...>, ...)
+        - pattern: $FUN(..., <... $PTR->$MEM ...>, ...)
+        - pattern: $FUN(..., <... $PTR[$POS] ...>, ...)
+        - pattern: $FUN(..., <... (*$PTR) ...>, ...)
+        - pattern: $PTR->$FUN(...)
+      - metavariable-pattern:
+          metavariable: $FUN
+          patterns:
+          - pattern-not: free
+  - pattern-inside: free($PTR); ...
+  - pattern-not-inside: "free($PTR);\n...\n$PTR = $EXPR; \n...\n"
+- id: raptor-missing-break-in-switch-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Other Security
+    likelihood: LOW
+    impact: LOW
+    confidence: LOW
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-484: Omitted Break Statement in Switch'
+    owasp:
+    - A08:2025 - Software or Data Integrity Failures
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://github.com/returntocorp/semgrep/issues/4939
+  message: The software omits a break statement within a switch or similar construct,
+    causing code associated with multiple conditions to execute. This can cause problems
+    when the programmer only intended to execute code associated with one condition.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: 'switch ($VAR) { case $VAL1: ... case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... break; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: break; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... exit($_); case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: exit($_); case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... return; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: return; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... return $_; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: return $_; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... goto $_; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: goto $_; case $VAL2: ... }
+
+      '
+  - focus-metavariable: $VAR
+- id: raptor-missing-default-in-switch
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Other Security
+    likelihood: LOW
+    impact: LOW
+    confidence: LOW
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-478: Missing Default Case in Multiple Condition Expression'
+    owasp:
+    - A08:2025 - Software or Data Integrity Failures
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://github.com/returntocorp/semgrep/issues/4939
+  message: The code does not have a default case in an expression with multiple conditions,
+    such as a switch statement.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: 'switch ($VAR) { }
+
+      '
+  - pattern-not: 'switch ($VAR) { default: ... }
+
+      '
+  - focus-metavariable: $VAR
+- id: raptor-unsafe-ret-strlcpy-strlcat-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Memory Issues
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-131: Incorrect Calculation of Buffer Size'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://lwn.net/Articles/507319/
+    - https://g.co/kgs/PCHQjJ
+  message: The strlcpy() and strlcat() functions return the total length of the string
+    they tried to create. For strlcpy() that means the length of the source string.
+    For strlcat() that means the initial length of the destination string plus the
+    length of of the source string. Therefore, this return value can be larger than
+    the size of the destination buffer. If it is used unsafely, e.g. as an index to
+    write to the destination buffer, memory corruption might occur.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: $_ = $FUN(...)
+    - pattern: $_ += $FUN(...)
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: strlcpy
+      - pattern: strlcat
+      - pattern: wcslcpy
+      - pattern: wcslcat
+      - pattern: _mbslcpy
+      - pattern: _mbslcat
+- id: raptor-use-after-free-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Memory Issues
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-416: Use After Free'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+  message: The use of previously-freed memory can have any number of adverse consequences,
+    ranging from the corruption of valid data to the execution of arbitrary code,
+    depending on the instantiation and timing of the flaw. The simplest way data corruption
+    may occur involves the system's reuse of the freed memory.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: $PTR->$_
+    - pattern: $PTR[$_]
+    - pattern: (*$PTR)
+    - pattern: return $PTR;
+    - patterns:
+      - pattern-either:
+        - pattern: $FUN(..., <... $PTR ...>, ...)
+        - pattern: $PTR->$FUN(...)
+      - metavariable-pattern:
+          metavariable: $FUN
+          patterns:
+          - pattern-not: free
+  - pattern-inside: free($PTR); ...
+  - pattern-not-inside: "free($PTR);\n...\n$PTR = ...; \n...\n"
+- id: raptor-use-of-source-size-in-copy
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Memory Issues
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-806: Buffer Access Using Size of Source Buffer'
+    owasp:
+    - A06:2025 - Insecure Design
+    references:
+    - https://github.com/0xdea/advisories/blob/master/2020-07-solaris-whodo-w.txt
+    - https://dustri.org/b/playing-with-weggli.html
+  message: The software uses the size of a source buffer when reading from or writing
+    to a destination buffer, which may cause it to access memory that is outside of
+    the bounds of the buffer.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN($DST, $SRC, $LEN)
+    - pattern-not: $FUN($DST, "...", $LEN)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strncpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: strscpy
+        - pattern: memcpy
+        - pattern: memmove
+        - pattern: wmemcpy
+        - pattern: wmemmove
+        - pattern: mempcpy
+        - pattern: wmempcpy
+    - pattern-either:
+      - patterns:
+        - pattern-inside: '$_ $SRC[$LEN];
+
+            ...
+
+            '
+        - pattern-not-inside: '$_ $DST[$LEN];
+
+            ...
+
+            '
+        - pattern-not-inside: '$_ $DST[$LEN] = ...;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $SRC[$LEN] = ...;
+
+            ...
+
+            '
+        - pattern-not-inside: '$_ $DST[$LEN];
+
+            ...
+
+            '
+        - pattern-not-inside: '$_ $DST[$LEN] = ...;
+
+            ...
+
+            '
+  - patterns:
+    - pattern: $FUN($DST, $SRC, <... $SRC ...>)
+    - pattern-not: $FUN($DST, "...", <... $SRC ...>)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strncpy
+        - pattern: stpncpy
+        - pattern: strlcpy
+        - pattern: strscpy
+        - pattern: memcpy
+        - pattern: memmove
+        - pattern: wmemcpy
+        - pattern: wmemmove
+        - pattern: mempcpy
+        - pattern: wmempcpy
+  - patterns:
+    - pattern: $FUN($DST, <... $SRC ...>, ..., $SRC, ...)
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+        - pattern: swprintf
+        - pattern: vswprintf
+- id: raptor-missing-break-in-switch-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/484
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://github.com/returntocorp/semgrep/issues/4939
+    confidence: MEDIUM
+  message: The software omits a break statement within a switch or similar construct,
+    causing code associated with multiple conditions to execute. This can cause problems
+    when the programmer only intended to execute code associated with one condition.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: 'switch ($VAR) { case $VAL1: ... case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... break; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: break; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... exit($RET); case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: exit($RET); case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... return; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: return; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: ... return $RET; case $VAL2: ... }
+
+      '
+  - pattern-not: 'switch ($VAR) { case $VAL1: return $RET; case $VAL2: ... }
+
+      '
+- id: raptor-missing-default-in-switch-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/478
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    - https://github.com/returntocorp/semgrep/issues/4939
+    confidence: MEDIUM
+  message: The code does not have a default case in an expression with multiple conditions,
+    such as a switch statement.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: 'switch ($VAR) { }
+
+      '
+  - pattern-not: 'switch ($VAR) { default: ... }
+
+      '
+- id: memcpy-insecure-use
+  pattern: '$TYPE $BUF[$SIZE];
+
+    ...
+
+    memcpy(..., $BUF, ...);
+
+    '
+  message: Check the third parameter against the size of both destination and source.
+  languages:
+  - cpp
+  - c
+  severity: WARNING
+  metadata:
+    category: hotspot
+    references:
+    - https://dustri.org/b/playing-with-weggli.html
+- id: Uncontrolled-Format-String
+  metadata:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: MEDIUM
+    category: security
+    cwe:
+    - 'CWE-134: Use of Externally-Controlled Format String'
+    vulnerability_class:
+    - Memory Issues
+    owasp:
+    - A03:2021 - Injection
+    references:
+    - https://cwe.mitre.org/data/definitions/134.html
+    - https://julianor.tripod.com/bc/formatstring-1.2.pdf
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    technology:
+    - c
+    - cpp
+  languages:
+  - c
+  - c++
+  severity: ERROR
+  message: 'The function ''$FUNC'' uses a format string argument that may originate
+    from  untrusted input. An attacker controlling this input can cause buffer  overflows,
+    information disclosure, or arbitrary code execution via format  specifiers like
+    %s, %x, or %n. Use a literal format string or validate  input before passing to
+    format functions.
+
+    '
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: printf($FMT, ...)
+      - pattern: vprintf($FMT, ...)
+      - pattern: wprintf($FMT, ...)
+      - pattern: vwprintf($FMT, ...)
+      - pattern: vcprintf($FMT, ...)
+      - pattern: vcwprintf($FMT, ...)
+      - pattern: vscprintf($FMT, ...)
+      - pattern: vscwprintf($FMT, ...)
+      - pattern: printk($FMT, ...)
+      - pattern: scanf($FMT, ...)
+      - pattern: __isoc99_scanf($FMT, ...)
+      - pattern: vscanf($FMT, ...)
+      - pattern: __isoc99_vscanf($FMT, ...)
+      - pattern: wscanf($FMT, ...)
+      - pattern: vwscanf($FMT, ...)
+      - pattern: warn($FMT, ...)
+      - pattern: vwarn($FMT, ...)
+      - pattern: warnx($FMT, ...)
+      - pattern: vwarnx($FMT, ...)
+    - pattern-not: $_("...", ...)
+    - pattern-not: $_(gettext(...), ...)
+    - pattern-not: $_(dgettext(...), ...)
+    - pattern-not: $_(dcgettext(...), ...)
+    - pattern-not: $_(ngettext(...), ...)
+    - pattern-not: $_(safe_printf(...), ...)
+    - pattern-not: $_(log_safe(...), ...)
+  - patterns:
+    - pattern-either:
+      - pattern: fprintf($STREAM, $FMT, ...)
+      - pattern: vfprintf($STREAM, $FMT, ...)
+      - pattern: fwprintf($STREAM, $FMT, ...)
+      - pattern: vfwprintf($STREAM, $FMT, ...)
+      - pattern: sprintf($BUF, $FMT, ...)
+      - pattern: vsprintf($BUF, $FMT, ...)
+      - pattern: asprintf($PTR, $FMT, ...)
+      - pattern: vasprintf($PTR, $FMT, ...)
+      - pattern: dprintf($FD, $FMT, ...)
+      - pattern: vdprintf($FD, $FMT, ...)
+      - pattern: wsprintf($BUF, $FMT, ...)
+      - pattern: fscanf($STREAM, $FMT, ...)
+      - pattern: __isoc99_fscanf($STREAM, $FMT, ...)
+      - pattern: vfscanf($STREAM, $FMT, ...)
+      - pattern: __isoc99_vfscanf($STREAM, $FMT, ...)
+      - pattern: fwscanf($STREAM, $FMT, ...)
+      - pattern: vfwscanf($STREAM, $FMT, ...)
+      - pattern: sscanf($BUF, $FMT, ...)
+      - pattern: __isoc99_sscanf($BUF, $FMT, ...)
+      - pattern: vsscanf($BUF, $FMT, ...)
+      - pattern: __isoc99_vsscanf($BUF, $FMT, ...)
+      - pattern: swscanf($BUF, $FMT, ...)
+      - pattern: vswscanf($BUF, $FMT, ...)
+      - pattern: syslog($PRIORITY, $FMT, ...)
+      - pattern: vsyslog($PRIORITY, $FMT, ...)
+      - pattern: err($EXITCODE, $FMT, ...)
+      - pattern: verr($EXITCODE, $FMT, ...)
+      - pattern: errx($EXITCODE, $FMT, ...)
+      - pattern: verrx($EXITCODE, $FMT, ...)
+      - pattern: warnc($ERRNO, $FMT, ...)
+      - pattern: vwarnc($ERRNO, $FMT, ...)
+    - pattern-not: $_($_, "...", ...)
+    - pattern-not: $_($_, gettext(...), ...)
+    - pattern-not: $_($_, dgettext(...), ...)
+    - pattern-not: $_($_, dcgettext(...), ...)
+    - pattern-not: $_($_, ngettext(...), ...)
+  - patterns:
+    - pattern-either:
+      - pattern: snprintf($BUF, $SIZE, $FMT, ...)
+      - pattern: vsnprintf($BUF, $SIZE, $FMT, ...)
+      - pattern: swprintf($BUF, $SIZE, $FMT, ...)
+      - pattern: vswprintf($BUF, $SIZE, $FMT, ...)
+      - pattern: errc($EXITCODE, $ERRNO, $FMT, ...)
+      - pattern: verrc($EXITCODE, $ERRNO, $FMT, ...)
+    - pattern-not: $_($_, $_, "...", ...)
+    - pattern-not: $_($_, $_, gettext(...), ...)
+    - pattern-not: $_($_, $_, dgettext(...), ...)
+    - pattern-not: $_($_, $_, dcgettext(...), ...)
+- id: Use-After-Free
+  metadata:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: MEDIUM
+    category: security
+    cwe:
+    - 'CWE-416: Use After Free'
+    vulnerability_class:
+    - Memory Issues
+    references:
+    - https://cwe.mitre.org/data/definitions/416.html
+  languages:
+  - c
+  - c++
+  severity: ERROR
+  message: 'The product reuses or references memory after it has been freed. This
+    can lead to undefined behavior, memory corruption, or arbitrary code execution.
+
+    '
+  pattern-either:
+  - patterns:
+    - pattern: 'free($PTR);
+
+        ...
+
+        $PTR->$FIELD;
+
+        '
+    - pattern-not: 'free($PTR);
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        $PTR->$FIELD;
+
+        '
+  - patterns:
+    - pattern: 'free($PTR);
+
+        ...
+
+        (*$PTR).$FIELD;
+
+        '
+    - pattern-not: 'free($PTR);
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        (*$PTR).$FIELD;
+
+        '
+  - patterns:
+    - pattern: 'free($PTR);
+
+        ...
+
+        $PTR[$IDX];
+
+        '
+    - pattern-not: 'free($PTR);
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        $PTR[$IDX];
+
+        '
+  - patterns:
+    - pattern: 'free($PTR);
+
+        ...
+
+        *$PTR;
+
+        '
+    - pattern-not: 'free($PTR);
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        *$PTR;
+
+        '
+  - patterns:
+    - pattern: 'free($PTR);
+
+        ...
+
+        return $PTR;
+
+        '
+    - pattern-not: 'free($PTR);
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        return $PTR;
+
+        '
+  - patterns:
+    - pattern: 'free($PTR);
+
+        ...
+
+        return *$PTR;
+
+        '
+    - pattern-not: 'free($PTR);
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        return *$PTR;
+
+        '
+  - patterns:
+    - pattern: 'free($PTR);
+
+        ...
+
+        $FUNC(..., $PTR, ...);
+
+        '
+    - pattern-not: 'free($PTR);
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        $FUNC(..., $PTR, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUNC
+        patterns:
+        - pattern-not: free
+        - pattern-not: realloc
+  - patterns:
+    - pattern: 'free($PTR);
+
+        ...
+
+        $FUNC(..., $PTR->$FIELD, ...);
+
+        '
+    - pattern-not: 'free($PTR);
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        $FUNC(..., $PTR->$FIELD, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUNC
+        patterns:
+        - pattern-not: free
+        - pattern-not: realloc
+  - patterns:
+    - pattern: 'delete $PTR;
+
+        ...
+
+        $PTR->$FIELD;
+
+        '
+    - pattern-not: 'delete $PTR;
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        $PTR->$FIELD;
+
+        '
+  - patterns:
+    - pattern: 'delete $PTR;
+
+        ...
+
+        (*$PTR).$FIELD;
+
+        '
+    - pattern-not: 'delete $PTR;
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        (*$PTR).$FIELD;
+
+        '
+  - patterns:
+    - pattern: 'delete $PTR;
+
+        ...
+
+        $PTR[$IDX];
+
+        '
+    - pattern-not: 'delete $PTR;
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        $PTR[$IDX];
+
+        '
+  - patterns:
+    - pattern: 'delete $PTR;
+
+        ...
+
+        *$PTR;
+
+        '
+    - pattern-not: 'delete $PTR;
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        *$PTR;
+
+        '
+  - patterns:
+    - pattern: 'delete[] $PTR;
+
+        ...
+
+        $PTR->$FIELD;
+
+        '
+    - pattern-not: 'delete[] $PTR;
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        $PTR->$FIELD;
+
+        '
+  - patterns:
+    - pattern: 'delete[] $PTR;
+
+        ...
+
+        (*$PTR).$FIELD;
+
+        '
+    - pattern-not: 'delete[] $PTR;
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        (*$PTR).$FIELD;
+
+        '
+  - patterns:
+    - pattern: 'delete[] $PTR;
+
+        ...
+
+        $PTR[$IDX];
+
+        '
+    - pattern-not: 'delete[] $PTR;
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        $PTR[$IDX];
+
+        '
+  - patterns:
+    - pattern: 'delete[] $PTR;
+
+        ...
+
+        *$PTR;
+
+        '
+    - pattern-not: 'delete[] $PTR;
+
+        ...
+
+        $PTR = $NEW;
+
+        ...
+
+        *$PTR;'

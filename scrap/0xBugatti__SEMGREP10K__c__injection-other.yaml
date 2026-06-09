@@ -1,0 +1,1945 @@
+rules:
+- id: flawfinder.MultiByteToWideChar-1
+  languages:
+  - c
+  - cpp
+  message: 'The input buffer is the number of bytes in the string, but the size
+
+    of the output buffer is the number of characters. To avoid overflows, the
+
+    application must determine the correct buffer size which depends on the data type
+
+    the buffer receives.
+
+
+    For more information see:
+
+    https://learn.microsoft.com/en-us/windows/win32/intl/security-considerations--international-features
+
+    '
+  metadata:
+    shortDescription: Easily misused function may lead to buffer overflows
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.MultiByteToWideChar-1
+    secondary_identifiers:
+    - name: Flawfinder - MultiByteToWideChar
+      type: flawfinder_func_name
+      value: MultiByteToWideChar
+  pattern: MultiByteToWideChar(...)
+  severity: INFO
+- id: flawfinder.StrCat-1.StrCatA-1.StrcatW-1.lstrcatA-1.lstrcatW-1.strCatBuff-1.StrCatBuffA-1.StrCatBuffW-1.StrCatChainW-1._tccat-1._mbccat-1._ftcscat-1.StrCatN-1.StrCatNA-1.StrCatNW-1.StrNCat-1.StrNCatA-1.StrNCatW-1.lstrncat-1.lstrcatnA-1.lstrcatnW-1
+  languages:
+  - c
+  - cpp
+  message: 'The `StrCat` family of functions do not guarantee the final string to
+    be null terminated.
+
+    Consider using one of the following alternatives: `StringCbCat`, `StringCbCatEx`,
+
+    `StringCbCatN`, `StringCbCatNEx`, `StringCchCat`, `StringCchCatEx`, `StringCchCatN`,
+    or
+
+    `StringCchCatNEx`.
+
+
+    For more information please see: https://learn.microsoft.com/en-us/windows/win32/api/strsafe/
+
+    '
+  metadata:
+    shortDescription: Insecure string processing function
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.StrCat-1.StrCatA-1.StrcatW-1.lstrcatA-1.lstrcatW-1.strCatBuff-1.StrCatBuffA-1.StrCatBuffW-1.StrCatChainW-1._tccat-1._mbccat-1._ftcscat-1.StrCatN-1.StrCatNA-1.StrCatNW-1.StrNCat-1.StrNCatA-1.StrNCatW-1.lstrncat-1.lstrcatnA-1.lstrcatnW-1
+    secondary_identifiers:
+    - name: Flawfinder - StrCat
+      type: flawfinder_func_name
+      value: StrCat
+    - name: Flawfinder - StrCatA
+      type: flawfinder_func_name
+      value: StrCatA
+    - name: Flawfinder - StrcatW
+      type: flawfinder_func_name
+      value: StrcatW
+    - name: Flawfinder - lstrcatA
+      type: flawfinder_func_name
+      value: lstrcatA
+    - name: Flawfinder - lstrcatW
+      type: flawfinder_func_name
+      value: lstrcatW
+    - name: Flawfinder - strCatBuff
+      type: flawfinder_func_name
+      value: strCatBuff
+    - name: Flawfinder - StrCatBuffA
+      type: flawfinder_func_name
+      value: StrCatBuffA
+    - name: Flawfinder - StrCatBuffW
+      type: flawfinder_func_name
+      value: StrCatBuffW
+    - name: Flawfinder - StrCatChainW
+      type: flawfinder_func_name
+      value: StrCatChainW
+    - name: Flawfinder - _tccat
+      type: flawfinder_func_name
+      value: _tccat
+    - name: Flawfinder - _mbccat
+      type: flawfinder_func_name
+      value: _mbccat
+    - name: Flawfinder - _ftcscat
+      type: flawfinder_func_name
+      value: _ftcscat
+    - name: Flawfinder - StrCatN
+      type: flawfinder_func_name
+      value: StrCatN
+    - name: Flawfinder - StrCatNA
+      type: flawfinder_func_name
+      value: StrCatNA
+    - name: Flawfinder - StrCatNW
+      type: flawfinder_func_name
+      value: StrCatNW
+    - name: Flawfinder - StrNCat
+      type: flawfinder_func_name
+      value: StrNCat
+    - name: Flawfinder - StrNCatA
+      type: flawfinder_func_name
+      value: StrNCatA
+    - name: Flawfinder - StrNCatW
+      type: flawfinder_func_name
+      value: StrNCatW
+    - name: Flawfinder - lstrncat
+      type: flawfinder_func_name
+      value: lstrncat
+    - name: Flawfinder - lstrcatnA
+      type: flawfinder_func_name
+      value: lstrcatnA
+    - name: Flawfinder - lstrcatnW
+      type: flawfinder_func_name
+      value: lstrcatnW
+  pattern-either:
+  - pattern: strcat(...)
+  - pattern: strcatA(...)
+  - pattern: StrcatW(...)
+  - pattern: lstrcatA(...)
+  - pattern: lstrcatW(...)
+  - pattern: strCatBuff(...)
+  - pattern: StrCatBuffA(...)
+  - pattern: StrCatBuffW(...)
+  - pattern: StrCatChainW(...)
+  - pattern: _tccat(...)
+  - pattern: _mbccat(...)
+  - pattern: _ftcscat(...)
+  - pattern: StrCatN(...)
+  - pattern: StrCatNA(...)
+  - pattern: StrCatNW(...)
+  - pattern: StrNCat(...)
+  - pattern: StrNCatA(...)
+  - pattern: StrNCatW(...)
+  - pattern: lstrncat(...)
+  - pattern: lstrcatnA(...)
+  - pattern: lstrcatnW(...)
+  severity: ERROR
+- id: flawfinder.fscanf-1.sscanf-1.vsscanf-1.vfscanf-1._ftscanf-1.fwscanf-1.vfwscanf-1.vswscanf-1
+  languages:
+  - c
+  - cpp
+  message: "Format specifiers can take optional field widths, which should be\nused\
+    \ to limit how many characters are copied into the target buffer.\n\nExample:\n\
+    ```\n  const char str[20] = \"AAAAAAAAAAAAAAAAAAA\";\n  char buf[11] = {0};\n\
+    \  sscanf(str, \"%10s\", &buf); // buf = AAAAAAAAAA\\0\n```\n"
+  metadata:
+    shortDescription: sscanf() functions may allow format string based overflows
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.fscanf-1.sscanf-1.vsscanf-1.vfscanf-1._ftscanf-1.fwscanf-1.vfwscanf-1.vswscanf-1
+    secondary_identifiers:
+    - name: Flawfinder - fscanf
+      type: flawfinder_func_name
+      value: fscanf
+    - name: Flawfinder - sscanf
+      type: flawfinder_func_name
+      value: sscanf
+    - name: Flawfinder - vsscanf
+      type: flawfinder_func_name
+      value: vsscanf
+    - name: Flawfinder - vfscanf
+      type: flawfinder_func_name
+      value: vfscanf
+    - name: Flawfinder - _ftscanf
+      type: flawfinder_func_name
+      value: _ftscanf
+    - name: Flawfinder - fwscanf
+      type: flawfinder_func_name
+      value: fwscanf
+    - name: Flawfinder - vfwscanf
+      type: flawfinder_func_name
+      value: vfwscanf
+    - name: Flawfinder - vswscanf
+      type: flawfinder_func_name
+      value: vswscanf
+  pattern-either:
+  - pattern: fscanf(...)
+  - pattern: sscanf(...)
+  - pattern: vsscanf(...)
+  - pattern: vfscanf(...)
+  - pattern: _ftscanf(...)
+  - pattern: fwscanf(...)
+  - pattern: vfwscanf(...)
+  - pattern: vswscanf(...)
+  severity: ERROR
+- id: flawfinder.g_get_home_dir-1
+  languages:
+  - c
+  - cpp
+  message: 'This function is synonymous with `getenv("HOME")` and should be treated
+
+    as untrusted input as it could be modified by an attacker. Possible risks
+
+    include:
+
+
+    - The value being too large and causing buffer overflows
+
+    - Files under the attacker''s control being used maliciously
+
+    - Files outside of an attacker''s control becoming accessible, depending on
+
+    access privileges.
+
+    '
+  metadata:
+    shortDescription: Reliance on untrusted inputs in a security decision
+    cwe: CWE-807
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.g_get_home_dir-1
+    secondary_identifiers:
+    - name: Flawfinder - g_get_home_dir
+      type: flawfinder_func_name
+      value: g_get_home_dir
+  pattern: g_get_home_dir(...)
+  severity: WARNING
+- id: flawfinder.g_get_tmp_dir-1
+  languages:
+  - c
+  - cpp
+  message: 'This function is synonymous with `getenv("TMP")` and should be treated
+
+    as untrusted input as it could be modified by an attacker. Possible risks
+
+    include:
+
+
+    - The value being too large and causing buffer overflows
+
+    - Files under the attacker''s control being used maliciously
+
+    - Files outside of an attacker''s control becoming accessible, depending on
+
+    access privileges.
+
+    '
+  metadata:
+    shortDescription: Reliance on untrusted inputs in a security decision
+    cwe: CWE-807
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.g_get_tmp_dir-1
+    secondary_identifiers:
+    - name: Flawfinder - g_get_tmp_dir
+      type: flawfinder_func_name
+      value: g_get_tmp_dir
+  pattern: g_get_tmp_dir(...)
+  severity: WARNING
+- id: flawfinder.getenv-1.curl_getenv-1
+  languages:
+  - c
+  - cpp
+  message: 'This function''s return value should be treated as untrusted input as
+    it could be
+
+    modified by an attacker. Possible risks include:
+
+
+    - The value being too large and causing buffer overflows
+
+    - Files under the attacker''s control being used maliciously
+
+    - Files outside of an attacker''s control becoming accessible, depending on
+
+    access privileges.
+
+    '
+  metadata:
+    shortDescription: Reliance on untrusted inputs in a security decision
+    cwe: CWE-807
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.getenv-1.curl_getenv-1
+    secondary_identifiers:
+    - name: Flawfinder - getenv
+      type: flawfinder_func_name
+      value: getenv
+    - name: Flawfinder - curl_getenv
+      type: flawfinder_func_name
+      value: curl_getenv
+  pattern-either:
+  - pattern: getenv(...)
+  - pattern: curl_getenv(...)
+  severity: WARNING
+- id: flawfinder.gets-1._getts-1
+  languages:
+  - c
+  - cpp
+  message: 'The gets() function reads a line from stdin into the provided buffer
+
+    until either a terminating newline or EOF. This terminating newline or
+
+    EOF is replaced with a null byte `''\0''`. No check for buffer overruns are
+
+    performed so it is recommended to use `fgets()` instead. Do note
+
+    that some platforms will continue reading data after a `''\0''` is encountered.
+
+
+    Usage of `fgets()` is not recommended for reading binary based files or inputs,
+
+    instead the `read` or `fread` functions should be used.
+
+
+    For more information please see: https://linux.die.net/man/3/fgets
+
+    '
+  metadata:
+    shortDescription: Use of deprecated function (gets)
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.gets-1._getts-1
+    secondary_identifiers:
+    - name: Flawfinder - gets
+      type: flawfinder_func_name
+      value: gets
+    - name: Flawfinder - _getts
+      type: flawfinder_func_name
+      value: _getts
+  pattern-either:
+  - pattern: gets(...)
+  - pattern: _getts(...)
+  - pattern: _getws(...)
+  severity: ERROR
+- id: flawfinder.getwd-1
+  languages:
+  - c
+  - cpp
+  message: '`getwd` does not contain a parameter to limit how many characters can
+    be copied into the
+
+    destination buffer. For portability and security reasons `getwd` has been deprecated
+    in
+
+    favor of `getcwd`.
+
+
+    For more information please see: https://linux.die.net/man/3/getcwd
+
+    '
+  metadata:
+    shortDescription: Insufficient protection against buffer overflow (getwd)
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.getwd-1
+    secondary_identifiers:
+    - name: Flawfinder - getwd
+      type: flawfinder_func_name
+      value: getwd
+  pattern: getwd(...)
+  severity: WARNING
+- id: flawfinder.lstrcat-1.wcscat-1._tcscat-1._mbscat-1
+  languages:
+  - c
+  - cpp
+  message: 'The `strcat` family of functions are unable to limit how many bytes are
+    copied
+
+    to the destination buffer. It is recommended to use more secure alternatives such
+    as
+
+    `snprintf`.
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strcat-s-wcscat-s-mbscat-s?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Insecure functions unable to limit / check buffer sizes
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.lstrcat-1.wcscat-1._tcscat-1._mbscat-1
+    secondary_identifiers:
+    - name: Flawfinder - lstrcat
+      type: flawfinder_func_name
+      value: lstrcat
+    - name: Flawfinder - wcscat
+      type: flawfinder_func_name
+      value: wcscat
+    - name: Flawfinder - _tcscat
+      type: flawfinder_func_name
+      value: _tcscat
+    - name: Flawfinder - _mbscat
+      type: flawfinder_func_name
+      value: _mbscat
+  pattern-either:
+  - pattern: lstrcat(...)
+  - pattern: wcscat(...)
+  - pattern: _tcscat(...)
+  - pattern: _mbscat(...)
+  severity: ERROR
+- id: flawfinder.lstrcatn-1.wcsncat-1._tcsncat-1._mbsnbcat-1
+  languages:
+  - c
+  - cpp
+  message: 'Consider using more secure alternatives such as `snprintf`, instead of
+    the
+
+    `wcsncat` family of functions.
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strncat-strncat-l-wcsncat-wcsncat-l-mbsncat-mbsncat-l?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Easily misused string processing functions
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.lstrcatn-1.wcsncat-1._tcsncat-1._mbsnbcat-1
+    secondary_identifiers:
+    - name: Flawfinder - lstrcatn
+      type: flawfinder_func_name
+      value: lstrcatn
+    - name: Flawfinder - wcsncat
+      type: flawfinder_func_name
+      value: wcsncat
+    - name: Flawfinder - _tcsncat
+      type: flawfinder_func_name
+      value: _tcsncat
+    - name: Flawfinder - _mbsnbcat
+      type: flawfinder_func_name
+      value: _mbsnbcat
+  pattern-either:
+  - pattern: lstrcatn(...)
+  - pattern: wcsncat(...)
+  - pattern: _tcsncat(...)
+  - pattern: _mbsnbcat(...)
+  severity: INFO
+- id: flawfinder.lstrcpy-1.wcscpy-1._tcscpy-1._mbscpy-1
+  languages:
+  - c
+  - cpp
+  message: 'The `lstrcpy` family of functions do not provide the ability to limit
+    or check buffer
+
+    sizes before copying to a destination buffer. This can lead to buffer overflows.
+    Consider
+
+    using more secure alternatives such as `strncpy_s`.
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strncpy-s-strncpy-s-l-wcsncpy-s-wcsncpy-s-l-mbsncpy-s-mbsncpy-s-l?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Insecure functions unable to limit / check buffer sizes
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.lstrcpy-1.wcscpy-1._tcscpy-1._mbscpy-1
+    secondary_identifiers:
+    - name: Flawfinder - lstrcpy
+      type: flawfinder_func_name
+      value: lstrcpy
+    - name: Flawfinder - wcscpy
+      type: flawfinder_func_name
+      value: wcscpy
+    - name: Flawfinder - _tcscpy
+      type: flawfinder_func_name
+      value: _tcscpy
+    - name: Flawfinder - _mbscpy
+      type: flawfinder_func_name
+      value: _mbscpy
+  pattern-either:
+  - pattern: lstrcpy(...)
+  - pattern: wcscpy(...)
+  - pattern: _tcscpy(...)
+  - pattern: _mbscpy(...)
+  severity: ERROR
+- id: flawfinder.lstrcpyn-1.wcsncpy-1._tcsncpy-1._mbsnbcpy-1
+  languages:
+  - c
+  - cpp
+  message: 'The `lstrcpyn` family of functions do not always check for invalid pointers
+    or check if there
+
+    is sufficient space prior to copying. The count argument limits the number of
+    characters copied
+
+    but does validate if the count will fit within the size of the destination buffer,
+    leading to
+
+    potential overflows.
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strncpy-s-strncpy-s-l-wcsncpy-s-wcsncpy-s-l-mbsncpy-s-mbsncpy-s-l?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Insecure functions do not always null terminate or check invalid
+      pointers
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.lstrcpyn-1.wcsncpy-1._tcsncpy-1._mbsnbcpy-1
+    secondary_identifiers:
+    - name: Flawfinder - lstrcpyn
+      type: flawfinder_func_name
+      value: lstrcpyn
+    - name: Flawfinder - wcsncpy
+      type: flawfinder_func_name
+      value: wcsncpy
+    - name: Flawfinder - _tcsncpy
+      type: flawfinder_func_name
+      value: _tcsncpy
+    - name: Flawfinder - _mbsnbcpy
+      type: flawfinder_func_name
+      value: _mbsnbcpy
+  pattern-either:
+  - pattern: lstrcpyn(...)
+  - pattern: wcsncpy(...)
+  - pattern: _tcsncpy(...)
+  - pattern: _mbsnbcpy(...)
+  severity: INFO
+- id: flawfinder.memcpy-1.CopyMemory-1.bcopy-1
+  languages:
+  - c
+  - cpp
+  message: 'The `memcpy` family of functions require the developer to validate that
+    the destination buffer
+
+    is the same size or larger than the source buffer. Buffer overflows could be introduced
+    if care
+
+    is not taken to validate buffer sizes.
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/memcpy-s-wmemcpy-s?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Function does not check for buffer overflows when copying
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.memcpy-1.CopyMemory-1.bcopy-1
+    secondary_identifiers:
+    - name: Flawfinder - memcpy
+      type: flawfinder_func_name
+      value: memcpy
+    - name: Flawfinder - CopyMemory
+      type: flawfinder_func_name
+      value: CopyMemory
+    - name: Flawfinder - bcopy
+      type: flawfinder_func_name
+      value: bcopy
+  pattern-either:
+  - pattern: memcpy(...)
+  - pattern: CopyMemory(...)
+  - pattern: bcopy(...)
+  severity: INFO
+- id: flawfinder.realpath-1
+  languages:
+  - c
+  - cpp
+  message: "The `realpath` function should not be called with a destination buffer\
+    \ as it could\nlead to overflowing if the path is greater than PATH_LEN. It is\
+    \ instead recommended\nto call `realpath` with the destination buffer set to NULL\
+    \ and use the return value\nas the resolved path. Be sure to free the returned\
+    \ pointer as realpath will allocate\nthe buffer internally using `malloc`.\n\n\
+    For more information see: https://linux.die.net/man/3/realpath\n\nExample:\n\n\
+    ```\nchar const *symlink_path = \"/tmp/symlink\";\nchar *resolved_path = NULL;\n\
+    \nresolved_path = realpath(symlink_path, NULL);\nif (errno == 0) {\n  // ... use\
+    \ resolved_path...\n  free(resolved_path);\n}\n```\n"
+  metadata:
+    shortDescription: Function does not ensure destination buffer length is sufficient
+      before copying
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.realpath-1
+    secondary_identifiers:
+    - name: Flawfinder - realpath
+      type: flawfinder_func_name
+      value: realpath
+  pattern: realpath(...)
+  severity: WARNING
+- id: flawfinder.scanf-1.vscanf-1.wscanf-1._tscanf-1.vwscanf-1
+  languages:
+  - c
+  - cpp
+  message: "Format specifiers can take optional field widths, which should be\nused\
+    \ to limit how many characters are copied into the target buffer.\n\nFor more\
+    \ information please see: https://linux.die.net/man/3/scanf\n\nExample:\n```\n\
+    \  char buf[11] = {0};\n  scanf(\"%10s\", &buf); // buf = AAAAAAAAAA\\0\n```\n\
+    \nIf developing for C Runtime Library (CRT), more secure versions of these functions\
+    \ should be\nused, see:\nhttps://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/scanf-s-scanf-s-l-wscanf-s-wscanf-s-l?view=msvc-170\n"
+  metadata:
+    shortDescription: scanf() functions may allow format string based overflows
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.scanf-1.vscanf-1.wscanf-1._tscanf-1.vwscanf-1
+    secondary_identifiers:
+    - name: Flawfinder - scanf
+      type: flawfinder_func_name
+      value: scanf
+    - name: Flawfinder - vscanf
+      type: flawfinder_func_name
+      value: vscanf
+    - name: Flawfinder - wscanf
+      type: flawfinder_func_name
+      value: wscanf
+    - name: Flawfinder - _tscanf
+      type: flawfinder_func_name
+      value: _tscanf
+    - name: Flawfinder - vwscanf
+      type: flawfinder_func_name
+      value: vwscanf
+  pattern-either:
+  - patterns:
+    - pattern: scanf($FMT, ...)
+    - pattern-not: scanf("...", ...)
+  - patterns:
+    - pattern: vscanf($FMT, ...)
+    - pattern-not: vscanf("...", ...)
+  - patterns:
+    - pattern: wscanf($FMT, ...)
+    - pattern-not: wscanf("...", ...)
+  - patterns:
+    - pattern: _tscanf($FMT, ...)
+    - pattern-not: _tscanf(_T("..."), ...)
+  - patterns:
+    - pattern: vwscanf(FMT, ...)
+    - pattern-not: vwscanf("...", ...)
+  severity: ERROR
+- id: flawfinder.sprintf-1.vsprintf-1.swprintf-1.vswprintf-1._stprintf-1._vstprintf-1
+  languages:
+  - c
+  - cpp
+  message: 'Use sprintf_s, snprintf, or vsnprintf instead. The `sprintf` family of
+    functions do not allow
+
+    callers to set limits on how many bytes the destination buffer can hold. Consider
+    using more
+
+    secure alternatives such as `snprintf`.
+
+
+    For more information please see: https://linux.die.net/man/3/snprintf
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/sprintf-s-sprintf-s-l-swprintf-s-swprintf-s-l?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Insecure function unable to limit / check buffer sizes
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.sprintf-1.vsprintf-1.swprintf-1.vswprintf-1._stprintf-1._vstprintf-1
+    secondary_identifiers:
+    - name: Flawfinder - sprintf
+      type: flawfinder_func_name
+      value: sprintf
+    - name: Flawfinder - vsprintf
+      type: flawfinder_func_name
+      value: vsprintf
+    - name: Flawfinder - swprintf
+      type: flawfinder_func_name
+      value: swprintf
+    - name: Flawfinder - vswprintf
+      type: flawfinder_func_name
+      value: vswprintf
+    - name: Flawfinder - _stprintf
+      type: flawfinder_func_name
+      value: _stprintf
+    - name: Flawfinder - _vstprintf
+      type: flawfinder_func_name
+      value: _vstprintf
+  pattern-either:
+  - pattern: sprintf(...)
+  - pattern: vsprintf(...)
+  - pattern: swprintf(...)
+  - pattern: vswprintf(...)
+  - pattern: _stprintf(...)
+  - pattern: _vstprintf(...)
+  severity: ERROR
+- id: flawfinder.strcat-1
+  languages:
+  - c
+  - cpp
+  message: 'The `strcat` family of functions are unable to limit how many bytes are
+    copied
+
+    to the destination buffer. It is recommended to use more secure alternatives such
+    as
+
+    `snprintf`.
+
+
+    For more information please see: https://linux.die.net/man/3/snprintf
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strcat-s-wcscat-s-mbscat-s?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Insecure string processing function
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.strcat-1
+    secondary_identifiers:
+    - name: Flawfinder - strcat
+      type: flawfinder_func_name
+      value: strcat
+  pattern: strcat(...)
+  severity: ERROR
+- id: flawfinder.strccpy-1.strcadd-1
+  languages:
+  - c
+  - cpp
+  message: 'The `strccpy` and `strcadd` functions do not allow the caller to check
+    that the destination
+
+    size
+
+    of the buffer will fit the input buffer prior to copying.
+
+
+    For more information please see:
+
+    https://docs.oracle.com/cd/E18752_01/html/816-5172/streadd-3gen.html
+
+    '
+  metadata:
+    shortDescription: Insecure string processing functions
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.strccpy-1.strcadd-1
+    secondary_identifiers:
+    - name: Flawfinder - strccpy
+      type: flawfinder_func_name
+      value: strccpy
+    - name: Flawfinder - strcadd
+      type: flawfinder_func_name
+      value: strcadd
+  pattern-either:
+  - pattern: strccpy(...)
+  - pattern: strcadd(...)
+  severity: INFO
+- id: flawfinder.strcpy-1
+  languages:
+  - c
+  - cpp
+  message: 'The `strcpy` family of functions do not provide the ability to limit or
+    check buffer
+
+    sizes before copying to a destination buffer. This can lead to buffer overflows.
+    Consider
+
+    using more secure alternatives such as `strncpy` and provide the correct limit
+    to the
+
+    destination buffer and ensure the string is null terminated.
+
+
+    For more information please see: https://linux.die.net/man/3/strncpy
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strncpy-s-strncpy-s-l-wcsncpy-s-wcsncpy-s-l-mbsncpy-s-mbsncpy-s-l?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Insecure string processing function (strcpy)
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.strcpy-1
+    secondary_identifiers:
+    - name: Flawfinder - strcpy
+      type: flawfinder_func_name
+      value: strcpy
+  pattern: strcpy(...)
+  severity: ERROR
+- id: flawfinder.strcpyA-1.strcpyW-1.StrCpy-1.StrCpyA-1.lstrcpyA-1.lstrcpyW-1._tccpy-1._mbccpy-1._ftcscpy-1._mbsncpy-1.StrCpyN-1.StrCpyNA-1.StrCpyNW-1.StrNCpy-1.strcpynA-1.StrNCpyA-1.StrNCpyW-1.lstrcpynA-1.lstrcpynW-1
+  languages:
+  - c
+  - cpp
+  message: 'The `StrCpy` family of functions do not guarantee the final string to
+    be null terminated.
+
+    Consider
+
+    using one of the following alternatives `StringCbCopy`, `StringCbCopyEx`, `StringCbCopyN`,
+
+    `StringCbCopyNEx`, `StringCchCopy`, `StringCchCopyEx`, `StringCchCopyN`, or `StringCchCopyNEx`.
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strncpy-s-strncpy-s-l-wcsncpy-s-wcsncpy-s-l-mbsncpy-s-mbsncpy-s-l?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Insecure string processing function
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.strcpyA-1.strcpyW-1.StrCpy-1.StrCpyA-1.lstrcpyA-1.lstrcpyW-1._tccpy-1._mbccpy-1._ftcscpy-1._mbsncpy-1.StrCpyN-1.StrCpyNA-1.StrCpyNW-1.StrNCpy-1.strcpynA-1.StrNCpyA-1.StrNCpyW-1.lstrcpynA-1.lstrcpynW-1
+    secondary_identifiers:
+    - name: Flawfinder - strcpyA
+      type: flawfinder_func_name
+      value: strcpyA
+    - name: Flawfinder - strcpyW
+      type: flawfinder_func_name
+      value: strcpyW
+    - name: Flawfinder - StrCpy
+      type: flawfinder_func_name
+      value: StrCpy
+    - name: Flawfinder - StrCpyA
+      type: flawfinder_func_name
+      value: StrCpyA
+    - name: Flawfinder - lstrcpyA
+      type: flawfinder_func_name
+      value: lstrcpyA
+    - name: Flawfinder - lstrcpyW
+      type: flawfinder_func_name
+      value: lstrcpyW
+    - name: Flawfinder - _tccpy
+      type: flawfinder_func_name
+      value: _tccpy
+    - name: Flawfinder - _mbccpy
+      type: flawfinder_func_name
+      value: _mbccpy
+    - name: Flawfinder - _ftcscpy
+      type: flawfinder_func_name
+      value: _ftcscpy
+    - name: Flawfinder - _mbsncpy
+      type: flawfinder_func_name
+      value: _mbsncpy
+    - name: Flawfinder - StrCpyN
+      type: flawfinder_func_name
+      value: StrCpyN
+    - name: Flawfinder - StrCpyNA
+      type: flawfinder_func_name
+      value: StrCpyNA
+    - name: Flawfinder - StrCpyNW
+      type: flawfinder_func_name
+      value: StrCpyNW
+    - name: Flawfinder - StrNCpy
+      type: flawfinder_func_name
+      value: StrNCpy
+    - name: Flawfinder - strcpynA
+      type: flawfinder_func_name
+      value: strcpynA
+    - name: Flawfinder - StrNCpyA
+      type: flawfinder_func_name
+      value: StrNCpyA
+    - name: Flawfinder - StrNCpyW
+      type: flawfinder_func_name
+      value: StrNCpyW
+    - name: Flawfinder - lstrcpynA
+      type: flawfinder_func_name
+      value: lstrcpynA
+    - name: Flawfinder - lstrcpynW
+      type: flawfinder_func_name
+      value: lstrcpynW
+  pattern-either:
+  - pattern: strcpyA(...)
+  - pattern: strcpyW(...)
+  - pattern: StrCpy(...)
+  - pattern: StrCpyA(...)
+  - pattern: lstrcpyA(...)
+  - pattern: lstrcpyW(...)
+  - pattern: _tccpy(...)
+  - pattern: _mbccpy(...)
+  - pattern: _ftcscpy(...)
+  - pattern: _mbsncpy(...)
+  - pattern: StrCpyN(...)
+  - pattern: StrCpyNA(...)
+  - pattern: StrCpyNW(...)
+  - pattern: StrNCpy(...)
+  - pattern: strcpynA(...)
+  - pattern: StrNCpyA(...)
+  - pattern: StrNCpyW(...)
+  - pattern: lstrcpynA(...)
+  - pattern: lstrcpynW(...)
+  severity: ERROR
+- id: flawfinder.streadd-1.strecpy-1
+  languages:
+  - c
+  - cpp
+  message: 'The `strecpy` and `streadd` functions require that the destination buffer
+    size be at least
+
+    four
+
+    times the size of the source due to each character potentially becoming a `\`
+    and 3 digits.
+
+
+    For more information please see:
+
+    https://docs.oracle.com/cd/E18752_01/html/816-5172/streadd-3gen.html
+
+    '
+  metadata:
+    shortDescription: Insecure string processing functions
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.streadd-1.strecpy-1
+    secondary_identifiers:
+    - name: Flawfinder - streadd
+      type: flawfinder_func_name
+      value: streadd
+    - name: Flawfinder - strecpy
+      type: flawfinder_func_name
+      value: strecpy
+  pattern-either:
+  - pattern: streadd(...)
+  - pattern: strecpy(...)
+  severity: ERROR
+- id: flawfinder.strlen-1.wcslen-1._tcslen-1._mbslen-1
+  languages:
+  - c
+  - cpp
+  message: 'The `strlen` family of functions does not handle strings that are not
+    null
+
+    terminated. This can lead to buffer over reads and cause the application to
+
+    crash by accessing unintended memory locations. It is recommended that `strnlen`
+
+    be used instead as a `maxlen` value can be provided.
+
+
+    For more information please see: https://linux.die.net/man/3/strnlen
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strnlen-strnlen-s?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Function does not handle null terminated strings properly
+    cwe: CWE-126
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.strlen-1.wcslen-1._tcslen-1._mbslen-1
+    secondary_identifiers:
+    - name: Flawfinder - strlen
+      type: flawfinder_func_name
+      value: strlen
+    - name: Flawfinder - wcslen
+      type: flawfinder_func_name
+      value: wcslen
+    - name: Flawfinder - _tcslen
+      type: flawfinder_func_name
+      value: _tcslen
+    - name: Flawfinder - _mbslen
+      type: flawfinder_func_name
+      value: _mbslen
+  pattern-either:
+  - pattern: strlen(...)
+  - pattern: wcslen(...)
+  - pattern: _tcslen(...)
+  - pattern: _mbslen(...)
+  severity: INFO
+- id: flawfinder.strncat-1
+  languages:
+  - c
+  - cpp
+  message: 'The `strncat` family of functions are easy to use incorrectly when calculating
+    destination
+
+    buffer
+
+    sizes. It is recommended to use more secure alternatives such as `snprintf`.
+
+
+    For more information please see: https://linux.die.net/man/3/snprintf
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strncat-s-strncat-s-l-wcsncat-s-wcsncat-s-l-mbsncat-s-mbsncat-s-l?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Function does not handle null terminated strings or invalid
+      pointers properly
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.strncat-1
+    secondary_identifiers:
+    - name: Flawfinder - strncat
+      type: flawfinder_func_name
+      value: strncat
+  pattern: strncat(...)
+  severity: INFO
+- id: flawfinder.strncpy-1
+  languages:
+  - c
+  - cpp
+  message: 'The `strncpy` family of functions do not properly handle strings that
+    are not null terminated.
+
+    It is recommended to use more secure alternatives such as `snprintf`.
+
+
+    For more information please see: https://linux.die.net/man/3/snprintf
+
+
+    If developing for C Runtime Library (CRT), more secure versions of these functions
+    should be
+
+    used, see:
+
+    https://learn.microsoft.com/en-us/cpp/c-runtime-library/reference/strncpy-s-strncpy-s-l-wcsncpy-s-wcsncpy-s-l-mbsncpy-s-mbsncpy-s-l?view=msvc-170
+
+    '
+  metadata:
+    shortDescription: Function does not handle null terminated strings or invalid
+      pointers properly
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.strncpy-1
+    secondary_identifiers:
+    - name: Flawfinder - strncpy
+      type: flawfinder_func_name
+      value: strncpy
+  pattern: strncpy(...)
+  severity: INFO
+- id: flawfinder.strtrns-1
+  languages:
+  - c
+  - cpp
+  message: 'This function is easy to misuse by not accounting for the space necessary
+    when transforming
+
+    strings. Ensure that the destination buffer is large enough to fit the transformed
+    output.
+
+
+    For more information please see:
+
+    https://docs.oracle.com/cd/E36784_01/html/E36877/strtrns-3gen.html
+
+    '
+  metadata:
+    shortDescription: Insecure string processing function
+    cwe: CWE-120
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.strtrns-1
+    secondary_identifiers:
+    - name: Flawfinder - strtrns
+      type: flawfinder_func_name
+      value: strtrns
+  pattern: strtrns(...)
+  severity: WARNING
+- id: flawfinder.fprintf-1.vfprintf-1._ftprintf-1._vftprintf-1.fwprintf-1.fvwprintf-1
+  languages:
+  - c
+  - cpp
+  message: 'Format string vulnerabilities allow an attacker to read or in some cases,
+
+    potentially write data to
+
+    and from locations in the processes'' memory. To prevent against format
+
+    string attacks, do not allow
+
+    users or un-validated input to provide the format specification.
+
+    Consider using a constant for the format specification, or only allow specific
+
+    characters to be provided to the format argument for the `fprintf` family of functions.
+
+
+    For more information please see: https://linux.die.net/man/3/fprintf
+
+
+    For more information on format string attacks please see OWASP''s attack
+
+    guide: https://owasp.org/www-community/attacks/Format_string_attack
+
+    '
+  metadata:
+    shortDescription: Potential format string vulnerability
+    cwe: CWE-134
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.fprintf-1.vfprintf-1._ftprintf-1._vftprintf-1.fwprintf-1.fvwprintf-1
+    secondary_identifiers:
+    - name: Flawfinder - fprintf
+      type: flawfinder_func_name
+      value: fprintf
+    - name: Flawfinder - vfprintf
+      type: flawfinder_func_name
+      value: vfprintf
+    - name: Flawfinder - _ftprintf
+      type: flawfinder_func_name
+      value: _ftprintf
+    - name: Flawfinder - _vftprintf
+      type: flawfinder_func_name
+      value: _vftprintf
+    - name: Flawfinder - fwprintf
+      type: flawfinder_func_name
+      value: fwprintf
+    - name: Flawfinder - fvwprintf
+      type: flawfinder_func_name
+      value: fvwprintf
+  pattern-either:
+  - patterns:
+    - pattern: fprintf($FD, $FMT, ...)
+    - pattern-not: fprintf($FD, "...", ...)
+  - patterns:
+    - pattern: vfprintf($FMT, $ARGS, ...)
+    - pattern-not: vfprintf("...", $ARGS, ...)
+  - patterns:
+    - pattern: _ftprintf($FD, $FMT, ...)
+    - pattern-not: _ftprintf($FD, "...", ...)
+  - patterns:
+    - pattern: fwprintf($FD, $FMT, ...)
+    - pattern-not: fwprintf($FD, "...", ...)
+  - patterns:
+    - pattern: fvwprintf($FD, $FMT, ...)
+    - pattern-not: fvwprintf($FD, "...", ...)
+  severity: ERROR
+- id: flawfinder.printf-1.vprintf-1.vwprintf-1.vfwprintf-1._vtprintf-1.wprintf-1
+  languages:
+  - c
+  - cpp
+  message: 'Format string vulnerabilities allow an attacker to read or in some cases,
+    potentially write
+
+    data to
+
+    and from locations in the processes'' memory. To prevent against format string
+    attacks, do not
+
+    allow
+
+    users or un-validated input to provide the format specification.
+
+    Consider using a constant for the format specification, or only allow specific
+
+    characters to be provided to the format argument for the `printf` family of functions.
+
+
+    For more information please see: https://linux.die.net/man/3/fprintf
+
+
+    For more information on format string attacks please see OWASP''s attack guide:
+
+    https://owasp.org/www-community/attacks/Format_string_attack
+
+    '
+  metadata:
+    shortDescription: Potential format string vulnerability
+    cwe: CWE-134
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.printf-1.vprintf-1.vwprintf-1.vfwprintf-1._vtprintf-1.wprintf-1
+    secondary_identifiers:
+    - name: Flawfinder - printf
+      type: flawfinder_func_name
+      value: printf
+    - name: Flawfinder - vprintf
+      type: flawfinder_func_name
+      value: vprintf
+    - name: Flawfinder - vwprintf
+      type: flawfinder_func_name
+      value: vwprintf
+    - name: Flawfinder - vfwprintf
+      type: flawfinder_func_name
+      value: vfwprintf
+    - name: Flawfinder - _vtprintf
+      type: flawfinder_func_name
+      value: _vtprintf
+    - name: Flawfinder - wprintf
+      type: flawfinder_func_name
+      value: wprintf
+  pattern-either:
+  - patterns:
+    - pattern: printf(...)
+    - pattern-not: printf("...",...)
+  - patterns:
+    - pattern: vprintf($FMT, ...)
+    - pattern-not: vprintf("...", ...)
+  - patterns:
+    - pattern: vwprintf($FMT, ...)
+    - pattern-not: vwprintf("...", ...)
+  - patterns:
+    - pattern: vfwprintf($FILE, $FMT, ...)
+    - pattern-not: vfwprintf($FILE, "...", ...)
+  - patterns:
+    - pattern: _vtprintf($FILE, $FMT, ...)
+    - pattern-not: _vtprintf($FILE, "...", ...)
+  - patterns:
+    - pattern: wprintf($FMT, ...)
+    - pattern-not: wprintf("...", ...)
+  severity: ERROR
+- id: flawfinder.snprintf-1.vsnprintf-1._snprintf-1._sntprintf-1._vsntprintf-1
+  languages:
+  - c
+  - cpp
+  message: 'Format string vulnerabilities allow an attacker to read or in some cases,
+    potentially write
+
+    data to
+
+    and from locations in the processes'' memory. To prevent against format string
+    attacks, do not
+
+    allow
+
+    users or un-validated input to provide the format specification.
+
+    Consider using a constant for the format specification, or strip all format
+
+    specifiers from the input prior to calling the `snprintf` family of functions.
+
+
+    Note that some variations of this function do not always null terminate the strings.
+
+
+    For more information on using snprintf please see: https://linux.die.net/man/3/snprintf
+
+
+    For more information on format string attacks please see OWASP''s attack guide:
+
+    https://owasp.org/www-community/attacks/Format_string_attack
+
+    '
+  metadata:
+    shortDescription: Potential format string vulnerability
+    cwe: CWE-134
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.snprintf-1.vsnprintf-1._snprintf-1._sntprintf-1._vsntprintf-1
+    secondary_identifiers:
+    - name: Flawfinder - snprintf
+      type: flawfinder_func_name
+      value: snprintf
+    - name: Flawfinder - vsnprintf
+      type: flawfinder_func_name
+      value: vsnprintf
+    - name: Flawfinder - _snprintf
+      type: flawfinder_func_name
+      value: _snprintf
+    - name: Flawfinder - _sntprintf
+      type: flawfinder_func_name
+      value: _sntprintf
+    - name: Flawfinder - _vsntprintf
+      type: flawfinder_func_name
+      value: _vsntprintf
+  pattern-either:
+  - patterns:
+    - pattern: snprintf($BUF,$SIZE,$FMT,...)
+    - pattern-not: snprintf($BUF,$SIZE,"...",...)
+  - patterns:
+    - pattern: vsnprintf($BUF,$SIZE,$FMT)
+    - pattern-not: vsnprintf($BUF,$SIZE,"...",...)
+  - patterns:
+    - pattern: _snprintf($BUF,$SIZE,$FMT,...)
+    - pattern-not: _snprintf($BUF,$SIZE,$FMT,"...",...)
+  - patterns:
+    - pattern: _sntprintf($VAR,$FMT,...)
+    - pattern-not: sntprintf($VAR,"...",...)
+  - patterns:
+    - pattern: _vsntprintf($VAR,$FMT,...)
+    - pattern-not: _vsntprintf($VAR,"...",...)
+  severity: ERROR
+- id: flawfinder.syslog-1
+  languages:
+  - c
+  - cpp
+  message: 'Format string vulnerabilities allow an attacker to read or in some cases,
+    potentially write
+
+    data to
+
+    and from locations in the processes'' memory. To prevent against format string
+    attacks, do not
+
+    allow
+
+    users or un-validated input to provide the format specification.
+
+    Consider using a constant for the format specification, or strip all format
+
+    specifiers from the input prior to calling the `syslog` function.
+
+
+    For more information please see: https://capec.mitre.org/data/definitions/67.html
+
+    '
+  metadata:
+    shortDescription: Potential format string vulnerability in syslog call
+    cwe: CWE-134
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.syslog-1
+    secondary_identifiers:
+    - name: Flawfinder - syslog
+      type: flawfinder_func_name
+      value: syslog
+  pattern-either:
+  - patterns:
+    - pattern: syslog($FUNC,...)
+    - pattern-not: syslog($FUNC,"...",...)
+  severity: ERROR
+- id: flawfinder.memalign-1
+  languages:
+  - c
+  - cpp
+  message: 'The `memalign` function may not check that the alignment argument is correct.
+    Calling
+
+    free (on non Linux-based systems) may fail and in certain circumstances this failure
+
+    may be exploitable. This function has been deprecated in favor of `posix_memalign`.
+
+
+    For more information please see: https://linux.die.net/man/3/memalign
+
+    '
+  metadata:
+    shortDescription: Use of deprecated function (memalign)
+    cwe: CWE-676
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.memalign-1
+    secondary_identifiers:
+    - name: Flawfinder - memalign
+      type: flawfinder_func_name
+      value: memalign
+  pattern-either:
+  - pattern: memalign(...)
+  - pattern-regex: (void)\s\*(\s|)(memalign)\;
+  severity: INFO
+- id: flawfinder.LoadLibrary-1
+  languages:
+  - c
+  - cpp
+  message: "The `LoadLibrary` function is used to load DLLs dynamically. Depending\
+    \ on the filepath\nparameter,\nthe OS version, and the modes set for the process\
+    \ prior to calling LoadLibrary, DLL hijacking\nmay\nbe possible. Attackers can\
+    \ exploit this by placing DLL files with the same name in directories\nthat\n\
+    are searched before the legitimate DLL is.\n\nTo assist in preventing against\
+    \ this class of vulnerability consider:\n- Specifying a fully qualified path when\
+    \ using LoadLibraryEx.\n- Use the `LOAD_LIBRARY_SEARCH` flags with LoadLibraryEx\
+    \ or with SetDefaultDllDirectories.\n- If you use SetDefaultDllDirectories, be\
+    \ sure to use the AddDllDirectory or SetDllDirectory\n  functions to modify the\
+    \ list of directories.\n- Only use `SearchPath` if the `SetSearchPathMode` function\
+    \ is called with\n  `BASE_SEARCH_PATH_ENABLE_SAFE_SEARCHMODE`. (Note: this only\
+    \ moves the current directory to\n  the end of the SearchPath search list.)\n\n\
+    For more information see the security remarks section of the MSDN documentation:\n\
+    https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibrarya#security-remarks\n\
+    \nFor general information securely loading dynamic link libraries, see the MSDN\
+    \ documentation:\nhttps://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-security\n"
+  metadata:
+    shortDescription: Uncontrolled search path element
+    cwe: CWE-427
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.LoadLibrary-1
+    secondary_identifiers:
+    - name: Flawfinder - LoadLibrary
+      type: flawfinder_func_name
+      value: LoadLibrary
+  pattern: LoadLibrary(...)
+  severity: WARNING
+- id: flawfinder.LoadLibraryEx-1
+  languages:
+  - c
+  - cpp
+  message: "The `LoadLibraryEx` function is used to load DLLs dynamically. Depending\
+    \ on the filepath\nparameter,\nthe OS version, and the modes set for the process\
+    \ prior to calling LoadLibrary, DLL hijacking\nmay\nbe possible. Attackers can\
+    \ exploit this by placing DLL files with the same name in directories\nthat\n\
+    are searched before the legitimate DLL is.\n\nTo assist in preventing against\
+    \ this class of vulnerability consider:\n- Specifying a fully qualified path when\
+    \ using LoadLibraryEx.\n- Use the `LOAD_LIBRARY_SEARCH` flags with LoadLibraryEx\
+    \ or with SetDefaultDllDirectories.\n- If you use SetDefaultDllDirectories, be\
+    \ sure to use the AddDllDirectory or SetDllDirectory\n  functions to modify the\
+    \ list of directories.\n- Only use `SearchPath` if the `SetSearchPathMode` function\
+    \ is called with\n  `BASE_SEARCH_PATH_ENABLE_SAFE_SEARCHMODE`. (Note: this only\
+    \ moves the current directory to\n  the end of the SearchPath search list.)\n\n\
+    For more information see the security remarks section of the MSDN documentation:\n\
+    https://learn.microsoft.com/en-us/windows/win32/api/libloaderapi/nf-libloaderapi-loadlibrarya#security-remarks\n\
+    \nFor general information securely loading dynamic link libraries, see the MSDN\
+    \ documentation:\nhttps://learn.microsoft.com/en-us/windows/win32/dlls/dynamic-link-library-security\n"
+  metadata:
+    shortDescription: Uncontrolled search path element
+    cwe: CWE-427
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.LoadLibraryEx-1
+    secondary_identifiers:
+    - name: Flawfinder - LoadLibraryEx
+      type: flawfinder_func_name
+      value: LoadLibraryEx
+  pattern: LoadLibraryEx(...)
+  severity: WARNING
+- id: flawfinder.CreateProcess-1
+  languages:
+  - c
+  - cpp
+  message: 'Due to how `CreateProcess` parses spaces, an attacker may be able to exploit
+    this function
+
+    by creating a binary with the same name that is loaded first, depending on the
+    search path
+
+    order.
+
+
+    Ensure that quotation marks around the executable path are used, such as:
+
+    ```
+
+    CreateProcessA(NULL, "\"C:\\Program Files\\MyApp.exe\"", ...)
+
+    ```
+
+    For more information, please see MSDNs documentation at:
+
+    https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessa#security-remarks
+
+    '
+  metadata:
+    shortDescription: Possible executable path hijacking (CreateProcess)
+    cwe: CWE-78
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.CreateProcess-1
+    secondary_identifiers:
+    - name: Flawfinder - CreateProcess
+      type: flawfinder_func_name
+      value: CreateProcess
+  pattern: CreateProcess(...)
+  severity: WARNING
+- id: flawfinder.CreateProcessAsUser-1.CreateProcessWithLogon-1
+  languages:
+  - c
+  - cpp
+  message: 'Due to how `CreateProcess` parses spaces, an attacker may be able to exploit
+    this function
+
+    by creating a binary with the same name that is loaded first, depending on the
+    search path
+
+    order.
+
+
+    Ensure that quotation marks around the executable path are used, such as:
+
+    ```
+
+    CreateProcessAsUser(hToken, NULL, "\"C:\\Program Files\\MyApp.exe\"", ...)
+
+    ```
+
+    For more information, please see MSDNs documentation at:
+
+    https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessasusera#security-remarks
+
+    '
+  metadata:
+    shortDescription: Possible executable path hijacking (CreateProcessAsUser/CreateProcessWithLogon)
+    cwe: CWE-78
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.CreateProcessAsUser-1.CreateProcessWithLogon-1
+    secondary_identifiers:
+    - name: Flawfinder - CreateProcessAsUser
+      type: flawfinder_func_name
+      value: CreateProcessAsUser
+    - name: Flawfinder - CreateProcessWithLogon
+      type: flawfinder_func_name
+      value: CreateProcessWithLogon
+  pattern-either:
+  - pattern: CreateProcessAsUser(...)
+  - pattern: CreateProcessWithLogon(...)
+  severity: WARNING
+- id: flawfinder.system-1
+  languages:
+  - c
+  - cpp
+  message: 'It is generally not recommended to call out to the operating system to
+    execute commands.
+
+    When the application is executing file system based commands, user input should
+    never be used
+
+    in
+
+    constructing commands or command arguments. If possible, determine if a library
+    can be used
+
+    instead to provide the same functionality. Otherwise, consider hard coding both
+    the command
+
+    and arguments to be used, or at the very least restricting which arguments can
+    be passed
+
+    to the command execution function.
+
+
+    For more information please see:
+
+    https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152177
+
+    '
+  metadata:
+    shortDescription: Potential for OS command injection
+    cwe: CWE-78
+    owasp:
+    - A1:2017-Injection
+    - A03:2021-Injection
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.system-1
+    secondary_identifiers:
+    - name: Flawfinder - system
+      type: flawfinder_func_name
+      value: system
+  pattern: system(...)
+  severity: ERROR
+- id: double-free
+  patterns:
+  - pattern-not: 'free($VAR);
+
+      ...
+
+      $VAR = NULL;
+
+      ...
+
+      free($VAR);
+
+      '
+  - pattern-not: 'free($VAR);
+
+      ...
+
+      $VAR = malloc(...);
+
+      ...
+
+      free($VAR);
+
+      '
+  - pattern-inside: 'free($VAR);
+
+      ...
+
+      $FREE($VAR);
+
+      '
+  - metavariable-pattern:
+      metavariable: $FREE
+      pattern: free
+  - focus-metavariable: $FREE
+  message: Variable '$VAR' was freed twice. This can lead to undefined behavior.
+  metadata:
+    cwe:
+    - 'CWE-415: Double Free'
+    owasp:
+    - A03:2021 - Injection
+    - A01:2017 - Injection
+    - A05:2025 - Injection
+    references:
+    - https://cwe.mitre.org/data/definitions/415.html
+    - https://owasp.org/www-community/vulnerabilities/Doubly_freeing_memory
+    category: security
+    technology:
+    - c
+    confidence: LOW
+    subcategory:
+    - vuln
+    likelihood: LOW
+    impact: HIGH
+  languages:
+  - c
+  severity: ERROR
+- id: Process-Control
+  metadata:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: MEDIUM
+    category: security
+    cwe:
+    - 'CWE-114: Process Control'
+    vulnerability_class:
+    - Process Control
+    owasp:
+    - A03:2021 - Injection
+    references:
+    - https://cwe.mitre.org/data/definitions/114.html
+    - https://owasp.org/www-community/attacks/Command_Injection
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    technology:
+    - c
+    - cpp
+  languages:
+  - c
+  - c++
+  severity: WARNING
+  message: 'Executing commands or loading libraries from an untrusted source can allow
+    an attacker to execute arbitrary commands or load malicious libraries. This can
+    lead to complete system compromise. Validate and sanitize all input used in process
+    control functions, or use allowlists for permitted commands and libraries.
+
+    '
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: system($CMD)
+      - pattern: _wsystem($CMD)
+      - pattern: popen($CMD, ...)
+      - pattern: _wpopen($CMD, ...)
+      - pattern: _popen($CMD, ...)
+    - pattern-not: $FUNC("...", ...)
+    - pattern-not: $FUNC(L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: execl($PATH, ...)
+      - pattern: execlp($PATH, ...)
+      - pattern: execle($PATH, $ARG0, ...)
+      - pattern: execv($PATH, ...)
+      - pattern: execvp($PATH, ...)
+      - pattern: execvpe($PATH, ...)
+      - pattern: _wexecl($PATH, ...)
+      - pattern: _wexecle($PATH, ...)
+      - pattern: _wexeclp($PATH, ...)
+      - pattern: _wexecv($PATH, ...)
+      - pattern: _wexecve($PATH, ...)
+      - pattern: _wexecvp($PATH, ...)
+    - pattern-not: $FUNC("...", "...", ...)
+    - pattern-not: $FUNC("...", "...", "...", "...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: execle($PATH, $ARG0, $ARG1, $ARG2, $INPUT, ...)
+      - pattern: execle($PATH, $ARG0, $ARG1, $INPUT, ...)
+      - pattern: execle($PATH, $ARG0, $INPUT, ...)
+    - pattern-not: execle("...", "...", "...", "...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: LoadLibraryA($PATH)
+      - pattern: LoadLibraryW($PATH)
+      - pattern: LoadLibraryExA($PATH, ...)
+      - pattern: LoadLibraryExW($PATH, ...)
+    - pattern-not: LoadLibraryA("...", ...)
+    - pattern-not: LoadLibraryW(L"...", ...)
+    - pattern-not: LoadLibraryExA("...", ...)
+    - pattern-not: LoadLibraryExW(L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: dlopen($PATH, ...)
+      - pattern: dlclose($HANDLE)
+    - pattern-not: dlopen("...", ...)
+    - pattern-not: dlopen(CONST_..., ...)
+  - patterns:
+    - pattern-either:
+      - pattern: dlsym($HANDLE, $SYMBOL)
+    - pattern-not: dlsym($HANDLE, "...")
+    - pattern-not: dlsym($HANDLE, CONST_...)
+  - patterns:
+    - pattern-either:
+      - pattern: GetProcAddress($HMODULE, $PROC)
+      - pattern: GetModuleHandleA($NAME)
+      - pattern: GetModuleHandleW($NAME)
+    - pattern-not: GetProcAddress($HMODULE, "...")
+    - pattern-not: GetProcAddress($HMODULE, CONST_...)
+    - pattern-not: GetModuleHandleA("...")
+    - pattern-not: GetModuleHandleW(L"...")
+  - patterns:
+    - pattern-either:
+      - pattern: setenv($NAME, $VALUE, ...)
+      - pattern: putenv($STRING)
+      - pattern: _putenv($STRING)
+      - pattern: _wputenv($STRING)
+      - pattern: SetEnvironmentVariableA($NAME, $VALUE)
+      - pattern: SetEnvironmentVariableW($NAME, $VALUE)
+    - pattern-not: setenv("...", "...", ...)
+    - pattern-not: putenv("...")
+    - pattern-not: SetEnvironmentVariableA("...", "...")
+    - pattern-not: SetEnvironmentVariableW(L"...", L"...")
+  - patterns:
+    - pattern-either:
+      - pattern: std::system($CMD)
+    - pattern-not: std::system("...")
+  - patterns:
+    - pattern-either:
+      - pattern: $OBJ.start($PROGRAM, ...)
+      - pattern: $OBJ.execute($CMD, ...)
+      - pattern: $OBJ.startDetached($CMD, ...)
+    - pattern-not: $OBJ.start("...", ...)
+    - pattern-not: $OBJ.execute("...", ...)
+    - pattern-not: $OBJ.startDetached("...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: CreateProcessA($APP, $CMD, ...)
+      - pattern: CreateProcessW($APP, $CMD, ...)
+      - pattern: ShellExecuteA($HWND, $OP, $FILE, ...)
+      - pattern: ShellExecuteW($HWND, $OP, $FILE, ...)
+      - pattern: ShellExecuteExA($INFO)
+      - pattern: ShellExecuteExW($INFO)
+    - pattern-not: CreateProcessA("...", "...", ...)
+    - pattern-not: CreateProcessW(L"...", L"...", ...)
+    - pattern-not: ShellExecuteA($HWND, $OP, "...", ...)
+    - pattern-not: ShellExecuteW($HWND, $OP, L"...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: strcat($DEST, $SRC)
+      - pattern: wcscat($DEST, $SRC)
+    - pattern-inside: 'char $DEST[...];
+
+        ...
+
+        '
+    - pattern-not: strcat($DEST, "...")
+    - pattern-not: strcat($DEST, L"...")
+    - pattern-not: wcscat($DEST, "...")
+    - pattern-not: wcscat($DEST, L"...")
+  - patterns:
+    - pattern-either:
+      - pattern: sprintf($BUF, $FMT, $INPUT, ...)
+      - pattern: snprintf($BUF, $SIZE, $FMT, $INPUT, ...)
+    - metavariable-regex:
+        metavariable: $FMT
+        regex: .*%s.*
+    - pattern-not: sprintf($BUF, "...", "...")
+    - pattern-not: snprintf($BUF, $SIZE, "...", "...")
+  - patterns:
+    - pattern-either:
+      - pattern: strcpy($DEST, $SRC)
+      - pattern: strncpy($DEST, $SRC, ...)
+      - pattern: wcscpy($DEST, $SRC)
+    - pattern-inside: 'char $DEST[...];
+
+        ...
+
+        '
+    - pattern-not: strcpy($DEST, "...")
+    - pattern-not: strncpy($DEST, "...", ...)
+    - pattern-not: wcscpy($DEST, L"...")
+  - patterns:
+    - pattern: $FUNC($CMD, ...)
+    - pattern-inside: '$TYPE $CMD = argv[$IDX];
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUNC
+        patterns:
+        - pattern: system
+        - pattern: popen
+        - pattern: execl
+        - pattern: execv
+        - pattern: LoadLibraryA
+        - pattern: LoadLibraryW
+        - pattern: dlopen
+    - pattern-not: $FUNC("...", ...)
+  - patterns:
+    - pattern: $FUNC($CMD, ...)
+    - pattern-inside: '$TYPE $CMD = getenv(...);
+
+        ...
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUNC
+        patterns:
+        - pattern: system
+        - pattern: popen
+        - pattern: execl
+        - pattern: execv
+        - pattern: LoadLibraryA
+        - pattern: LoadLibraryW
+        - pattern: dlopen
+    - pattern-not: $FUNC("...", ...)

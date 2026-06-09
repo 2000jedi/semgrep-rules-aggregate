@@ -1,0 +1,935 @@
+rules:
+- id: c-crypto-blake2
+  message: BLAKE2 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: EVP_DigestInit_ex($CTX, EVP_blake2b512(), $ENGINE)
+    - pattern: EVP_DigestInit_ex($CTX, EVP_blake2s256(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_blake2b512(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_blake2s256(), $ENGINE)
+    - pattern: blake2b_init($STATE, $OUTLEN)
+    - pattern: blake2b_update($STATE, $DATA, $DATALEN)
+    - pattern: blake2b_final($STATE, $OUT, $OUTLEN)
+    - pattern: blake2s_init($STATE, $OUTLEN)
+    - pattern: blake2s_update($STATE, $DATA, $DATALEN)
+    - pattern: blake2s_final($STATE, $OUT, $OUTLEN)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: BLAKE2 hash function usage detected in codebase'
+    libraries:
+    - OpenSSL (EVP_blake2b512, EVP_blake2s256)
+    - libsodium/standalone (blake2b_*, blake2s_*)
+- id: c-crypto-cipher-aes
+  message: AES cipher usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - patterns:
+      - pattern: AES_set_encrypt_key($KEY, $BITS, $SCHEDULE)
+      - metavariable-regex:
+          metavariable: $BITS
+          regex: (128|192|256)
+      - focus-metavariable: $BITS
+    - patterns:
+      - pattern: AES_set_decrypt_key($KEY, $BITS, $SCHEDULE)
+      - metavariable-regex:
+          metavariable: $BITS
+          regex: (128|192|256)
+      - focus-metavariable: $BITS
+    - pattern: AES_encrypt($INPUT, $OUTPUT, $SCHEDULE)
+    - pattern: AES_decrypt($INPUT, $OUTPUT, $SCHEDULE)
+    - pattern: AES_cbc_encrypt($INPUT, $OUTPUT, $LENGTH, $SCHEDULE, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_cbc(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_gcm(), $ENGINE, $KEY, $IV, $ENCRYPT)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: AES cipher usage detected in codebase'
+- id: c-crypto-diffie-hellman
+  message: Diffie-Hellman key exchange detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: DH_new()
+    - pattern: DH_generate_parameters_ex($DH, $PRIME_LEN, $GENERATOR, $BN)
+    - pattern: DH_generate_key($DH)
+    - pattern: DH_compute_key($KEY, $PUBKEY, $DH)
+    - pattern: EVP_PKEY_new_DH($DH)
+    - pattern: EVP_PKEY_assign_DH($PKEY, $DH)
+    - pattern: EVP_PKEY_CTX_new_id(EVP_PKEY_DH, $ENGINE)
+    - pattern: EVP_PKEY_derive_init($CTX)
+    - pattern: EVP_PKEY_derive_set_peer($CTX, $PEER)
+    - pattern: EVP_PKEY_derive($CTX, $KEY, $KEYLEN)
+    - pattern: DH_set0_pqg($DH, $P, $Q, $G)
+    - pattern: DH_get0_pqg($DH, $P, $Q, $G)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Diffie-Hellman key exchange detected in codebase'
+- id: c-crypto-random-generation
+  message: Random number generation for cryptographic use detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: RAND_bytes($BUF, $NUM)
+    - pattern: RAND_pseudo_bytes($BUF, $NUM)
+    - pattern: RAND_seed($BUF, $NUM)
+    - pattern: RAND_add($BUF, $NUM, $ENTROPY)
+    - pattern: 'unsigned char $BUF[$LEN];
+
+        RAND_bytes($BUF, $LEN);
+
+        ...
+
+        '
+    - pattern: open("/dev/random", $FLAGS)
+    - pattern: open("/dev/urandom", $FLAGS)
+    - pattern: getrandom($BUF, $BUFLEN, $FLAGS)
+    - pattern: arc4random()
+    - pattern: arc4random_buf($BUF, $BUFLEN)
+    - pattern: arc4random_uniform($UPPER_BOUND)
+    - pattern: BCryptGenRandom($PROV, $BUF, $LEN, $FLAGS)
+    - pattern: randombytes_buf($BUF, $BUFLEN)
+    - pattern: randombytes_random()
+    - pattern: randombytes_uniform($UPPER_BOUND)
+  metadata:
+    category: crypto
+    cwe: CWE-338
+    impact: 'Inventory: Random number generation for cryptographic use detected in
+      codebase'
+- id: c-crypto-key-derivation
+  message: Key derivation function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - patterns:
+      - pattern: PKCS5_PBKDF2_HMAC($PASS, $PASSLEN, $SALT, $SALTLEN, $ITER, $DIGEST,
+          $KEYLEN, $OUT)
+      - metavariable-regex:
+          metavariable: $ITER
+          regex: \d+
+      - focus-metavariable: $ITER
+    - patterns:
+      - pattern: PKCS5_PBKDF2_HMAC_SHA1($PASS, $PASSLEN, $SALT, $SALTLEN, $ITER, $KEYLEN,
+          $OUT)
+      - metavariable-regex:
+          metavariable: $ITER
+          regex: \d+
+      - focus-metavariable: $ITER
+    - patterns:
+      - pattern: EVP_BytesToKey($TYPE, $MD, $SALT, $DATA, $DATALEN, $COUNT, $KEY,
+          $IV)
+      - metavariable-regex:
+          metavariable: $COUNT
+          regex: \d+
+      - focus-metavariable: $COUNT
+    - patterns:
+      - pattern: EVP_PBE_scrypt($PASS, $PASSLEN, $SALT, $SALTLEN, $N, $R, $P, $MAXMEM,
+          $KEY, $KEYLEN)
+      - metavariable-regex:
+          metavariable: $N
+          regex: \d+
+      - focus-metavariable: $N
+    - pattern: EVP_PKEY_derive_init($CTX)
+    - pattern: EVP_PKEY_derive($CTX, $KEY, $KEYLEN)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Key derivation function usage detected in codebase'
+- id: c-crypto-openssl-provider
+  message: OpenSSL 3.0 provider API usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: OSSL_PROVIDER_load($LIBCTX, $NAME)
+    - pattern: OSSL_PROVIDER_unload($PROV)
+    - pattern: OSSL_PROVIDER_available($LIBCTX, $NAME)
+    - pattern: EVP_CIPHER_fetch($CTX, $ALGORITHM, $PROPERTIES)
+    - pattern: EVP_CIPHER_free($CIPHER)
+    - pattern: EVP_MD_fetch($CTX, $ALGORITHM, $PROPERTIES)
+    - pattern: EVP_MD_free($MD)
+    - pattern: EVP_PKEY_sign($CTX, $SIG, $SIGLEN, $TBS, $TBSLEN)
+    - pattern: EVP_PKEY_verify($CTX, $SIG, $SIGLEN, $TBS, $TBSLEN)
+    - pattern: EVP_PKEY_verify_recover($CTX, $RMSG, $RMSGLEN, $SIG, $SIGLEN)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: OpenSSL 3.0 provider API usage detected in codebase'
+- id: c-crypto-libgcrypt
+  message: Libgcrypt cryptographic library usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: gcry_cipher_open($HANDLE, $ALGO, $MODE, $FLAGS)
+    - pattern: gcry_cipher_close($HANDLE)
+    - pattern: gcry_cipher_setkey($HANDLE, $KEY, $KEYLEN)
+    - pattern: gcry_cipher_setiv($HANDLE, $IV, $IVLEN)
+    - pattern: gcry_cipher_encrypt($HANDLE, $OUT, $OUTLEN, $IN, $INLEN)
+    - pattern: gcry_cipher_decrypt($HANDLE, $OUT, $OUTLEN, $IN, $INLEN)
+    - pattern: gcry_md_open($HANDLE, $ALGO, $FLAGS)
+    - pattern: gcry_md_close($HANDLE)
+    - pattern: gcry_md_write($HANDLE, $BUFFER, $LENGTH)
+    - pattern: gcry_md_read($HANDLE, $ALGO)
+    - pattern: gcry_md_hash_buffer($ALGO, $RESULT, $BUFFER, $LENGTH)
+    - pattern: gcry_pk_generate($KEY, $ALGO, $NALGO, $PARAMS)
+    - pattern: gcry_pk_encrypt($KEY, $DATA, $RESULT)
+    - pattern: gcry_pk_decrypt($KEY, $DATA, $RESULT)
+    - pattern: gcry_pk_sign($KEY, $SIG, $DATA)
+    - pattern: gcry_pk_verify($KEY, $SIG, $DATA)
+    - pattern: gcry_randomize($BUFFER, $LENGTH, $LEVEL)
+    - pattern: gcry_create_nonce($BUFFER, $LENGTH)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Libgcrypt cryptographic library usage detected in codebase'
+- id: c-crypto-sha1
+  message: SHA1 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: SHA1_Init($CTX)
+    - pattern: SHA1_Update($CTX, $DATA, $LEN)
+    - pattern: SHA1_Final($HASH, $CTX)
+    - pattern: 'SHA_CTX $CTX;
+
+        SHA1_Init(&$CTX);
+
+        SHA1_Update(&$CTX, $DATA, $LEN);
+
+        SHA1_Final($HASH, &$CTX);
+
+        '
+    - pattern: EVP_DigestInit_ex($CTX, EVP_sha1(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_sha1(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: SHA1 hash function usage detected in codebase'
+- id: c-crypto-cipher-modes
+  message: Cipher mode usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_128_ecb(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_ecb(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_128_cbc(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_cbc(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_128_cfb(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_cfb(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_128_ofb(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_ofb(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_128_ctr(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_ctr(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_128_gcm(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_gcm(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_128_ccm(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_ccm(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_128_xts(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_aes_256_xts(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: AES_cbc_encrypt($INPUT, $OUTPUT, $LENGTH, $SCHEDULE, $IV, $ENCRYPT)
+    - pattern: AES_cfb128_encrypt($INPUT, $OUTPUT, $LENGTH, $SCHEDULE, $IV, $NUM,
+        $ENCRYPT)
+    - pattern: AES_ofb128_encrypt($INPUT, $OUTPUT, $LENGTH, $SCHEDULE, $IV, $NUM)
+    - pattern: AES_ctr128_encrypt($INPUT, $OUTPUT, $LENGTH, $SCHEDULE, $IV, $ECBCOUNT,
+        $BUFFER, $NUM)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Cipher mode usage detected in codebase'
+- id: c-crypto-md4
+  message: MD4 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: MD4_Init($CTX)
+    - pattern: MD4_Update($CTX, $DATA, $LEN)
+    - pattern: MD4_Final($HASH, $CTX)
+    - pattern: 'MD4_CTX $CTX;
+
+        MD4_Init(&$CTX);
+
+        MD4_Update(&$CTX, $DATA, $LEN);
+
+        MD4_Final($HASH, &$CTX);
+
+        '
+    - pattern: EVP_DigestInit_ex($CTX, EVP_md4(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_md4(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: MD4 hash function usage detected in codebase'
+- id: c-crypto-sha256
+  message: SHA256 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: SHA256_Init($CTX)
+    - pattern: SHA256_Update($CTX, $DATA, $LEN)
+    - pattern: SHA256_Final($HASH, $CTX)
+    - pattern: 'SHA256_CTX $CTX;
+
+        SHA256_Init(&$CTX);
+
+        SHA256_Update(&$CTX, $DATA, $LEN);
+
+        SHA256_Final($HASH, &$CTX);
+
+        '
+    - pattern: EVP_DigestInit_ex($CTX, EVP_sha256(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_sha256(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: SHA256 hash function usage detected in codebase'
+- id: c-crypto-sha3
+  message: SHA3 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: EVP_DigestInit_ex($CTX, EVP_sha3_224(), $ENGINE)
+    - pattern: EVP_DigestInit_ex($CTX, EVP_sha3_256(), $ENGINE)
+    - pattern: EVP_DigestInit_ex($CTX, EVP_sha3_384(), $ENGINE)
+    - pattern: EVP_DigestInit_ex($CTX, EVP_sha3_512(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_sha3_224(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_sha3_256(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_sha3_384(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_sha3_512(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: SHA3 hash function usage detected in codebase'
+- id: c-crypto-hardcoded-key
+  message: Hardcoded cryptographic key detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - patterns:
+    - metavariable-regex:
+        metavariable: $KEY
+        regex: (?i).*(key|secret|password|passphrase|aes_key|des_key|rc4_key|iv|nonce|salt|encryption_key|decryption_key).*
+    - pattern-either:
+      - pattern: 'unsigned char $KEY[] = "$STRING";
+
+          '
+      - pattern: 'char $KEY[] = "$STRING";
+
+          '
+      - pattern: 'const unsigned char $KEY[] = "$STRING";
+
+          '
+      - pattern: 'const char $KEY[] = "$STRING";
+
+          '
+      - pattern: 'static unsigned char $KEY[] = "$STRING";
+
+          '
+      - pattern: 'static char $KEY[] = "$STRING";
+
+          '
+      - pattern: '#define $KEY "$STRING"
+
+          '
+      - pattern: 'unsigned char $KEY[$LEN] = {$BYTES};
+
+          '
+      - pattern: 'const unsigned char $KEY[$LEN] = {$BYTES};
+
+          '
+      - pattern: 'static unsigned char $KEY[$LEN] = {$BYTES};
+
+          '
+  metadata:
+    category: crypto
+    cwe: CWE-798
+    impact: 'Inventory: Hardcoded cryptographic key detected in codebase'
+- id: c-crypto-iv-nonce
+  message: Initialization vector or nonce configuration detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: EVP_CIPHER_CTX_ctrl($CTX, EVP_CTRL_GCM_SET_IVLEN, $IVLEN, $NULL)
+    - pattern: EVP_CIPHER_CTX_ctrl($CTX, EVP_CTRL_CCM_SET_IVLEN, $IVLEN, $NULL)
+    - pattern: EVP_CIPHER_CTX_ctrl($CTX, EVP_CTRL_GCM_GET_TAG, $TAGLEN, $TAG)
+    - pattern: EVP_CIPHER_CTX_ctrl($CTX, EVP_CTRL_CCM_SET_TAG, $TAGLEN, $TAG)
+    - pattern: RAND_bytes($IV, $IVLEN)
+    - pattern: RAND_pseudo_bytes($IV, $IVLEN)
+  metadata:
+    category: crypto
+    cwe: CWE-330
+    impact: 'Inventory: Initialization vector or nonce configuration detected in codebase'
+- id: c-crypto-md5
+  message: MD5 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: MD5_Init($CTX)
+    - pattern: MD5_Update($CTX, $DATA, $LEN)
+    - pattern: MD5_Final($HASH, $CTX)
+    - pattern: 'MD5_CTX $CTX;
+
+        MD5_Init(&$CTX);
+
+        MD5_Update(&$CTX, $DATA, $LEN);
+
+        MD5_Final($HASH, &$CTX);
+
+        '
+    - pattern: EVP_DigestInit_ex($CTX, EVP_md5(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_md5(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: MD5 hash function usage detected in codebase'
+- id: c-crypto-certificate-validation
+  message: TLS certificate validation configuration detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: SSL_CTX_set_verify($CTX, $MODE, $CALLBACK)
+    - pattern: SSL_set_verify($SSL, $MODE, $CALLBACK)
+    - pattern: SSL_CTX_set_verify_depth($CTX, $DEPTH)
+    - pattern: SSL_CTX_set_cert_verify_callback($CTX, $CALLBACK, $ARG)
+    - pattern: SSL_get_verify_result($SSL)
+    - pattern: SSL_CTX_load_verify_locations($CTX, $CAFILE, $CAPATH)
+    - pattern: SSL_CTX_set_default_verify_paths($CTX)
+    - pattern: X509_STORE_CTX_get_error($CTX)
+    - pattern: X509_verify_cert($CTX)
+  metadata:
+    category: crypto
+    cwe: CWE-295
+    impact: 'Inventory: TLS certificate validation configuration detected in codebase'
+- id: c-crypto-cipher-des
+  message: DES cipher usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: DES_set_key($KEY, $SCHEDULE)
+    - pattern: DES_encrypt($DATA, $SCHEDULE, $ENCRYPT)
+    - pattern: DES_decrypt($DATA, $SCHEDULE, $DECRYPT)
+    - pattern: DES_ecb_encrypt($INPUT, $OUTPUT, $SCHEDULE, $ENCRYPT)
+    - pattern: DES_cbc_encrypt($INPUT, $OUTPUT, $LENGTH, $SCHEDULE, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_des_ecb(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_des_cbc(), $ENGINE, $KEY, $IV, $ENCRYPT)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: DES cipher usage detected in codebase'
+- id: c-crypto-secure-memory
+  message: Secure memory operations detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: OPENSSL_cleanse($PTR, $LEN)
+    - pattern: CRYPTO_secure_malloc($NUM, $FILE, $LINE)
+    - pattern: CRYPTO_secure_free($PTR, $FILE, $LINE)
+    - pattern: OPENSSL_secure_malloc($NUM)
+    - pattern: OPENSSL_secure_free($PTR)
+    - pattern: OPENSSL_secure_clear_free($PTR, $SIZE)
+    - pattern: CRYPTO_secure_allocated($PTR)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Secure memory operations detected in codebase'
+- id: c-crypto-md2
+  message: MD2 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: MD2_Init($CTX)
+    - pattern: MD2_Update($CTX, $DATA, $LEN)
+    - pattern: MD2_Final($HASH, $CTX)
+    - pattern: 'MD2_CTX $CTX;
+
+        MD2_Init(&$CTX);
+
+        MD2_Update(&$CTX, $DATA, $LEN);
+
+        MD2_Final($HASH, &$CTX);
+
+        '
+    - pattern: EVP_DigestInit_ex($CTX, EVP_md2(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_md2(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: MD2 hash function usage detected in codebase'
+- id: c-crypto-windows-cng
+  message: Windows CNG (Cryptography Next Generation) usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: BCryptOpenAlgorithmProvider($ALG_HANDLE, $ALG_ID, $IMPL, $FLAGS)
+    - pattern: BCryptCloseAlgorithmProvider($ALG_HANDLE, $FLAGS)
+    - pattern: BCryptGenerateSymmetricKey($ALG_HANDLE, $KEY_HANDLE, $KEY_OBJECT, $KEY_OBJECT_LEN,
+        $SECRET, $SECRET_LEN, $FLAGS)
+    - pattern: BCryptGenerateKeyPair($ALG_HANDLE, $KEY_HANDLE, $KEY_LENGTH, $FLAGS)
+    - pattern: BCryptFinalizeKeyPair($KEY_HANDLE, $FLAGS)
+    - pattern: BCryptImportKeyPair($ALG_HANDLE, $NULL, $BLOB_TYPE, $KEY_HANDLE, $KEY_BLOB,
+        $KEY_BLOB_LEN, $FLAGS)
+    - pattern: BCryptExportKey($KEY_HANDLE, $NULL, $BLOB_TYPE, $OUTPUT, $OUTPUT_LEN,
+        $RESULT_LEN, $FLAGS)
+    - pattern: BCryptEncrypt($KEY_HANDLE, $INPUT, $INPUT_LEN, $PADDING_INFO, $IV,
+        $IV_LEN, $OUTPUT, $OUTPUT_LEN, $RESULT_LEN, $FLAGS)
+    - pattern: BCryptDecrypt($KEY_HANDLE, $INPUT, $INPUT_LEN, $PADDING_INFO, $IV,
+        $IV_LEN, $OUTPUT, $OUTPUT_LEN, $RESULT_LEN, $FLAGS)
+    - pattern: BCryptGenRandom($PROV_HANDLE, $BUFFER, $BUFFER_LEN, $FLAGS)
+    - pattern: BCryptCreateHash($ALG_HANDLE, $HASH_HANDLE, $HASH_OBJECT, $HASH_OBJECT_LEN,
+        $SECRET, $SECRET_LEN, $FLAGS)
+    - pattern: BCryptHashData($HASH_HANDLE, $INPUT, $INPUT_LEN, $FLAGS)
+    - pattern: BCryptFinishHash($HASH_HANDLE, $OUTPUT, $OUTPUT_LEN, $FLAGS)
+    - pattern: BCryptDestroyHash($HASH_HANDLE)
+    - pattern: BCryptDestroyKey($KEY_HANDLE)
+    - pattern: BCryptSignHash($KEY_HANDLE, $PADDING_INFO, $HASH, $HASH_LEN, $SIGNATURE,
+        $SIGNATURE_LEN, $RESULT_LEN, $FLAGS)
+    - pattern: BCryptVerifySignature($KEY_HANDLE, $PADDING_INFO, $HASH, $HASH_LEN,
+        $SIGNATURE, $SIGNATURE_LEN, $FLAGS)
+    - pattern: BCryptDeriveKey($SECRET_HANDLE, $PARAM_LIST, $DERIVED_KEY, $DERIVED_KEY_LEN,
+        $RESULT_LEN, $FLAGS)
+    - pattern: BCryptDeriveKeyPBKDF2($ALG_HANDLE, $PASSWORD, $PASSWORD_LEN, $SALT,
+        $SALT_LEN, $ITERATIONS, $DERIVED_KEY, $DERIVED_KEY_LEN, $FLAGS)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Windows CNG (Cryptography Next Generation) usage detected
+      in codebase'
+- id: c-crypto-digital-signatures
+  message: Digital signature operations detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: EVP_SignInit_ex($CTX, $TYPE, $ENGINE)
+    - pattern: EVP_SignUpdate($CTX, $DATA, $DATALEN)
+    - pattern: EVP_SignFinal($CTX, $SIG, $SIGLEN, $PKEY)
+    - pattern: EVP_VerifyInit_ex($CTX, $TYPE, $ENGINE)
+    - pattern: EVP_VerifyUpdate($CTX, $DATA, $DATALEN)
+    - pattern: EVP_VerifyFinal($CTX, $SIG, $SIGLEN, $PKEY)
+    - pattern: EVP_DigestSignInit($CTX, $PKCTX, $TYPE, $ENGINE, $PKEY)
+    - pattern: EVP_DigestSignUpdate($CTX, $DATA, $DATALEN)
+    - pattern: EVP_DigestSignFinal($CTX, $SIG, $SIGLEN)
+    - pattern: EVP_DigestVerifyInit($CTX, $PKCTX, $TYPE, $ENGINE, $PKEY)
+    - pattern: EVP_DigestVerifyUpdate($CTX, $DATA, $DATALEN)
+    - pattern: EVP_DigestVerifyFinal($CTX, $SIG, $SIGLEN)
+    - pattern: RSA_sign($TYPE, $M, $MLEN, $SIGRET, $SIGLEN, $RSA)
+    - pattern: RSA_verify($TYPE, $M, $MLEN, $SIGBUF, $SIGLEN, $RSA)
+    - pattern: ECDSA_sign($TYPE, $DGST, $DGSTLEN, $SIG, $SIGLEN, $ECKEY)
+    - pattern: ECDSA_verify($TYPE, $DGST, $DGSTLEN, $SIG, $SIGLEN, $ECKEY)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Digital signature operations detected in codebase'
+- id: c-crypto-sha512
+  message: SHA512 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: SHA512_Init($CTX)
+    - pattern: SHA512_Update($CTX, $DATA, $LEN)
+    - pattern: SHA512_Final($HASH, $CTX)
+    - pattern: 'SHA512_CTX $CTX;
+
+        SHA512_Init(&$CTX);
+
+        SHA512_Update(&$CTX, $DATA, $LEN);
+
+        SHA512_Final($HASH, &$CTX);
+
+        '
+    - pattern: EVP_DigestInit_ex($CTX, EVP_sha512(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_sha512(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: SHA512 hash function usage detected in codebase'
+- id: c-crypto-password-hashing
+  message: Password hashing function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: crypt($KEY, $SALT)
+    - pattern: crypt_r($KEY, $SALT, $DATA)
+    - pattern: bcrypt_hashpw($PASS, $SALT, $HASH)
+    - pattern: bcrypt_checkpw($PASS, $HASH)
+    - patterns:
+      - pattern: argon2i_hash($T_COST, $M_COST, $PARALLELISM, $PWD, $PWD_LEN, $SALT,
+          $SALT_LEN, $HASH, $HASH_LEN)
+      - metavariable-regex:
+          metavariable: $T_COST
+          regex: \d+
+      - metavariable-regex:
+          metavariable: $M_COST
+          regex: \d+
+    - patterns:
+      - pattern: argon2id_hash($T_COST, $M_COST, $PARALLELISM, $PWD, $PWD_LEN, $SALT,
+          $SALT_LEN, $HASH, $HASH_LEN)
+      - metavariable-regex:
+          metavariable: $T_COST
+          regex: \d+
+      - metavariable-regex:
+          metavariable: $M_COST
+          regex: \d+
+    - patterns:
+      - pattern: argon2d_hash($T_COST, $M_COST, $PARALLELISM, $PWD, $PWD_LEN, $SALT,
+          $SALT_LEN, $HASH, $HASH_LEN)
+      - metavariable-regex:
+          metavariable: $T_COST
+          regex: \d+
+      - metavariable-regex:
+          metavariable: $M_COST
+          regex: \d+
+    - pattern: argon2i_verify($HASH, $PWD, $PWD_LEN)
+    - pattern: argon2id_verify($HASH, $PWD, $PWD_LEN)
+    - pattern: argon2d_verify($HASH, $PWD, $PWD_LEN)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Password hashing function usage detected in codebase'
+- id: c-crypto-whirlpool
+  message: Whirlpool hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: EVP_DigestInit_ex($CTX, EVP_whirlpool(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_whirlpool(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Whirlpool hash function usage detected in codebase'
+- id: c-crypto-ecdsa
+  message: ECDSA cryptographic operations detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: EC_KEY_new()
+    - pattern: EC_KEY_new_by_curve_name($NID)
+    - pattern: EC_KEY_generate_key($KEY)
+    - pattern: ECDSA_sign($TYPE, $DGST, $DGSTLEN, $SIG, $SIGLEN, $ECKEY)
+    - pattern: ECDSA_verify($TYPE, $DGST, $DGSTLEN, $SIG, $SIGLEN, $ECKEY)
+    - pattern: ECDSA_do_sign($DGST, $DGSTLEN, $ECKEY)
+    - pattern: ECDSA_do_verify($DGST, $DGSTLEN, $SIG, $ECKEY)
+    - pattern: EVP_PKEY_new_EC_KEY($ECKEY)
+    - pattern: EVP_PKEY_assign_EC_KEY($PKEY, $ECKEY)
+    - pattern: EVP_PKEY_CTX_new_id(EVP_PKEY_EC, $ENGINE)
+    - pattern: EVP_PKEY_CTX_new_id(EVP_PKEY_ECDSA, $ENGINE)
+    - pattern: EVP_DigestSignInit($CTX, $PKCTX, $TYPE, $ENGINE, $PKEY)
+    - pattern: EVP_DigestVerifyInit($CTX, $PKCTX, $TYPE, $ENGINE, $PKEY)
+    - pattern: EC_GROUP_new_by_curve_name($NID)
+    - pattern: EC_GROUP_get_curve_name($GROUP)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: ECDSA cryptographic operations detected in codebase'
+- id: c-crypto-tls-cipher-suites
+  message: TLS cipher suite configuration detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: SSL_CTX_set_cipher_list($CTX, $LIST)
+    - pattern: SSL_set_cipher_list($SSL, $LIST)
+    - pattern: SSL_CTX_set_ciphersuites($CTX, $LIST)
+    - pattern: SSL_set_ciphersuites($SSL, $LIST)
+    - pattern: SSL_CTX_get_ciphers($CTX)
+    - pattern: SSL_get_cipher_list($SSL, $PRIORITY)
+    - pattern: SSL_get_current_cipher($SSL)
+    - pattern: SSL_CIPHER_get_name($CIPHER)
+    - pattern: SSL_CIPHER_get_bits($CIPHER, $ALG_BITS)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: TLS cipher suite configuration detected in codebase'
+- id: c-crypto-ripemd160
+  message: RIPEMD-160 hash function usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: RIPEMD160_Init($CTX)
+    - pattern: RIPEMD160_Update($CTX, $DATA, $LEN)
+    - pattern: RIPEMD160_Final($HASH, $CTX)
+    - pattern: 'RIPEMD160_CTX $CTX;
+
+        RIPEMD160_Init(&$CTX);
+
+        RIPEMD160_Update(&$CTX, $DATA, $LEN);
+
+        RIPEMD160_Final($HASH, &$CTX);
+
+        '
+    - pattern: EVP_DigestInit_ex($CTX, EVP_ripemd160(), $ENGINE)
+    - pattern: EVP_Digest($DATA, $LEN, $HASH, $SIZE, EVP_ripemd160(), $ENGINE)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: RIPEMD-160 hash function usage detected in codebase'
+- id: c-crypto-openssl
+  message: OpenSSL library initialization detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: SSL_library_init()
+    - pattern: OPENSSL_init_crypto($OPTS, $SETTINGS)
+    - pattern: OPENSSL_init_ssl($OPTS, $SETTINGS)
+    - pattern: OpenSSL_add_all_algorithms()
+    - pattern: OpenSSL_add_all_ciphers()
+    - pattern: OpenSSL_add_all_digests()
+    - pattern: EVP_add_cipher($CIPHER)
+    - pattern: EVP_add_digest($DIGEST)
+    - pattern: ENGINE_load_builtin_engines()
+    - pattern: ENGINE_register_all_complete()
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: OpenSSL library initialization detected in codebase'
+- id: c-crypto-ecdh
+  message: ECDH key agreement detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: ECDH_compute_key($OUT, $OUTLEN, $PUBKEY, $ECKEY)
+    - pattern: EVP_PKEY_CTX_new_id(EVP_PKEY_EC, $ENGINE)
+    - pattern: EVP_PKEY_CTX_new_id(EVP_PKEY_X25519, $ENGINE)
+    - pattern: EVP_PKEY_CTX_new_id(EVP_PKEY_X448, $ENGINE)
+    - pattern: EVP_PKEY_derive($CTX, $KEY, $KEYLEN)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: ECDH key agreement detected in codebase'
+- id: c-crypto-rsa
+  message: RSA cryptographic operations detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - patterns:
+      - pattern: RSA_generate_key_ex($RSA, $BITS, $E, $BN)
+      - metavariable-regex:
+          metavariable: $BITS
+          regex: \d+
+      - focus-metavariable: $BITS
+    - patterns:
+      - pattern: RSA_generate_key($BITS, $E, $CALLBACK, $CALLBACKARG)
+      - metavariable-regex:
+          metavariable: $BITS
+          regex: \d+
+      - focus-metavariable: $BITS
+    - pattern: RSA_new()
+    - pattern: RSA_public_encrypt($FLEN, $FROM, $TO, $RSA, $PADDING)
+    - pattern: RSA_private_decrypt($FLEN, $FROM, $TO, $RSA, $PADDING)
+    - pattern: RSA_private_encrypt($FLEN, $FROM, $TO, $RSA, $PADDING)
+    - pattern: RSA_public_decrypt($FLEN, $FROM, $TO, $RSA, $PADDING)
+    - pattern: RSA_sign($TYPE, $M, $MLEN, $SIGRET, $SIGLEN, $RSA)
+    - pattern: RSA_verify($TYPE, $M, $MLEN, $SIGBUF, $SIGLEN, $RSA)
+    - pattern: EVP_PKEY_new_RSA($RSA)
+    - pattern: EVP_PKEY_assign_RSA($PKEY, $RSA)
+    - pattern: EVP_SignInit_ex($CTX, $TYPE, $ENGINE)
+    - pattern: EVP_VerifyInit_ex($CTX, $TYPE, $ENGINE)
+    - pattern: EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, $ENGINE)
+    - pattern: EVP_PKEY_keygen_init($CTX)
+    - pattern: EVP_PKEY_keygen($CTX, $PKEY)
+    - pattern: RSA_size($RSA)
+    - pattern: RSA_get0_key($RSA, $N, $E, $D)
+    - pattern: RSA_set0_key($RSA, $N, $E, $D)
+    - pattern: RSA_check_key($RSA)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: RSA cryptographic operations detected in codebase'
+- id: c-crypto-hmac
+  message: HMAC usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: HMAC($EVPTYPE, $KEY, $KEYLEN, $DATA, $DATALEN, $HASH, $HASHLEN)
+    - pattern: HMAC_Init_ex($CTX, $KEY, $KEYLEN, $EVPTYPE, $ENGINE)
+    - pattern: HMAC_Update($CTX, $DATA, $DATALEN)
+    - pattern: HMAC_Final($CTX, $HASH, $HASHLEN)
+    - pattern: 'HMAC_CTX *$CTX;
+
+        HMAC_Init_ex($CTX, $KEY, $KEYLEN, $EVPTYPE, $ENGINE);
+
+        HMAC_Update($CTX, $DATA, $DATALEN);
+
+        HMAC_Final($CTX, $HASH, $HASHLEN);
+
+        '
+    - pattern: EVP_DigestSignInit($CTX, $PKCTX, $EVPTYPE, $ENGINE, $KEY)
+    - pattern: EVP_DigestVerifyInit($CTX, $PKCTX, $EVPTYPE, $ENGINE, $KEY)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: HMAC usage detected in codebase'
+- id: c-crypto-cipher-rc4
+  message: RC4 cipher usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: RC4_set_key($KEY, $LEN, $DATA)
+    - pattern: RC4($KEY, $LEN, $INPUT, $OUTPUT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_rc4(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_rc4_40(), $ENGINE, $KEY, $IV, $ENCRYPT)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: RC4 cipher usage detected in codebase'
+- id: c-crypto-cipher-3des
+  message: 3DES cipher usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: DES_set_key_checked($KEY, $SCHEDULE)
+    - pattern: DES_set_key_unchecked($KEY, $SCHEDULE)
+    - pattern: DES_ede3_set_key($KEY, $SCHEDULE)
+    - pattern: DES_ede3_cbc_encrypt($INPUT, $OUTPUT, $LENGTH, $KS1, $KS2, $KS3, $IV,
+        $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_des_ede3(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_des_ede3_cbc(), $ENGINE, $KEY, $IV, $ENCRYPT)
+    - pattern: EVP_CipherInit_ex($CTX, EVP_des_ede3_ecb(), $ENGINE, $KEY, $IV, $ENCRYPT)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: 3DES cipher usage detected in codebase'
+- id: c-crypto-windows-cryptoapi
+  message: Windows CryptoAPI usage detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - pattern: CryptAcquireContext($HPROV, $CONTAINER, $PROVIDER, $PROVTYPE, $FLAGS)
+    - pattern: CryptReleaseContext($HPROV, $FLAGS)
+    - pattern: CryptGenKey($HPROV, $ALGID, $FLAGS, $HPROVKEY)
+    - pattern: CryptDeriveKey($HPROV, $ALGID, $HHASH, $FLAGS, $HPROVKEY)
+    - pattern: CryptImportKey($HPROV, $PBDATA, $DWDLEN, $HPROVKEY, $DWFLAGS, $HPROVKEYOUT)
+    - pattern: CryptExportKey($HPROVKEY, $HPROVKEYEXP, $DWFLAGS, $DWPARAM, $PBDATA,
+        $PDWLEN)
+    - pattern: CryptEncrypt($HPROVKEY, $HHASH, $FINAL, $DWFLAGS, $PBDATA, $PDWLEN,
+        $DWBUFLEN)
+    - pattern: CryptDecrypt($HPROVKEY, $HHASH, $FINAL, $DWFLAGS, $PBDATA, $PDWLEN)
+    - pattern: CryptCreateHash($HPROV, $ALGID, $HPROVKEY, $DWFLAGS, $HPROVHASH)
+    - pattern: CryptHashData($HPROVHASH, $PBDATA, $DWDLEN, $DWFLAGS)
+    - pattern: CryptHashSessionKey($HPROVHASH, $HPROVKEY, $DWFLAGS)
+    - pattern: CryptGetHashParam($HPROVHASH, $DWPARAM, $PBDATA, $PDWLEN, $DWFLAGS)
+    - pattern: CryptSignHash($HPROVHASH, $DWKEYSPEC, $DESCRIPTION, $DWFLAGS, $PBSIGNATURE,
+        $PDSIGLEN)
+    - pattern: CryptVerifySignature($HPROVHASH, $PBSIGNATURE, $DWSIGLEN, $HPROVKEY,
+        $DESCRIPTION, $DWFLAGS)
+    - pattern: CryptGenRandom($HPROV, $DWDLEN, $PBBUFFER)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: Windows CryptoAPI usage detected in codebase'
+- id: c-crypto-tls-version
+  message: TLS/SSL version configuration detected
+  severity: INFO
+  languages:
+  - c
+  patterns:
+  - pattern-either:
+    - patterns:
+      - pattern: SSL_CTX_set_min_proto_version($CTX, $VERSION)
+      - metavariable-regex:
+          metavariable: $VERSION
+          regex: (TLS1_[0-3]_VERSION|SSL3_VERSION|SSL2_VERSION|DTLS1_VERSION|DTLS1_2_VERSION)
+      - focus-metavariable: $VERSION
+    - patterns:
+      - pattern: SSL_CTX_set_max_proto_version($CTX, $VERSION)
+      - metavariable-regex:
+          metavariable: $VERSION
+          regex: (TLS1_[0-3]_VERSION|SSL3_VERSION|SSL2_VERSION|DTLS1_VERSION|DTLS1_2_VERSION)
+      - focus-metavariable: $VERSION
+    - patterns:
+      - pattern: SSL_set_min_proto_version($SSL, $VERSION)
+      - metavariable-regex:
+          metavariable: $VERSION
+          regex: (TLS1_[0-3]_VERSION|SSL3_VERSION|SSL2_VERSION|DTLS1_VERSION|DTLS1_2_VERSION)
+      - focus-metavariable: $VERSION
+    - patterns:
+      - pattern: SSL_set_max_proto_version($SSL, $VERSION)
+      - metavariable-regex:
+          metavariable: $VERSION
+          regex: (TLS1_[0-3]_VERSION|SSL3_VERSION|SSL2_VERSION|DTLS1_VERSION|DTLS1_2_VERSION)
+      - focus-metavariable: $VERSION
+    - pattern: SSL_CTX_new(SSLv2_method())
+    - pattern: SSL_CTX_new(SSLv3_method())
+    - pattern: SSL_CTX_new(TLSv1_method())
+    - pattern: SSL_CTX_new(TLSv1_1_method())
+    - pattern: SSL_CTX_new(TLSv1_2_method())
+    - pattern: SSL_CTX_new(TLSv1_3_method())
+    - pattern: SSL_CTX_new(SSLv23_method())
+    - pattern: SSL_CTX_new(DTLSv1_method())
+    - pattern: SSL_CTX_new(DTLSv1_2_method())
+    - pattern: SSL_CTX_set_options($CTX, SSL_OP_NO_SSLv2)
+    - pattern: SSL_CTX_set_options($CTX, SSL_OP_NO_SSLv3)
+    - pattern: SSL_CTX_set_options($CTX, SSL_OP_NO_TLSv1)
+    - pattern: SSL_CTX_set_options($CTX, SSL_OP_NO_TLSv1_1)
+    - pattern: SSL_CTX_set_options($CTX, SSL_OP_NO_TLSv1_2)
+    - pattern: SSL_CTX_set_options($CTX, SSL_OP_NO_TLSv1_3)
+  metadata:
+    category: crypto
+    cwe: CWE-327
+    impact: 'Inventory: TLS/SSL version configuration detected in codebase'

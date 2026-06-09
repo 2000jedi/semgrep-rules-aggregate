@@ -1,0 +1,59 @@
+rules:
+  - id: codeql-cpp-memset-deleted
+    message: >-
+      Compiler may optimize away memset() on memory that is about to be freed.
+      Use explicit_bzero() or SecureZeroMemory() to securely clear memory.
+    severity: WARNING
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-14: Compiler Removal of Code to Clear Buffers"
+      technology:
+        - cpp
+      confidence: MEDIUM
+      likelihood: MEDIUM
+      impact: MEDIUM
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/14.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-014/MemsetMayBeDeleted.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-014/MemsetMayBeDeleted.ql
+    patterns:
+      - pattern: |
+          memset($BUF, ...);
+          ...
+          free($BUF);
+
+  - id: codeql-cpp-use-after-free-pattern
+    message: >-
+      Potential use-after-free. Memory is accessed after being freed.
+    severity: ERROR
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-416: Use After Free"
+      technology:
+        - cpp
+      confidence: MEDIUM
+      likelihood: HIGH
+      impact: HIGH
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/416.html
+    patterns:
+      - pattern: |
+          free($PTR);
+          ...
+          $FUNC(..., $PTR, ...);
+      - pattern-not: |
+          free($PTR);
+          ...
+          $PTR = ...;
+          ...
+          $FUNC(..., $PTR, ...);

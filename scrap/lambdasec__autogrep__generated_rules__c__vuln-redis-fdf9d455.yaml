@@ -1,0 +1,29 @@
+rules:
+- id: vuln-redis-fdf9d455
+  pattern: 'tf = ((c == LUA_SIGNATURE[0]) ? luaU_undump : luaY_parser)(L, p->z, ...)
+
+    '
+  pattern-not: 'tf = (luaY_parser)(L, p->z, ...)
+
+    '
+  languages:
+  - c
+  message: 'Detected a potentially unsafe ternary operator usage in function selection.
+
+    This pattern can lead to unexpected behavior or vulnerabilities if the condition
+
+    evaluation is not handled correctly. The fixed version directly uses `luaY_parser`
+
+    to avoid such risks.
+
+    '
+  severity: WARNING
+  metadata:
+    source-url: github.com/antirez/redis/commit/fdf9d455098f54f7666c702ae464e6ea21e25411
+    category: security
+    cwe:
+    - 'CWE-670: Always-Incorrect Control Flow Implementation'
+    owasp:
+    - 'A9: Using Components with Known Vulnerabilities'
+    technology:
+    - c

@@ -1,0 +1,1305 @@
+rules:
+- id: detect-strncpy-misuse
+  languages:
+  - c
+  message: 'Possible misuse of `strncpy` detected. Ensure the destination buffer is
+    properly null-terminated.
+
+    '
+  severity: WARNING
+  patterns:
+  - pattern: 'strncpy($DST, $SRC, $SIZE);
+
+      '
+  fix: 'After using `strncpy`, explicitly add a null terminator to ensure the destination
+    string is properly terminated. Example:
+
+
+    ```c
+
+    strncpy($DST, $SRC, $SIZE - 1);
+
+    $DST[$SIZE - 1] = ''\0'';
+
+    ```
+
+    '
+- id: detect-unsafe-pointer-arithmetic
+  languages:
+  - c
+  message: 'Unsafe pointer arithmetic detected. Ensure that pointer manipulation is
+    done within the bounds of the allocated memory.
+
+    '
+  severity: WARNING
+  patterns:
+  - pattern: '$PTR = $PTR + $OFFSET;
+
+      '
+  fix: "Ensure that the pointer arithmetic does not go beyond the allocated buffer\
+    \ size. Example:\n\n```c\nif ($PTR + $OFFSET < $BUF_END) {\n  $PTR = $PTR + $OFFSET;\n\
+    }\n```\n"
+- id: raptor-insecure-api-mktemp-tmpnam-tempnam
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/377
+    - https://cwe.mitre.org/data/definitions/367
+    confidence: HIGH
+  message: Creating and using insecure temporary files can leave application and system
+    data vulnerable to attack.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: mktemp(...)
+  - pattern: tmpnam(...)
+  - pattern: tempnam(...)
+- id: raptor-interesting-api-calls
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://github.com/0xdea/ghidra-scripts/blob/main/Rhabdomancer.java
+    - https://github.com/x509cert/banned/blob/master/banned.h
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: MEDIUM
+  message: Locate all calls to interesting and potentially insecure API functions
+    (candidate points). The auditor can backtrace from these candidate points to find
+    pathways allowing access from untrusted input.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern-regex: \w*set\w*(u|g)id\s*\(.*\)
+  - pattern-regex: \w*(init|set)groups\s*\(.*\)
+  - pattern-regex: \w*str\w?cpy\s*\(.*\)
+  - pattern-regex: \w*stpn?cpy\s*\(.*\)
+  - pattern-regex: \w*str\w?cat\s*\(.*\)
+  - pattern-regex: \w*wcs\w?cpy\s*\(.*\)
+  - pattern-regex: \w*wcpn?cpy\s*\(.*\)
+  - pattern-regex: \w*wcs\w?cat\s*\(.*\)
+  - pattern-regex: \w*strtok\s*\(.*\)
+  - pattern-regex: \w*wcstok\s*\(.*\)
+  - pattern-regex: \w*s\w?printf\w*\(.*\)
+  - pattern-regex: \w*sn\w?printf\w*\(.*\)
+  - pattern-regex: \w*scanf\s*\(.*\)
+  - pattern-regex: \w*get(s|c|char|pw|pass|wd|cwd|env|opt|opt_long)\s*\(.*\)
+  - pattern-regex: \w*memc?cpy\s*\(.*\)
+  - pattern-regex: \w*mem(move|set)\s*\(.*\)
+  - pattern-regex: \w*bcopy\s*\(.*\)
+  - pattern-regex: \w*alloca\s*\(.*\)
+  - pattern-regex: \w*exec(l|v)?(p|e)?e?\s*\(.*\)
+  - pattern-regex: \w*system\s*\(.*\)
+  - pattern-regex: \w*open(at)?(64)?\s*\(.*\)
+  - pattern-regex: \w*pipe\s*\(.*\)
+  - pattern-regex: \w*connect\s*\(.*\)
+  - pattern-regex: \w*read\s*\(.*\)
+  - pattern-regex: \w*recv(from)?\s*\(.*\)
+  - pattern-regex: \w*fork\s*\(.*\)
+  - pattern-regex: \w*clone\s*\(.*\)
+  - pattern-regex: \w*mk\w?temp(64)?\s*\(.*\)
+  - pattern-regex: \w*te?mpnam\s*\(.*\)
+  - pattern-regex: \w*tmpfile\s*\(.*\)
+  - pattern-regex: \w*mkdir\s*\(.*\)
+  - pattern-regex: \w*creat\s*\(.*\)
+  - pattern-regex: \w*link(at)?\s*\(.*\)
+  - pattern-regex: \w*rename(at)?\s*\(.*\)
+  - pattern-regex: \w*access(at)?\s*\(.*\)
+  - pattern-regex: \w*stat(at)?\s*\(.*\)
+  - pattern-regex: \w*ch(own|mod)(at)?\s*\(.*\)
+  - pattern-regex: \w*rand\s*\(.*\)
+  - pattern-regex: \w*assert\s*\(.*\)
+- id: raptor-interesting-api-calls-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://github.com/0xdea/ghidra-scripts/blob/main/Rhabdomancer.java
+    - https://github.com/x509cert/banned/blob/master/banned.h
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/28719-banned-api-usage-use-updated-function-replacement
+    confidence: MEDIUM
+  message: Locate all calls to interesting and potentially insecure API functions
+    (candidate points). The auditor can backtrace from these candidate points to find
+    pathways allowing access from untrusted input.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*set\w*(u|g)id\s*$|^\w*(init|set)groups\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*str\w?cpy\s*$|^\w*stpn?cpy\s*$|^\w*wcs\w?cpy\s*$|^\w*wcpn?cpy\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*str\w?cat\s*$|^\w*wcs\w?cat\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*strtok\s*$|^\w*wcstok\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*s\w?printf\w*\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*scanf\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*get(s|c|char|pw|pass|wd|cwd|opt|opt_long)\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*(get|set|put|unset)env\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*memc?cpy(_s)?\s*$|^\w*memmove(_s)?\s*$|^\w*bcopy\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*alloc(a|f)?\s*$|^\w*alloc_?array\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*exec(l|v)?(p|e)?e?\s*$|^\w*system\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*open(at)?(64)?\s*$|^\w*pipe\s*$|^\w*read\s*$|^\w*recv(from)?\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*fork\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*rand\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*mk\w?temp(64)?\s*$|^\w*te?mpnam\s*$|^\w*tmpfile\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*mkdir\s*$|^\w*creat\s*$|^\w*link(at)?\s*$|^\w*rename(at)?\s*$|^\w*access(at|_ok)?\s*$|^\w*stat(at)?\s*$|^\w*ch(own|mod)(at)?\s*$|^\w*realpath(at)?\s*$|^\w*readlink\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*locale\s*$|^\w*(make|split)path\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*copy_(from|to)_user\s*$|^\w*(get|put)_user\s*$|^\w*copy(in|out)\s*$
+- id: raptor-off-by-one
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/193
+    - https://cwe.mitre.org/data/definitions/787
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    confidence: MEDIUM
+  message: The software calculates or uses an incorrect maximum or minimum value that
+    is 1 more, or 1 less, than the correct value.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: $BUF[sizeof($BUF)] = $EXPR
+  - patterns:
+    - pattern: $BUF[$SIZE] = $EXPR
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $BUF[$SIZE] = $EXPR;
+
+        '
+  - pattern: for (<... $I = 0 ...>; <... $I <= $SIZE ...>; <... $I++ ...>) ...
+  - pattern: for ($TYPE $I = 0; <... $I <= $SIZE ...>; <... $I++ ...>) ...
+  - pattern: while (<... $I <= $SIZE ...>) ...
+  - pattern: do ... while (<... $I <= $SIZE ...>);
+  - pattern: strlen($SRC) > sizeof($DST)
+  - pattern: strlen($SRC) <= sizeof($DST)
+  - pattern: sizeof($DST) < strlen($SRC)
+  - pattern: sizeof($DST) >= strlen($SRC)
+  - patterns:
+    - pattern: strncat($DST, $SRC, $LEN)
+    - metavariable-pattern:
+        metavariable: $LEN
+        patterns:
+        - pattern-not: $VAL - 1
+- id: raptor-pointer-subtraction
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/469
+    - https://github.com/struct/mms
+    confidence: MEDIUM
+  message: The software subtracts one pointer from another in order to determine size,
+    but this calculation can be incorrect if the pointers do not exist in the same
+    memory chunk.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: (char * $PTR1) - (char * $PTR2)
+  - pattern: (int * $PTR1) - (int * $PTR2)
+  - pattern: (float * $PTR1) - (float * $PTR2)
+  - pattern: (double * $PTR1) - (double * $PTR2)
+  - patterns:
+    - pattern-either:
+      - pattern: $PTR1 - $PTR2
+      - pattern: $PTR2 - $PTR1
+    - pattern-either:
+      - pattern-inside: '$TYPE * $PTR1;
+
+          $TYPE * $PTR2;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $PTR1 = $EXPR1;
+
+          $TYPE * $PTR2 = $EXPR2;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $PTR1 = $EXPR1;
+
+          $TYPE * $PTR2;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $PTR1;
+
+          $TYPE * $PTR2 = $EXPR2;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $PTR3 = $PTR1;
+
+          $TYPE * $PTR2;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $PTR2;
+
+          $TYPE * $PTR3 = $PTR1;
+
+          ...
+
+          '
+- id: raptor-unchecked-ret-scanf-etc
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/252
+    - https://codeql.github.com/codeql-query-help/cpp/cpp-missing-check-scanf/
+    confidence: MEDIUM
+  message: The software does not check the return value from a method or function,
+    which can prevent it from detecting unexpected states and conditions.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: $FUN(...)
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: scanf
+      - pattern: vscanf
+      - pattern: fscanf
+      - pattern: vfscanf
+      - pattern: sscanf
+      - pattern: vsscanf
+      - pattern: wscanf
+      - pattern: vwscanf
+      - pattern: fwscanf
+      - pattern: vfwscanf
+      - pattern: swscanf
+      - pattern: vswscanf
+  - pattern-not-inside: $RET = $FUN(...)
+  - pattern-not-inside: <... $FUN(...) == $VAL ...>
+  - pattern-not-inside: <... $VAL == $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) != $VAL ...>
+  - pattern-not-inside: <... $VAL != $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) < $VAL ...>
+  - pattern-not-inside: <... $VAL > $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) <= $VAL ...>
+  - pattern-not-inside: <... $VAL >= $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) > $VAL ...>
+  - pattern-not-inside: <... $VAL < $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) >= $VAL ...>
+  - pattern-not-inside: <... $VAL <= $FUN(...) ...>
+  - pattern-not-inside: return $FUN(...);
+- id: raptor-unsafe-ret-snprintf-vsnprintf
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://lwn.net/Articles/507319/
+    - https://g.co/kgs/PCHQjJ
+    - https://dustri.org/b/playing-with-weggli.html
+    confidence: MEDIUM
+  message: The snprintf() and vsnprintf() functions return the total length of the
+    string they tried to create. Therefore, this return value can be larger than the
+    size of the destination buffer. If it is used unsafely, e.g. as an index to write
+    to the destination buffer, memory corruption might occur. Vulnerabilities such
+    as this are not common because the return value is usually discarded. However,
+    ignoring the result of these functions can result in data truncation.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: $RET = snprintf(...)
+  - pattern: $RET = vsnprintf(...)
+  - pattern: $RET += snprintf(...)
+  - pattern: $RET += vsnprintf(...)
+- id: Unsafe-switch-code WARNING check 1
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: The codes of switch miss break or return or exit.'
+  patterns:
+  - pattern-either:
+    - pattern: 'switch($CASE)
+
+        {
+
+        case $VALUE1:
+
+        ...
+
+        case $VALUE2:
+
+        ...
+
+        }
+
+        '
+  - pattern-not: 'switch($CASE)
+
+      {
+
+      case $VALUE1:
+
+      ...
+
+      break;
+
+      ...
+
+      case $VALUE2:
+
+      ...
+
+      }
+
+      '
+  - pattern-not: 'switch($CASE)
+
+      {
+
+      case $VALUE1:
+
+      break;
+
+      case $VALUE2:
+
+      ...
+
+      }
+
+      '
+  - pattern-not: 'switch($CASE)
+
+      {
+
+      case $VALUE1:
+
+      ...
+
+      return;
+
+      ...
+
+      case $VALUE2:
+
+      ...
+
+      }
+
+      '
+  - pattern-not: 'switch($CASE)
+
+      {
+
+      case $VALUE1:
+
+      return;
+
+      case $VALUE2:
+
+      ...
+
+      }
+
+      '
+  - pattern-not: 'switch($CASE)
+
+      {
+
+      case $VALUE1:
+
+      ...
+
+      return $V;
+
+      ...
+
+      case $VALUE2:
+
+      ...
+
+      }
+
+      '
+  - pattern-not: 'switch($CASE)
+
+      {
+
+      case $VALUE1:
+
+      return $V;
+
+      case $VALUE2:
+
+      ...
+
+      }
+
+      '
+  - pattern-not: 'switch($CASE)
+
+      {
+
+      case $VALUE1:
+
+      ...
+
+      exit($V);
+
+      ...
+
+      case $VALUE2:
+
+      ...
+
+      }
+
+      '
+  - pattern-not: 'switch($CASE)
+
+      {
+
+      case $VALUE1:
+
+      exit($V);
+
+      case $VALUE2:
+
+      ...
+
+      }
+
+      '
+- id: Use-after-free WARNING check 3
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: The global variable was not cleared after being released, and
+    there may be a double free.'
+  patterns:
+  - pattern-not-inside: '$TYPE * $PTR;
+
+      ...
+
+      free($PTR);
+
+      '
+  - pattern: free($PTR);
+- id: raptor-incorrect-use-of-free
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/590
+    - https://github.com/shellphish/how2heap/blob/master/glibc_2.23/house_of_spirit.c
+    confidence: MEDIUM
+  message: The software calls free() on a pointer to memory that has a short  lifetime
+    and was not allocated using associated heap allocation  functions such as malloc(),
+    calloc(), or realloc().
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: free($PTR)
+    - pattern-either:
+      - pattern-inside: '$TYPE $PTR[$LEN];
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $PTR[$LEN] = $EXPR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $ARR[$LEN];
+
+          ...
+
+          $PTR = $ARR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $ARR[$LEN] = $EXPR;
+
+          ...
+
+          $PTR = $ARR;
+
+          ...
+
+          '
+  - patterns:
+    - pattern: free(&$VAR)
+    - pattern-either:
+      - pattern-inside: '$TYPE $VAR;
+
+          ...
+
+          '
+      - pattern-inside: "$TYPE $VAR = $EXPR;\n...          \n"
+      - pattern-inside: '$TYPE $VAR[$LEN];
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $VAR[$LEN] = $EXPR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $VAR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $VAR = $EXPR;
+
+          ...
+
+          '
+- id: raptor-incorrect-use-of-strncat
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/787
+    - https://cwe.mitre.org/data/definitions/193
+    - https://g.co/kgs/PCHQjJ
+    confidence: HIGH
+  message: 'The strncat() function is nearly as dangerous as strcat(), in that it''s
+    quite easy to misuse. The first common mistake is supplying the size of  the entire
+    buffer instead of the size remaining in the buffer. A more  subtle mistake can
+    be made: the size parameter needs to be the amount of space left in the buffer
+    less one; otherwise, the NUL byte is written  one byte past the end of the buffer.'
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: strncat($DST, $SRC, $LEN)
+    - pattern-either:
+      - pattern-inside: '$TYPE $DST[$LEN];
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $DST[$LEN] = $EXPR;
+
+          ...
+
+          '
+  - pattern: strncat($DST, $SRC, sizeof($DST))
+  - pattern: strncat($DST, $SRC, strlen($DST))
+  - pattern: strncat($DST, $SRC, sizeof($DST) - strlen($DST))
+- id: raptor-interesting-api-calls-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://github.com/0xdea/ghidra-scripts/blob/main/Rhabdomancer.java
+    - https://github.com/x509cert/banned/blob/master/banned.h
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - https://learn.microsoft.com/en-us/windows-hardware/drivers/devtest/28719-banned-api-usage-use-updated-function-replacement
+    confidence: MEDIUM
+  message: Locate all calls to interesting and potentially insecure API functions
+    (candidate points). The auditor can backtrace from these candidate points to find
+    pathways allowing access from untrusted input.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*set\w*(u|g)id\s*$|^\w*(init|set)groups\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*str\w?cpy\s*$|^\w*stpn?cpy\s*$|^\w*wcs\w?cpy\s*$|^\w*wcpn?cpy\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*str\w?cat\s*$|^\w*wcs\w?cat\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*strtok\s*$|^\w*wcstok\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*s\w?printf\w*\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*scanf\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*get(s|c|char|pw|pass|wd|cwd|opt|opt_long)\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*(get|set|put|unset)env\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*memc?cpy(_s)?\s*$|^\w*memmove(_s)?\s*$|^\w*bcopy\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*alloc(a|f)?\s*$|^\w*alloc_?array\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*exec(l|v)?(p|e)?e?\s*$|^\w*system\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*open(at)?(64)?\s*$|^\w*pipe\s*$|^\w*read\s*$|^\w*recv(from)?\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*fork\s*$|^\w*clone\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*rand\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*mk\w?temp(64)?\s*$|^\w*te?mpnam\s*$|^\w*tmpfile\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*mkdir\s*$|^\w*creat\s*$|^\w*link(at)?\s*$|^\w*rename(at)?\s*$|^\w*access(at|_ok)?\s*$|^\w*stat(at)?\s*$|^\w*ch(own|mod)(at)?\s*$|^\w*realpath(at)?\s*$|^\w*readlink\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*locale\s*$|^\w*(make|split)path\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*copy_(from|to)_user\s*$|^\w*(get|put)_user\s*$|^\w*copy(in|out)\s*$
+- id: raptor-off-by-one-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/193
+    - https://cwe.mitre.org/data/definitions/787
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    confidence: MEDIUM
+  message: The software calculates or uses an incorrect maximum or minimum value that
+    is 1 more, or 1 less, than the correct value.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: $BUF[sizeof($BUF)] = $EXPR
+  - patterns:
+    - pattern: $BUF[$LEN] = $EXPR
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        $BUF[$LEN] = $EXPR;
+
+        '
+  - patterns:
+    - pattern: '*($BUF + $LEN) = $EXPR
+
+        '
+    - pattern-inside: '$TYPE $BUF[$LEN];
+
+        ...
+
+        *($BUF + $LEN) = $EXPR;
+
+        '
+  - patterns:
+    - pattern: $BUF[$X][$Y] = $EXPR
+    - pattern-either:
+      - pattern-inside: '$TYPE $BUF[$A][$Y];
+
+          ...
+
+          $BUF[$X][$Y] = $EXPR;
+
+          '
+      - pattern-inside: "$TYPE $BUF[$X][$B];\n...\n$BUF[$X][$Y] = $EXPR;    \n"
+  - pattern: strlen($SRC) > sizeof($DST)
+  - pattern: strlen($SRC) <= sizeof($DST)
+  - pattern: sizeof($DST) < strlen($SRC)
+  - pattern: sizeof($DST) >= strlen($SRC)
+  - patterns:
+    - pattern: strncat($DST, $SRC, $LEN)
+    - metavariable-pattern:
+        metavariable: $LEN
+        patterns:
+        - pattern-not: $VAL - 1
+  - pattern: $STR[strlen($STR) - 1]
+  - pattern: malloc(strlen($STR))
+- id: raptor-putenv-stack-var
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/686
+    - https://cwe.mitre.org/data/definitions/562
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: LOW
+  message: The software calls putenv() with a variable that has a short lifetime,
+    such as a pointer to an automatic variable allocated on the stack. The correct
+    behavior is to call putenv() with a static/global string.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: putenv($PTR);
+  - pattern-either:
+    - pattern-inside: '$TYPE $PTR[$LEN];
+
+        ...
+
+        '
+    - pattern-inside: '$TYPE $PTR[$LEN] = $EXPR;
+
+        ...
+
+        '
+    - pattern-inside: '$TYPE $ARR[$LEN];
+
+        ...
+
+        $PTR = $ARR;
+
+        ...
+
+        '
+    - pattern-inside: '$TYPE $ARR[$LEN] = $EXPR;
+
+        ...
+
+        $PTR = $ARR;
+
+        ...
+
+        '
+- id: raptor-typos-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/480
+    - https://cwe.mitre.org/data/definitions/481
+    - https://cwe.mitre.org/data/definitions/482
+    - https://cwe.mitre.org/data/definitions/483
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: LOW
+  message: The programmer accidentally uses the wrong operator, which changes the
+    application logic in security-relevant ways. This rule also covers some other
+    common typo patterns.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: for ($EXPR1 == $EXPR2; $EXPR3; $EXPR4) ...
+  - patterns:
+    - pattern: $EXPR1 == $EXPR2;
+    - pattern-not-inside: return $EXPR;
+    - pattern-not-inside: assert(...);
+  - patterns:
+    - pattern: if (<... $EXPR1 = $EXPR2 ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) == $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) != $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) < $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) <= $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) > $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 = $EXPR2) >= $EXPR ...>) ...
+  - patterns:
+    - pattern: if (<... $EXPR1 & $EXPR2 ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) == $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) != $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) < $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) <= $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) > $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 & $EXPR2) >= $EXPR ...>) ...
+  - patterns:
+    - pattern: if (<... $EXPR1 | $EXPR2 ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) == $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) != $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) < $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) <= $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) > $EXPR ...>) ...
+    - pattern-not-inside: if (<... ($EXPR1 | $EXPR2) >= $EXPR ...>) ...
+  - pattern: $EXPR1 =+ $EXPR2
+  - pattern: ($EXPR && $EXPR)
+  - pattern: ($EXPR || $EXPR)
+  - pattern: ($EXPR == $EXPR)
+  - pattern: ($EXPR != $EXPR)
+  - pattern: ($EXPR < $EXPR)
+  - pattern: ($EXPR <= $EXPR)
+  - pattern: ($EXPR > $EXPR)
+  - pattern: ($EXPR >= $EXPR)
+  - pattern: (char * $PTR) = '\0'
+  - pattern: (char * $PTR) == '\0'
+  - pattern: (char * $PTR) != '\0'
+  - pattern: if (<... strcpy(...) ...>) ...
+  - pattern: if (<... strncpy(...) ...>) ...
+  - pattern: if ($COND);
+  - pattern: for ($EXPR1; $EXPR2; $EXPR3);
+  - patterns:
+    - pattern-either:
+      - pattern: $TYPE $ARR[$LEN];
+      - pattern: $TYPE $ARR[$LEN] = $EXPR;
+    - metavariable-regex:
+        metavariable: $LEN
+        regex: ^0[^xX].*
+- id: raptor-unchecked-ret-scanf-etc-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/252
+    - https://codeql.github.com/codeql-query-help/cpp/cpp-missing-check-scanf/
+    confidence: MEDIUM
+  message: The software does not check the return value from a method or function,
+    which can prevent it from detecting unexpected states and conditions.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: $FUN(...)
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: scanf
+      - pattern: vscanf
+      - pattern: fscanf
+      - pattern: vfscanf
+      - pattern: sscanf
+      - pattern: vsscanf
+      - pattern: wscanf
+      - pattern: vwscanf
+      - pattern: fwscanf
+      - pattern: vfwscanf
+      - pattern: swscanf
+      - pattern: vswscanf
+  - pattern-not-inside: $RET = $FUN(...)
+  - pattern-not-inside: <... $FUN(...) == $VAL ...>
+  - pattern-not-inside: <... $FUN(...) != $VAL ...>
+  - pattern-not-inside: <... $FUN(...) < $VAL ...>
+  - pattern-not-inside: <... $FUN(...) <= $VAL ...>
+  - pattern-not-inside: <... $FUN(...) > $VAL ...>
+  - pattern-not-inside: <... $FUN(...) >= $VAL ...>
+  - pattern-not-inside: return $FUN(...);
+- id: raptor-incorrect-use-of-strncat-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://g.co/kgs/PCHQjJ
+    confidence: HIGH
+  message: 'The strncat() function is nearly as dangerous as strcat(), in that it''s
+    quite easy to misuse. The first common mistake is supplying the size of  the entire
+    buffer instead of the size remaining in the buffer. A more  subtle mistake can
+    be made: the size parameter needs to be the amount of space left in the buffer
+    less one; otherwise, the NUL byte is written  one byte past the end of the buffer.'
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: strncat($DST, $SRC, $LEN)
+    - pattern-either:
+      - pattern-inside: '$TYPE $DST[$LEN];
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $DST[$LEN] = $EXPR;
+
+          ...
+
+          '
+  - pattern: strncat($DST, $SRC, sizeof($DST))
+  - pattern: strncat($DST, $SRC, sizeof($DST) - strlen($DST))
+- id: raptor-interesting-api-calls-4
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://github.com/0xdea/ghidra-scripts/blob/main/Rhabdomancer.java
+    - https://github.com/x509cert/banned/blob/master/banned.h
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: MEDIUM
+  message: Locate all calls to interesting and potentially insecure API functions
+    (candidate points). The auditor can backtrace from these candidate points to find
+    pathways allowing access from untrusted input.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*set\w*(u|g)id\s*$|^\w*(init|set)groups\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*str\w?cpy\s*$|^\w*stpn?cpy\s*$|^\w*wcs\w?cpy\s*$|^\w*wcpn?cpy\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*str\w?cat\s*$|^\w*wcs\w?cat\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*strtok\s*$|^\w*wcstok\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*s\w?printf\w*\s*$|^\w*sn\w?printf\w*\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*scanf\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*get(s|c|char|pw|pass|wd|cwd|env|opt|opt_long)\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*memc?cpy\s*$|^\w*memmove\s*$|^\w*bcopy\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*copy_from_user\s*$|^\w*copy_to_user\s*$|^\w*copyin\s*$|^\w*copyout\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*alloca?\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*exec(l|v)?(p|e)?e?\s*$|^\w*system\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*open(at)?(64)?\s*$|^\w*pipe\s*$|^\w*read\s*$|^\w*recv(from)?\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*fork\s*$|^\w*clone\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*mk\w?temp(64)?\s*$|^\w*te?mpnam\s*$|^\w*tmpfile\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*mkdir\s*$|^\w*creat\s*$|^\w*link(at)?\s*$|^\w*rename(at)?\s*$|^\w*access(at)?\s*$|^\w*stat(at)?\s*$|^\w*ch(own|mod)(at)?\s*$|^\w*realpath(at)?\s*$|^\w*readlink\s*$
+  - patterns:
+    - pattern: $FUN(...)
+    - metavariable-regex:
+        metavariable: $FUN
+        regex: ^\w*rand\s*$
+- id: raptor-off-by-one-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/193
+    - https://cwe.mitre.org/data/definitions/787
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+    confidence: LOW
+  message: The software calculates or uses an incorrect maximum or minimum value that
+    is 1 more, or 1 less, than the correct value.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: $BUF[sizeof($BUF)] = $EXPR
+  - patterns:
+    - pattern: $BUF[$SIZE] = $EXPR
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $BUF[$SIZE] = $EXPR;
+
+        '
+  - patterns:
+    - pattern: '*($BUF + $SIZE) = $EXPR
+
+        '
+    - pattern-inside: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        *($BUF + $SIZE) = $EXPR;
+
+        '
+  - pattern: for (<... $I = $NUM ...>; <... $I <= $SIZE ...>; <... $I++ ...>) ...
+  - pattern: for (<... $I = $NUM ...>; <... $I <= $SIZE ...>; <... ++$I ...>) ...
+  - pattern: for ($TYPE $I = $NUM; <... $I <= $SIZE ...>; <... $I++ ...>) ...
+  - pattern: for ($TYPE $I = $NUM; <... $I <= $SIZE ...>; <... ++$I ...>) ...
+  - pattern: while (<... $I <= $SIZE ...>) ...
+  - pattern: do ... while (<... $I <= $SIZE ...>);
+  - pattern: strlen($SRC) > sizeof($DST)
+  - pattern: strlen($SRC) <= sizeof($DST)
+  - pattern: sizeof($DST) < strlen($SRC)
+  - pattern: sizeof($DST) >= strlen($SRC)
+  - patterns:
+    - pattern: strncat($DST, $SRC, $LEN)
+    - metavariable-pattern:
+        metavariable: $LEN
+        patterns:
+        - pattern-not: $VAL - 1
+- id: arrays-out-of-bounds-access
+  patterns:
+  - pattern-either:
+    - pattern: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $BUF[$INDEX] = $VALUE;
+
+        '
+    - pattern: '$TYPE $BUF[$SIZE];
+
+        ...
+
+        $VAR = $BUF[$INDEX];
+
+        '
+  - metavariable-comparison:
+      metavariable: $INDEX
+      comparison: $INDEX >= $SIZE
+  message: $BUF was accessed in '$BUF[$INDEX]' where $INDEX >= $SIZE.
+  languages:
+  - cpp
+  - c
+  severity: ERROR
+  metadata:
+    category: hotspot
+- id: encode-decode-function-name
+  patterns:
+  - pattern: '$FUNC(...);
+
+      '
+  - metavariable-regex:
+      metavariable: $FUNC
+      regex: .*(encode|decode).*
+  message: '$FUNC name contains encode/decode. These functions are usually intersting.
+
+    '
+  languages:
+  - cpp
+  - c
+  severity: WARNING
+  metadata:
+    category: hotspot
+    references:
+    - https://github.com/googleprojectzero/weggli/blob/main/README.md
+    - https://parsiya.net/blog/2022-04-07-code-review-hotspots-with-semgrep/#function-with-encode-and-decode-in-their-names
+- id: potentially-uninitialized-pointer
+  patterns:
+  - pattern: '$TYPE* $BUF[$SIZE];
+
+      ...
+
+      $FUNC(..., &$BUF, ...);
+
+      '
+  - pattern-not-inside: '$TYPE* $BUF[$SIZE];
+
+      ...
+
+      $BUF = $VALUE;
+
+      ...
+
+      $FUNC(..., &$BUF, ...);
+
+      '
+  message: $BUF pointer must be initialized before use.
+  languages:
+  - cpp
+  - c
+  severity: INFO
+  metadata:
+    category: hotspot
+- id: snprintf-insecure-use
+  patterns:
+  - pattern-either:
+    - pattern: '$RET = snprintf($BUF, ...);
+
+        ...
+
+        $BUF[$RET] = $VAR;
+
+        '
+    - pattern: '$LEN = snprintf($NULL, 0, ...);
+
+        ...
+
+        $P = malloc($LEN);
+
+        '
+  message: Potentially vulnerable snprintf usage.
+  languages:
+  - cpp
+  - c
+  severity: WARNING
+  metadata:
+    category: hotspot
+    references:
+    - https://dustri.org/b/playing-with-weggli.html
+- id: line-length
+  pattern-regex: .{101,}
+  message: Maximum line legth of 100 characters exceeded.
+  languages:
+  - bash
+  - c
+  - cpp
+  - csharp
+  - dockerfile
+  - golang
+  - java
+  - javascript
+  - json
+  - kotlin
+  - php
+  - python
+  - yaml
+  severity: INFO

@@ -1,0 +1,469 @@
+rules:
+- id: gitlab.flawfinder.StrCat-1.StrCatA-1.StrcatW-1.lstrcatA-1.lstrcatW-1.strCatBuff-1.StrCatBuffA-1.StrCatBuffW-1.StrCatChainW-1._tccat-1._mbccat-1._ftcscat-1.StrCatN-1.StrCatNA-1.StrCatNW-1.StrNCat-1.StrNCatA-1.StrNCatW-1.lstrncat-1.lstrcatnA-1.lstrcatnW-1
+  languages:
+  - c
+  message: 'Buffer overflow is not checked.
+
+    '
+  metadata:
+    cwe: CWE-120
+    shortDescription: Does not check for buffer overflows when concatenating to destination
+      [MS-banned] (CWE-120)
+    primary_identifier: flawfinder.StrCat-1.StrCatA-1.StrcatW-1.lstrcatA-1.lstrcatW-1.strCatBuff-1.StrCatBuffA-1.StrCatBuffW-1.StrCatChainW-1._tccat-1._mbccat-1._ftcscat-1.StrCatN-1.StrCatNA-1.StrCatNW-1.StrNCat-1.StrNCatA-1.StrNCatW-1.lstrncat-1.lstrcatnA-1.lstrcatnW-1
+    secondary_identifiers:
+    - name: Flawfinder - StrCat
+      type: flawfinder_func_name
+      value: StrCat
+    - name: Flawfinder - StrCatA
+      type: flawfinder_func_name
+      value: StrCatA
+    - name: Flawfinder - StrcatW
+      type: flawfinder_func_name
+      value: StrcatW
+    - name: Flawfinder - lstrcatA
+      type: flawfinder_func_name
+      value: lstrcatA
+    - name: Flawfinder - lstrcatW
+      type: flawfinder_func_name
+      value: lstrcatW
+    - name: Flawfinder - strCatBuff
+      type: flawfinder_func_name
+      value: strCatBuff
+    - name: Flawfinder - StrCatBuffA
+      type: flawfinder_func_name
+      value: StrCatBuffA
+    - name: Flawfinder - StrCatBuffW
+      type: flawfinder_func_name
+      value: StrCatBuffW
+    - name: Flawfinder - StrCatChainW
+      type: flawfinder_func_name
+      value: StrCatChainW
+    - name: Flawfinder - _tccat
+      type: flawfinder_func_name
+      value: _tccat
+    - name: Flawfinder - _mbccat
+      type: flawfinder_func_name
+      value: _mbccat
+    - name: Flawfinder - _ftcscat
+      type: flawfinder_func_name
+      value: _ftcscat
+    - name: Flawfinder - StrCatN
+      type: flawfinder_func_name
+      value: StrCatN
+    - name: Flawfinder - StrCatNA
+      type: flawfinder_func_name
+      value: StrCatNA
+    - name: Flawfinder - StrCatNW
+      type: flawfinder_func_name
+      value: StrCatNW
+    - name: Flawfinder - StrNCat
+      type: flawfinder_func_name
+      value: StrNCat
+    - name: Flawfinder - StrNCatA
+      type: flawfinder_func_name
+      value: StrNCatA
+    - name: Flawfinder - StrNCatW
+      type: flawfinder_func_name
+      value: StrNCatW
+    - name: Flawfinder - lstrncat
+      type: flawfinder_func_name
+      value: lstrncat
+    - name: Flawfinder - lstrcatnA
+      type: flawfinder_func_name
+      value: lstrcatnA
+    - name: Flawfinder - lstrcatnW
+      type: flawfinder_func_name
+      value: lstrcatnW
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.StrCat-1.StrCatA-1.StrcatW-1.lstrcatA-1.lstrcatW-1.strCatBuff-1.StrCatBuffA-1.StrCatBuffW-1.StrCatChainW-1._tccat-1._mbccat-1._ftcscat-1.StrCatN-1.StrCatNA-1.StrCatNW-1.StrNCat-1.StrNCatA-1.StrNCatW-1.lstrncat-1.lstrcatnA-1.lstrcatnW-1
+    shortlink: https://sg.run/kkoX
+    semgrep.dev:
+      rule:
+        rule_id: lBUzG9
+        version_id: K3TeRY
+        url: https://semgrep.dev/playground/r/K3TeRY/gitlab.flawfinder.StrCat-1.StrCatA-1.StrcatW-1.lstrcatA-1.lstrcatW-1.strCatBuff-1.StrCatBuffA-1.StrCatBuffW-1.StrCatChainW-1._tccat-1._mbccat-1._ftcscat-1.StrCatN-1.StrCatNA-1.StrCatNW-1.StrNCat-1.StrNCatA-1.StrNCatW-1.lstrncat-1.lstrcatnA-1.lstrcatnW-1
+        origin: custom
+  pattern-either:
+  - pattern: StrCat(...)
+  - pattern: StrCatA(...)
+  - pattern: StrcatW(...)
+  - pattern: lstrcatA(...)
+  - pattern: lstrcatW(...)
+  - pattern: strCatBuff(...)
+  - pattern: StrCatBuffA(...)
+  - pattern: StrCatBuffW(...)
+  - pattern: StrCatChainW(...)
+  - pattern: _tccat(...)
+  - pattern: _mbccat(...)
+  - pattern: _ftcscat(...)
+  - pattern: StrCatN(...)
+  - pattern: StrCatNA(...)
+  - pattern: StrCatNW(...)
+  - pattern: StrNCat(...)
+  - pattern: StrNCatA(...)
+  - pattern: StrNCatW(...)
+  - pattern: lstrncat(...)
+  - pattern: lstrcatnA(...)
+  - pattern: lstrcatnW(...)
+  severity: ERROR
+- id: gitlab.flawfinder.equal-1.mismatch-1.is_permutation-1
+  languages:
+  - c
+  message: 'This function is often discouraged by most C++ coding standards in favor
+    of its safer
+
+    alternatives provided since C++14. Consider using a form of this function that
+    checks the
+
+    second iterator before potentially overflowing it.
+
+    '
+  metadata:
+    cwe: CWE-126
+    shortDescription: Function does not check the second iterator for over-read conditions
+      (CWE-126)
+    primary_identifier: flawfinder.equal-1.mismatch-1.is_permutation-1
+    secondary_identifiers:
+    - name: Flawfinder - equal
+      type: flawfinder_func_name
+      value: equal
+    - name: Flawfinder - mismatch
+      type: flawfinder_func_name
+      value: mismatch
+    - name: Flawfinder - is_permutation
+      type: flawfinder_func_name
+      value: is_permutation
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.equal-1.mismatch-1.is_permutation-1
+    shortlink: https://sg.run/xewe
+    semgrep.dev:
+      rule:
+        rule_id: JDUQ8Q
+        version_id: l4TbYW
+        url: https://semgrep.dev/playground/r/l4TbYW/gitlab.flawfinder.equal-1.mismatch-1.is_permutation-1
+        origin: custom
+  pattern-either:
+  - pattern: equal(...)
+  - pattern: mismatch(...)
+  - pattern: is_permutation(...)
+  severity: INFO
+- id: gitlab.flawfinder.getchar-1.fgetc-1.getc-1.read-1._gettc-1
+  languages:
+  - c
+  message: 'CWE-20: Check buffer boundaries if used in a loop including recursive
+    loops
+
+    '
+  metadata:
+    cwe: CWE-20
+    shortDescription: Check buffer boundaries if used in a loop including recursive
+      loops (CWE-120, CWE-20)
+    primary_identifier: flawfinder.getchar-1.fgetc-1.getc-1.read-1._gettc-1
+    secondary_identifiers:
+    - name: Flawfinder - getchar
+      type: flawfinder_func_name
+      value: getchar
+    - name: Flawfinder - fgetc
+      type: flawfinder_func_name
+      value: fgetc
+    - name: Flawfinder - getc
+      type: flawfinder_func_name
+      value: getc
+    - name: Flawfinder - read
+      type: flawfinder_func_name
+      value: read
+    - name: Flawfinder - _gettc
+      type: flawfinder_func_name
+      value: _gettc
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.getchar-1.fgetc-1.getc-1.read-1._gettc-1
+    shortlink: https://sg.run/d0WP
+    semgrep.dev:
+      rule:
+        rule_id: AbUGwN
+        version_id: zyTd98
+        url: https://semgrep.dev/playground/r/zyTd98/gitlab.flawfinder.getchar-1.fgetc-1.getc-1.read-1._gettc-1
+        origin: custom
+  pattern-either:
+  - pattern: getchar(...)
+  - pattern: fgetc(...)
+  - pattern: getc(...)
+  - pattern: read(...)
+  - pattern: _gettc(...)
+  severity: INFO
+- id: gitlab.flawfinder.getopt-1.getopt_long-1
+  languages:
+  - c
+  message: 'Check implementation on installation, or limit the size of all string
+    inputs.
+
+    '
+  metadata:
+    cwe: CWE-120
+    shortDescription: Some older implementations do not protect against internal buffer
+      overflows (CWE-120, CWE-20)
+    primary_identifier: flawfinder.getopt-1.getopt_long-1
+    secondary_identifiers:
+    - name: Flawfinder - getopt
+      type: flawfinder_func_name
+      value: getopt
+    - name: Flawfinder - getopt_long
+      type: flawfinder_func_name
+      value: getopt_long
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.getopt-1.getopt_long-1
+    shortlink: https://sg.run/nk2G
+    semgrep.dev:
+      rule:
+        rule_id: DbUKAn
+        version_id: 2KTeXv
+        url: https://semgrep.dev/playground/r/2KTeXv/gitlab.flawfinder.getopt-1.getopt_long-1
+        origin: custom
+  pattern-either:
+  - pattern: getopt(...)
+  - pattern: getopt_long(...)
+  severity: WARNING
+- id: gitlab.flawfinder.getpw-1
+  languages:
+  - c
+  message: 'Use getpwuid() instead.
+
+    '
+  metadata:
+    cwe: CWE-120
+    shortDescription: This function is dangerous; it may overflow the provided buffer.
+      It extracts data from a 'protected' area, but most systems have many commands
+      to let users modify the protected area, and it's not always clear what their
+      limits are.  Best to avoid using this function altogether (CWE-676, CWE-120)
+    primary_identifier: flawfinder.getpw-1
+    secondary_identifiers:
+    - name: Flawfinder - getpw
+      type: flawfinder_func_name
+      value: getpw
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.getpw-1
+    shortlink: https://sg.run/EO08
+    semgrep.dev:
+      rule:
+        rule_id: WAUP03
+        version_id: X0TEp4
+        url: https://semgrep.dev/playground/r/X0TEp4/gitlab.flawfinder.getpw-1
+        origin: custom
+  pattern: getpw(...)
+  severity: ERROR
+- id: gitlab.flawfinder.gets-1._getts-1
+  languages:
+  - c
+  message: 'Use fgets() instead.
+
+    '
+  metadata:
+    cwe: CWE-120
+    shortDescription: Does not check for buffer overflows (CWE-120, CWE-20)
+    primary_identifier: flawfinder.gets-1._getts-1
+    secondary_identifiers:
+    - name: Flawfinder - gets
+      type: flawfinder_func_name
+      value: gets
+    - name: Flawfinder - _getts
+      type: flawfinder_func_name
+      value: _getts
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.gets-1._getts-1
+    shortlink: https://sg.run/7G7v
+    semgrep.dev:
+      rule:
+        rule_id: 0oUJjK
+        version_id: jQTWp1
+        url: https://semgrep.dev/playground/r/jQTWp1/gitlab.flawfinder.gets-1._getts-1
+        origin: custom
+  pattern-either:
+  - pattern: gets(...)
+  - pattern: _getts(...)
+  severity: ERROR
+- id: gitlab.flawfinder.snprintf-1.vsnprintf-1._snprintf-1._sntprintf-1._vsntprintf-1
+  languages:
+  - c
+  message: 'Use a constant for the format specification.
+
+    '
+  metadata:
+    cwe: CWE-134
+    shortDescription: If format strings can be influenced by an attacker, they can
+      be exploited, and note that sprintf variations do not always \0-terminate (CWE-134)
+    primary_identifier: flawfinder.snprintf-1.vsnprintf-1._snprintf-1._sntprintf-1._vsntprintf-1
+    secondary_identifiers:
+    - name: Flawfinder - snprintf
+      type: flawfinder_func_name
+      value: snprintf
+    - name: Flawfinder - vsnprintf
+      type: flawfinder_func_name
+      value: vsnprintf
+    - name: Flawfinder - _snprintf
+      type: flawfinder_func_name
+      value: _snprintf
+    - name: Flawfinder - _sntprintf
+      type: flawfinder_func_name
+      value: _sntprintf
+    - name: Flawfinder - _vsntprintf
+      type: flawfinder_func_name
+      value: _vsntprintf
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.snprintf-1.vsnprintf-1._snprintf-1._sntprintf-1._vsntprintf-1
+    shortlink: https://sg.run/pkj3
+    semgrep.dev:
+      rule:
+        rule_id: d8UlJZ
+        version_id: PkTvKp
+        url: https://semgrep.dev/playground/r/PkTvKp/gitlab.flawfinder.snprintf-1.vsnprintf-1._snprintf-1._sntprintf-1._vsntprintf-1
+        origin: custom
+  pattern-either:
+  - patterns:
+    - pattern: snprintf($BUF,$SIZ,$FMT,...)
+    - pattern-not: snprintf($BUF,$SIZ,"...",...)
+  - patterns:
+    - pattern: vsnprintf($BUF,$SIZ,$FMT)
+    - pattern-not: vsnprintf($BUF,$SIZ,"...",...)
+  - patterns:
+    - pattern: _snprintf($BUF,$SIZ,$FMT,...)
+    - pattern-not: _snprintf($BUF,$SIZ,$FMT,"...",...)
+  - patterns:
+    - pattern: _sntprintf($VAR,$FMT,...)
+    - pattern-not: sntprintf($VAR,"...",...)
+  - patterns:
+    - pattern: _vsntprintf($VAR,$FMT,...)
+    - pattern-not: _vsntprintf($VAR,"...",...)
+  severity: ERROR
+- id: gitlab.flawfinder.InitializeCriticalSection-1
+  languages:
+  - c
+  message: 'Use InitializeCriticalSectionAndSpinCount instead.
+
+    '
+  metadata:
+    cwe: CWE-754
+    shortDescription: Exceptions can be thrown in low-memory situations
+    primary_identifier: flawfinder.InitializeCriticalSection-1
+    secondary_identifiers:
+    - name: Flawfinder - InitializeCriticalSection
+      type: flawfinder_func_name
+      value: InitializeCriticalSection
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.InitializeCriticalSection-1
+    shortlink: https://sg.run/967k
+    semgrep.dev:
+      rule:
+        rule_id: L1Urv6
+        version_id: A8T8v9
+        url: https://semgrep.dev/playground/r/A8T8v9/gitlab.flawfinder.InitializeCriticalSection-1
+        origin: custom
+  pattern: InitializeCriticalSection(...)
+  severity: WARNING
+- id: gitlab.flawfinder.scanf-1.vscanf-1.wscanf-1._tscanf-1.vwscanf-1
+  languages:
+  - c
+  message: 'Specify a limit to %s, or use a different input function.
+
+    '
+  metadata:
+    cwe: CWE-120
+    shortDescription: The scanf() family's %s operation, without a limit specification,
+      permits buffer overflows (CWE-120, CWE-20)
+    primary_identifier: flawfinder.scanf-1.vscanf-1.wscanf-1._tscanf-1.vwscanf-1
+    secondary_identifiers:
+    - name: Flawfinder - scanf
+      type: flawfinder_func_name
+      value: scanf
+    - name: Flawfinder - vscanf
+      type: flawfinder_func_name
+      value: vscanf
+    - name: Flawfinder - wscanf
+      type: flawfinder_func_name
+      value: wscanf
+    - name: Flawfinder - _tscanf
+      type: flawfinder_func_name
+      value: _tscanf
+    - name: Flawfinder - vwscanf
+      type: flawfinder_func_name
+      value: vwscanf
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.scanf-1.vscanf-1.wscanf-1._tscanf-1.vwscanf-1
+    shortlink: https://sg.run/Jj6o
+    semgrep.dev:
+      rule:
+        rule_id: pKUw5J
+        version_id: w8Trvg
+        url: https://semgrep.dev/playground/r/w8Trvg/gitlab.flawfinder.scanf-1.vscanf-1.wscanf-1._tscanf-1.vwscanf-1
+        origin: custom
+  pattern-either:
+  - patterns:
+    - pattern: scanf($FMT, ...)
+    - pattern-not: scanf("...", ...)
+  - patterns:
+    - pattern: vscanf($FMT, ...)
+    - pattern-not: vscanf("...", ...)
+  - patterns:
+    - pattern: wscanf($FMT, ...)
+    - pattern-not: wscanf("...", ...)
+  - patterns:
+    - pattern: _tscanf($FMT, ...)
+    - pattern-not: _tscanf("...", ...)
+  - patterns:
+    - pattern: vwscanf(FMT, ...)
+    - pattern-not: vwscanf("...", ...)
+  severity: ERROR
+- id: gitlab.flawfinder.chroot-1
+  languages:
+  - c
+  message: 'Make sure the program immediately chdir("/"), closes file descriptors,
+    and drops root
+
+    privileges, and that all necessary files (and no more!) are in the new root.
+
+    '
+  metadata:
+    cwe: CWE-22
+    shortDescription: chroot can be very helpful, but is hard to use correctly (CWE-250,
+      CWE-22)
+    primary_identifier: flawfinder.chroot-1
+    secondary_identifiers:
+    - name: Flawfinder - chroot
+      type: flawfinder_func_name
+      value: chroot
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.chroot-1
+    shortlink: https://sg.run/N8Dx
+    semgrep.dev:
+      rule:
+        rule_id: 3qUE0p
+        version_id: 0bTB0E
+        url: https://semgrep.dev/playground/r/0bTB0E/gitlab.flawfinder.chroot-1
+        origin: custom
+  pattern: chroot(...)
+  severity: WARNING
+- id: gitlab.flawfinder.chgrp-1
+  languages:
+  - c
+  message: 'Use fchgrp( ) instead.
+
+    '
+  metadata:
+    cwe: CWE-362
+    shortDescription: This accepts filename arguments; if an attacker can move those
+      files, a race condition results. (CWE-362)
+    primary_identifier: flawfinder.chgrp-1
+    secondary_identifiers:
+    - name: Flawfinder - chgrp
+      type: flawfinder_func_name
+      value: chgrp
+    license: MIT
+    source: https://semgrep.dev/r/gitlab.flawfinder.chgrp-1
+    shortlink: https://sg.run/nknG
+    semgrep.dev:
+      rule:
+        rule_id: DbUKrn
+        version_id: A8T8vg
+        url: https://semgrep.dev/playground/r/A8T8vg/gitlab.flawfinder.chgrp-1
+        origin: custom
+  pattern: chgrp(...)
+  severity: ERROR

@@ -1,0 +1,493 @@
+rules:
+- id: raptor-format-string-bugs
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/134
+    - https://julianor.tripod.com/bc/formatstring-1.2.pdf
+    - http://phrack.org/issues/70/13.html#article
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: MEDIUM
+  message: The software uses a function that accepts a format string as an argument,
+    but the format string originates from an external source. When an attacker can
+    modify an externally-controlled format string, this can lead to buffer overflows,
+    denial of service, or data representation problems. It should be noted that in
+    some circumstances, such as internationalization, the set of format strings is
+    externally controlled by design. If the source of these format strings is trusted
+    (e.g. only contained in library files that are only modifiable by the system administrator),
+    then the external control might not itself pose a vulnerability.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: printf(...)
+      - pattern: vprintf(...)
+      - pattern: wprintf(...)
+      - pattern: vwprintf(...)
+      - pattern: vcprintf(...)
+      - pattern: vcwprintf(...)
+      - pattern: vscprintf(...)
+      - pattern: vscwprintf(...)
+      - pattern: printk(...)
+      - pattern: scanf(...)
+      - pattern: vscanf(...)
+      - pattern: wscanf(...)
+      - pattern: vwscanf(...)
+      - pattern: warn(...)
+      - pattern: vwarn(...)
+      - pattern: warnx(...)
+      - pattern: vwarnx(...)
+    - pattern-not: $FUN("...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: fprintf(...)
+      - pattern: vfprintf(...)
+      - pattern: fwprintf(...)
+      - pattern: vfwprintf(...)
+      - pattern: sprintf(...)
+      - pattern: vsprintf(...)
+      - pattern: asprintf(...)
+      - pattern: vasprintf(...)
+      - pattern: dprintf(...)
+      - pattern: vdprintf(...)
+      - pattern: wsprintf(...)
+      - pattern: fscanf(...)
+      - pattern: vfscanf(...)
+      - pattern: fwscanf(...)
+      - pattern: vfwscanf(...)
+      - pattern: sscanf(...)
+      - pattern: vsscanf(...)
+      - pattern: swscanf(...)
+      - pattern: vswscanf(...)
+      - pattern: syslog(...)
+      - pattern: vsyslog(...)
+      - pattern: err(...)
+      - pattern: verr(...)
+      - pattern: errx(...)
+      - pattern: verrx(...)
+      - pattern: warnc(...)
+      - pattern: vwarnc(...)
+    - pattern-not: $FUN($ARG1, "...", ...)
+  - patterns:
+    - pattern-either:
+      - pattern: snprintf(...)
+      - pattern: vsnprintf(...)
+      - pattern: swprintf(...)
+      - pattern: vswprintf(...)
+      - pattern: errc(...)
+      - pattern: verrc(...)
+    - pattern-not: $FUN($ARG1, $ARG2, "...", ...)
+- id: raptor-format-string-bugs-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Memory Issues
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-134: Use of Externally-Controlled Format String'
+    owasp:
+    - A05:2025 - Injection
+    references:
+    - https://julianor.tripod.com/bc/formatstring-1.2.pdf
+    - http://phrack.org/issues/70/13.html#article
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+  message: The software uses a function that accepts a format string as an argument,
+    but the format string originates from an external source. This can lead  to buffer
+    overflows, denial of service, or data representation problems.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: printf(...)
+      - pattern: vprintf(...)
+      - pattern: wprintf(...)
+      - pattern: vwprintf(...)
+      - pattern: vcprintf(...)
+      - pattern: vcwprintf(...)
+      - pattern: vscprintf(...)
+      - pattern: vscwprintf(...)
+      - pattern: printk(...)
+      - pattern: scanf(...)
+      - pattern: __isoc99_scanf(...)
+      - pattern: vscanf(...)
+      - pattern: __isoc99_vscanf(...)
+      - pattern: wscanf(...)
+      - pattern: vwscanf(...)
+      - pattern: warn(...)
+      - pattern: vwarn(...)
+      - pattern: warnx(...)
+      - pattern: vwarnx(...)
+    - pattern-not: $_("...", ...)
+    - pattern-not: $_(gettext(...), ...)
+    - pattern-not: $_(dgettext(...), ...)
+    - pattern-not: $_(dcgettext(...), ...)
+  - patterns:
+    - pattern-either:
+      - pattern: fprintf(...)
+      - pattern: vfprintf(...)
+      - pattern: fwprintf(...)
+      - pattern: vfwprintf(...)
+      - pattern: sprintf(...)
+      - pattern: vsprintf(...)
+      - pattern: asprintf(...)
+      - pattern: vasprintf(...)
+      - pattern: dprintf(...)
+      - pattern: vdprintf(...)
+      - pattern: wsprintf(...)
+      - pattern: fscanf(...)
+      - pattern: __isoc99_fscanf(...)
+      - pattern: vfscanf(...)
+      - pattern: __isoc99_vfscanf(...)
+      - pattern: fwscanf(...)
+      - pattern: vfwscanf(...)
+      - pattern: sscanf(...)
+      - pattern: __isoc99_sscanf(...)
+      - pattern: vsscanf(...)
+      - pattern: __isoc99_vsscanf(...)
+      - pattern: swscanf(...)
+      - pattern: vswscanf(...)
+      - pattern: syslog(...)
+      - pattern: vsyslog(...)
+      - pattern: err(...)
+      - pattern: verr(...)
+      - pattern: errx(...)
+      - pattern: verrx(...)
+      - pattern: warnc(...)
+      - pattern: vwarnc(...)
+    - pattern-not: $_($_, "...", ...)
+    - pattern-not: $_($_, gettext(...), ...)
+    - pattern-not: $_($_, dgettext(...), ...)
+    - pattern-not: $_($_, dcgettext(...), ...)
+  - patterns:
+    - pattern-either:
+      - pattern: snprintf(...)
+      - pattern: vsnprintf(...)
+      - pattern: swprintf(...)
+      - pattern: vswprintf(...)
+      - pattern: errc(...)
+      - pattern: verrc(...)
+    - pattern-not: $_($_, $_, "...", ...)
+    - pattern-not: $_($_, $_, gettext(...), ...)
+    - pattern-not: $_($_, $_, dgettext(...), ...)
+    - pattern-not: $_($_, $_, dcgettext(...), ...)
+- id: raptor-regex-dos
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Denial-of-Service (DoS)
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-1333: Inefficient Regular Expression Complexity'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://semgrep.dev/docs/writing-rules/metavariable-analysis
+    - https://github.com/semgrep/semgrep/pull/4672
+  message: The software uses a regular expression with an inefficient, possibly exponential
+    worst-case computational complexity that consumes excessive CPU cycles. Poorly
+    constructed regular expressions that exhibit exponential runtime when fed specifically
+    crafted inputs can cause RegEx denial of service (ReDoS).
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: $FUN($_, $REGEX, $_)
+    - pattern: '$STRING = $REGEX;
+
+        ...
+
+        $FUN($_, $STRING, $_);
+
+        '
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: regcomp
+      - pattern: regncomp
+      - pattern: regwcomp
+      - pattern: regwncomp
+      - pattern: regcomp_l
+      - pattern: regncomp_l
+      - pattern: regwcomp_l
+      - pattern: regwncomp_l
+  - metavariable-analysis:
+      analyzer: redos
+      metavariable: $REGEX
+  - focus-metavariable: $REGEX
+- id: Memory-Allocation-with-Excessive-Size-Value
+  meta:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: MEDIUM
+    category: security
+    cwe:
+    - 'CWE-789: Memory Allocation with Excessive Size Value'
+    - 'CWE-1325: Improperly Controlled Allocation on the Heap'
+    vulnerability_class:
+    - Memory Issues
+    owasp:
+    - A06:2021 - Vulnerable and Outdated Components
+    references:
+    - https://cwe.mitre.org/data/definitions/789.html
+    - https://cwe.mitre.org/data/definitions/1325.html
+    technology:
+    - c
+    - cpp
+  languages:
+  - c
+  - c++
+  severity: ERROR
+  message: 'Memory allocation with excessive or untrusted size value detected. The  allocation
+    size may come from an untrusted source without proper validation,  allowing attackers
+    to cause resource exhaustion or integer overflow.
+
+    '
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: malloc(atoi(argv[$IDX]))
+      - pattern: malloc(atol(argv[$IDX]))
+      - pattern: malloc(strtol(argv[$IDX], ...))
+      - pattern: malloc(strtoul(argv[$IDX], ...))
+      - pattern: malloc(strtoll(argv[$IDX], ...))
+      - pattern: malloc(strtoull(argv[$IDX], ...))
+      - pattern: calloc(atoi(argv[$IDX]), ...)
+      - pattern: calloc(atol(argv[$IDX]), ...)
+      - pattern: calloc(strtol(argv[$IDX], ...), ...)
+      - pattern: calloc(..., atoi(argv[$IDX]))
+      - pattern: calloc(..., atol(argv[$IDX]))
+      - pattern: calloc(..., strtol(argv[$IDX], ...))
+      - pattern: realloc($PTR, atoi(argv[$IDX]))
+      - pattern: realloc($PTR, atol(argv[$IDX]))
+      - pattern: realloc($PTR, strtol(argv[$IDX], ...))
+    - pattern-not: malloc(sizeof(...))
+    - pattern-not: calloc($NUM, sizeof(...))
+    - pattern-not: realloc($PTR, sizeof(...))
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($SIZE)
+      - pattern: calloc($COUNT, $SIZE)
+      - pattern: realloc($PTR, $SIZE)
+    - pattern-inside: '$SIZE = $READ_FUNC(...);
+
+        ...
+
+        '
+    - metavariable-regex:
+        metavariable: $READ_FUNC
+        regex: .*(read|recv|fetch|get|fread|fget|scanf|fscanf).*
+    - pattern-not: malloc(sizeof(...))
+    - pattern-not: calloc($NUM, sizeof(...))
+    - pattern-not: realloc($PTR, sizeof(...))
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($PTR->$FIELD)
+      - pattern: calloc($COUNT, $PTR->$FIELD)
+      - pattern: calloc($PTR->$FIELD, ...)
+      - pattern: realloc($PTR, $PTR2->$FIELD)
+    - metavariable-regex:
+        metavariable: $FIELD
+        regex: .*(size|count|len|width|height|depth|data_size|packet_size|item_size|user_count|session_size).*
+    - pattern-not: malloc(sizeof(...))
+    - pattern-not: calloc($NUM, sizeof(...))
+    - pattern-not: realloc($PTR, sizeof(...))
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($ARRAY[$INDEX])
+      - pattern: calloc($ARRAY[$INDEX], ...)
+      - pattern: calloc(..., $ARRAY[$INDEX])
+      - pattern: realloc($PTR, $ARRAY[$INDEX])
+    - pattern-not: malloc(sizeof(...))
+    - pattern-not: calloc($NUM, sizeof(...))
+    - pattern-not: realloc($PTR, sizeof(...))
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($SIZE)
+      - pattern: calloc($COUNT, $SIZE)
+      - pattern: realloc($PTR, $SIZE)
+    - pattern-inside: "void $FUNC(..., $TYPE $SIZE, ...) {\n  ...\n}\n"
+    - pattern-not: malloc(sizeof(...))
+    - pattern-not: calloc($NUM, sizeof(...))
+    - pattern-not: realloc($PTR, sizeof(...))
+  - patterns:
+    - pattern-either:
+      - pattern: new $TYPE[$SIZE]
+      - pattern: new $TYPE[atoi(argv[$IDX])]
+      - pattern: new $TYPE[atol(argv[$IDX])]
+      - pattern: new $TYPE[strtol(argv[$IDX], ...)]
+    - pattern-inside: "void $FUNC(..., $TYPE $SIZE, ...) {\n  ...\n}\n"
+    - pattern-not: new $TYPE[sizeof(...)]
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($A * $B)
+      - pattern: malloc($A * $B * $C)
+      - pattern: calloc($A, $B)
+      - pattern: new $TYPE[$A * $B]
+      - pattern: new $TYPE[$A * $B * $C]
+    - pattern-not: malloc(sizeof(...) * $NUM)
+    - pattern-not: malloc($NUM * sizeof(...))
+    - pattern-not: calloc($NUM, sizeof(...))
+    - pattern-not: new $TYPE[sizeof(...) * $NUM]
+  - patterns:
+    - pattern-either:
+      - pattern: $PTR = malloc($SIZE);
+      - pattern: $PTR = calloc($COUNT, $SIZE);
+      - pattern: $PTR = realloc($OLD, $SIZE);
+    - pattern-not-inside: '$PTR = malloc($SIZE);
+
+        ...
+
+        if ($PTR == NULL) { ... }
+
+        '
+    - pattern-not-inside: '$PTR = malloc($SIZE);
+
+        ...
+
+        if (!$PTR) { ... }
+
+        '
+    - pattern-not-inside: '$PTR = malloc($SIZE);
+
+        ...
+
+        if (NULL == $PTR) { ... }
+
+        '
+    - pattern-not-inside: '$PTR = calloc($COUNT, $SIZE);
+
+        ...
+
+        if ($PTR == NULL) { ... }
+
+        '
+    - pattern-not-inside: '$PTR = calloc($COUNT, $SIZE);
+
+        ...
+
+        if (!$PTR) { ... }
+
+        '
+    - pattern-not-inside: '$PTR = calloc($COUNT, $SIZE);
+
+        ...
+
+        if (NULL == $PTR) { ... }
+
+        '
+    - pattern-not-inside: '$PTR = realloc($OLD, $SIZE);
+
+        ...
+
+        if ($PTR == NULL) { ... }
+
+        '
+    - pattern-not-inside: '$PTR = realloc($OLD, $SIZE);
+
+        ...
+
+        if (!$PTR) { ... }
+
+        '
+    - pattern-not-inside: '$PTR = realloc($OLD, $SIZE);
+
+        ...
+
+        if (NULL == $PTR) { ... }
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($SIZE)
+      - pattern: calloc($COUNT, $SIZE)
+      - pattern: realloc($PTR, $SIZE)
+    - pattern-inside: '$SIZE = atoi($INPUT);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($SIZE)
+      - pattern: calloc($COUNT, $SIZE)
+      - pattern: realloc($PTR, $SIZE)
+    - pattern-inside: '$SIZE = atol($INPUT);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($SIZE)
+      - pattern: calloc($COUNT, $SIZE)
+      - pattern: realloc($PTR, $SIZE)
+    - pattern-inside: '$SIZE = strtol($INPUT, ...);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($SIZE)
+      - pattern: calloc($COUNT, $SIZE)
+      - pattern: realloc($PTR, $SIZE)
+    - pattern-inside: '$SIZE = strtoul($INPUT, ...);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: malloc($SIZE)
+      - pattern: calloc($COUNT, $SIZE)
+      - pattern: realloc($PTR, $SIZE)
+    - pattern-inside: 'sscanf($INPUT, "...", &$SIZE);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: $TYPE $VAR[$SIZE];
+      - pattern: $TYPE $VAR[$A * $B];
+      - pattern: $TYPE $VAR[$A * $B * $C];
+    - pattern-not: $TYPE $VAR[sizeof(...)];
+    - pattern-not: $TYPE $VAR[<... const ...>];
+  - patterns:
+    - pattern-either:
+      - pattern: alloca($SIZE)
+      - pattern: _malloca($SIZE)
+    - pattern-not: alloca(sizeof(...))
+    - pattern-not: _malloca(sizeof(...))
+  - patterns:
+    - pattern-either:
+      - pattern: alloca($A * $B)
+      - pattern: _malloca($A * $B)
+    - pattern-not: alloca(sizeof(...) * $NUM)
+    - pattern-not: _malloca(sizeof(...) * $NUM)
+  - patterns:
+    - pattern: realloc($PTR, $SIZE)
+    - pattern-not: realloc($PTR, sizeof(...))

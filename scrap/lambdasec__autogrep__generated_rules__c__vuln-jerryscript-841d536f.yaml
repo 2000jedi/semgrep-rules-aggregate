@@ -1,0 +1,43 @@
+rules:
+- id: vuln-jerryscript-841d536f
+  pattern: 'ecma_property_value_t *$PROP_VALUE;
+
+    $PROP_VALUE = ecma_create_named_data_property($LEX_ENV, $NAME, $FLAGS, NULL);
+
+    $PROP_VALUE->value = ecma_make_object_value($OBJ);
+
+    ecma_deref_object($OBJ);
+
+    '
+  pattern-not: 'ecma_property_value_t *$PROP_VALUE;
+
+    $PROP_VALUE = ecma_create_named_data_property($LEX_ENV, $NAME, $FLAGS, NULL);
+
+    $PROP_VALUE->value = $RESULT;
+
+    ecma_deref_object(ecma_get_object_from_value($RESULT));
+
+    '
+  languages:
+  - c
+  message: 'Detected unsafe handling of ecma_property_value_t without proper return
+    value management.
+
+    This can lead to memory leaks or undefined behavior when the object is dereferenced.
+
+    The fix ensures that the return value from ecma_op_create_arguments_object is
+    properly managed
+
+    and freed using ecma_free_value.
+
+    '
+  severity: ERROR
+  metadata:
+    source-url: github.com/jerryscript-project/jerryscript/commit/841d536fce1ce29267cdf0ea12be4026e1c35d3a
+    category: memory-management
+    cwe:
+    - CWE-401
+    - CWE-665
+    owasp: 'A9: Using Components with Known Vulnerabilities'
+    technology:
+    - c

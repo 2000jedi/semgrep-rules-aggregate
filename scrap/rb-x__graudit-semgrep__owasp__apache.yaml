@@ -1,0 +1,43 @@
+rules:
+- id: graudit-apache-security-2352
+  message: Security issue detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/owasp/apache.db
+    original_line: 19
+    original_pattern: Malloc
+    vulnerability_type: security
+    confidence: LOW
+  patterns:
+  - pattern-regex: Malloc
+- id: graudit-apache-xss-2358
+  message: Potential cross-site scripting vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/owasp/apache.db
+    original_line: 27
+    original_pattern: ap_rprintf
+    vulnerability_type: xss
+    confidence: LOW
+  patterns:
+  - pattern-regex: ap_rprintf
+- id: graudit-apache-xss-2361
+  message: Potential cross-site scripting vulnerability detected in c code
+  severity: ERROR
+  languages:
+  - c
+  metadata:
+    source: graudit
+    original_file: graudit/signatures/owasp/apache.db
+    original_line: 30
+    original_pattern: ap_vprintf
+    vulnerability_type: xss
+    confidence: LOW
+  patterns:
+  - pattern-regex: ap_vprintf

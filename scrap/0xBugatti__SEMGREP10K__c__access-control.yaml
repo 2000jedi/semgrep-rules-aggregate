@@ -1,0 +1,583 @@
+rules:
+- id: flawfinder.RpcImpersonateClient-1.ImpersonateLoggedOnUser-1.CoImpersonateClient-1.ImpersonateNamedPipeClient-1.ImpersonateDdeClientWindow-1.ImpersonateSecurityContext-1.SetThreadToken-1
+  languages:
+  - c
+  - cpp
+  message: 'These functions may be used to either drop or change account privileges.
+    If the calls
+
+    fail, the process will continue to run with the privileges assigned to it on start.
+    Depending
+
+    on
+
+    the logic of the application, this may allow attackers to abuse the system due
+    to privileges
+
+    never
+
+    being changed to a different access level.
+
+
+    Always ensure return values of this function are checked to determine if the application
+    should
+
+    continue to operate.
+
+    '
+  metadata:
+    shortDescription: Ensure return values are checked when attempting to drop privileges
+    cwe: CWE-250
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.RpcImpersonateClient-1.ImpersonateLoggedOnUser-1.CoImpersonateClient-1.ImpersonateNamedPipeClient-1.ImpersonateDdeClientWindow-1.ImpersonateSecurityContext-1.SetThreadToken-1
+    secondary_identifiers:
+    - name: Flawfinder - RpcImpersonateClient
+      type: flawfinder_func_name
+      value: RpcImpersonateClient
+    - name: Flawfinder - ImpersonateLoggedOnUser
+      type: flawfinder_func_name
+      value: ImpersonateLoggedOnUser
+    - name: Flawfinder - CoImpersonateClient
+      type: flawfinder_func_name
+      value: CoImpersonateClient
+    - name: Flawfinder - ImpersonateNamedPipeClient
+      type: flawfinder_func_name
+      value: ImpersonateNamedPipeClient
+    - name: Flawfinder - ImpersonateDdeClientWindow
+      type: flawfinder_func_name
+      value: ImpersonateDdeClientWindow
+    - name: Flawfinder - ImpersonateSecurityContext
+      type: flawfinder_func_name
+      value: ImpersonateSecurityContext
+    - name: Flawfinder - SetThreadToken
+      type: flawfinder_func_name
+      value: SetThreadToken
+  pattern-either:
+  - pattern: RpcImpersonateClient(...)
+  - pattern: ImpersonateLoggedOnUser(...)
+  - pattern: CoImpersonateClient(...)
+  - pattern: ImpersonateNamedPipeClient(...)
+  - pattern: ImpersonateDdeClientWindow(...)
+  - pattern: ImpersonateSecurityContext(...)
+  - pattern: SetThreadToken(...)
+  severity: ERROR
+- id: flawfinder.AddAccessAllowedAce-1
+  languages:
+  - c
+  - cpp
+  message: 'Make sure that you set inheritance by hand if you wish it to inherit.
+
+    '
+  metadata:
+    cwe: CWE-732
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    shortDescription: This doesn't set the inheritance bits in the access control
+      entry (ACE) header (CWE-732)
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.AddAccessAllowedAce-1
+    secondary_identifiers:
+    - name: Flawfinder - AddAccessAllowedAce
+      type: flawfinder_func_name
+      value: AddAccessAllowedAce
+  pattern: AddAccessAllowedAce(...)
+  severity: WARNING
+- id: flawfinder.SetSecurityDescriptorDacl-1
+  languages:
+  - c
+  - cpp
+  message: 'When `SetSecurityDescriptorDacl` is called with a null `pDacl` parameter
+    and the
+
+    `bDaclPresent` flag is `TRUE`, all access to the object is allowed. An attacker
+
+    could set the object to Deny all, which would include even the Administrator user(s).
+
+
+    Either call `SetSecurityDescriptorDacl` with bDaclPresent as `FALSE`, or supply
+    a valid
+
+    non-null `pDacl` parameter value.
+
+
+    For more information please see:
+
+    https://learn.microsoft.com/en-us/windows/win32/api/securitybaseapi/nf-securitybaseapi-setsecuritydescriptordacl#remarks
+
+    '
+  metadata:
+    shortDescription: Null ACL when calling SetSecurityDescriptorDacl may allow all
+      access to objects
+    cwe: CWE-732
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.SetSecurityDescriptorDacl-1
+    secondary_identifiers:
+    - name: Flawfinder - SetSecurityDescriptorDacl
+      type: flawfinder_func_name
+      value: SetSecurityDescriptorDacl
+  pattern: SetSecurityDescriptorDacl(...)
+  severity: ERROR
+- id: flawfinder.fopen-1.open-1
+  languages:
+  - c
+  - cpp
+  message: 'Usage of the `open` family of functions may hint at a potential Time Of
+    Check Time Of Use
+
+    (TOCTOU)
+
+    vulnerability. An attacker may be able to modify the file being specified by the
+    `open`
+
+    function prior to the `open` function being called.
+
+
+    Prior to calling `open`, use `lstat` to open the file and confirm the attributes
+
+    are correct. Then use `open` to get a file descriptor to this file. Call `fstat`
+    on the
+
+    `open` file descriptor to confirm that `st_dev` and `st_ino` are equal between
+    the two.
+
+    If they are, it is safe to read and operate on the file''s contents.
+
+
+    For more information please see:
+
+    https://wiki.sei.cmu.edu/confluence/display/c/FIO45-C.+Avoid+TOCTOU+race+conditions+while+accessing+files
+
+    '
+  metadata:
+    shortDescription: Potential time of check time of use vulnerability (open/fopen)
+    cwe: CWE-362
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.fopen-1.open-1
+    secondary_identifiers:
+    - name: Flawfinder - fopen
+      type: flawfinder_func_name
+      value: fopen
+    - name: Flawfinder - open
+      type: flawfinder_func_name
+      value: open
+  pattern-either:
+  - pattern: fopen(...)
+  - pattern: open(...)
+  severity: INFO
+- id: flawfinder.access-1
+  languages:
+  - c
+  - cpp
+  message: 'Usage of the `access` function call hints at a potential Time Of Check
+    Time Of Use (TOCTOU)
+
+    vulnerability. Using the `access` function to check if a file exists and is readable
+    before
+
+    opening it, an attacker can create a race condition between the `access` call
+    and
+
+    opening the file. The attacker could replace the file with a different one or
+    modify its
+
+    content between the time the `access` function is called and the file is opened,
+    thus
+
+    bypassing the permission check.
+
+
+    Call `setuid` to drop privileges on the process prior to opening any files. Instead
+    of using
+
+    `access`, use `lstat` prior to opening the file and confirm the attributes are
+    correct. Then
+
+    use `open` to get a file descriptor to this file. Call `fstat` on the `open` file
+    descriptor
+
+    to confirm that `st_dev` and `st_ino` are equal between the two. If they are,
+    it is safe to
+
+    read and operate on the file''s contents.
+
+
+    For more information please see:
+
+    https://wiki.sei.cmu.edu/confluence/display/c/FIO45-C.+Avoid+TOCTOU+race+conditions+while+accessing+files
+
+    '
+  metadata:
+    shortDescription: Potential time of check time of use vulnerability (access)
+    cwe: CWE-362
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.access-1
+    secondary_identifiers:
+    - name: Flawfinder - access
+      type: flawfinder_func_name
+      value: access
+  pattern: access(...)
+  severity: ERROR
+- id: flawfinder.chown-1
+  languages:
+  - c
+  - cpp
+  message: 'Usage of the `chown` function call hints at a potential Time Of Check
+    Time Of Use (TOCTOU)
+
+    vulnerability. An attacker may be able to modify the file being specified by the
+    `chmod`
+
+    function prior to the `chown` function being called. Since `chown` will resolve
+    symbolic links,
+
+    an attacker may be able to exploit this fact to have files outside of their control
+    modified.
+
+
+    It is recommended that the `fchown` or the `lchown` functions be used instead.
+    The `fchown`
+
+    function takes a file descriptor instead of a file. The `lchown` function does
+    not follow
+
+    symbolic links. Ensure the opened file descriptor is pointing to the correct file
+    or
+
+    directory prior to executing `fchown` or any other file based operations.
+
+
+    For more information please see:
+
+    https://wiki.sei.cmu.edu/confluence/display/c/FIO01-C.+Be+careful+using+functions+that+use+file+names+for+identification
+
+    '
+  metadata:
+    shortDescription: Potential time of check time of use vulnerability (chown)
+    cwe: CWE-362
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.chown-1
+    secondary_identifiers:
+    - name: Flawfinder - chown
+      type: flawfinder_func_name
+      value: chown
+  pattern: chown(...)
+  severity: ERROR
+- id: flawfinder.readlink-1
+  languages:
+  - c
+  - cpp
+  message: 'Usage of the `readlink` function call hints at a potential Time Of Check
+    Time Of Use (TOCTOU)
+
+    vulnerability. An attacker may be able to modify the file being specified by the
+    `readlink`
+
+    function prior to the `readlink` function being called. Additionally, care must
+    be taken
+
+    that the buffer provided is large enough to hold the contents of the file.
+
+
+    Instead of using `readlink`, use `lstat` prior to opening the file and confirm
+    the attributes
+
+    are correct. Then use `open` to get a file descriptor to this file. Call `fstat`
+    on the
+
+    `open` file descriptor to confirm that `st_dev` and `st_ino` are equal between
+    the two.
+
+    If they are, it is safe to read and operate on the file''s contents.
+
+
+    For more information please see:
+
+    https://wiki.sei.cmu.edu/confluence/display/c/FIO45-C.+Avoid+TOCTOU+race+conditions+while+accessing+files
+
+    '
+  metadata:
+    shortDescription: Time-of-check time-of-use (TOCTOU) race condition
+    cwe: CWE-367
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.readlink-1
+    secondary_identifiers:
+    - name: Flawfinder - readlink
+      type: flawfinder_func_name
+      value: readlink
+  pattern: readlink(...)
+  severity: ERROR
+- id: flawfinder.vfork-1
+  languages:
+  - c
+  - cpp
+  message: 'The `vfork` function is suffers from portability issues and is not recommended.
+    In
+
+    some Linux systems `vfork` is vulnerable to a race condition while the child process
+
+    is running as the user''s UID but hasn''t executed `execve`. The user may be able
+    to send
+
+    signals to this process, which in `vfork` would not be sent to the parent process.
+    As
+
+    a result a user may be able to cause a denial of service against the privileged
+    process.
+
+
+    Use `fork` instead and be aware of other potential Time Of Check Time Of Use (TOCTOU)
+
+    vulnerabilities.
+
+
+    For more information please see:
+
+    https://wiki.sei.cmu.edu/confluence/display/c/POS38-C.+Beware+of+race+conditions+when+using+fork+and+file+descriptors
+
+    '
+  metadata:
+    shortDescription: Potential time of check time of use vulnerability (vfork)
+    cwe: CWE-362
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.vfork-1
+    secondary_identifiers:
+    - name: Flawfinder - vfork
+      type: flawfinder_func_name
+      value: vfork
+  pattern: vfork(...)
+  severity: INFO
+- id: flawfinder.GetTempFileName-1
+  languages:
+  - c
+  - cpp
+  message: 'The `GetTempFileName` function works by generating a randomly named file,
+    creating the file
+
+    (if it does not exist) and then closing it. An application wishing to use this
+    temporary file
+
+    will need to reopen this file to begin working with it. This leads to a potential
+
+    Time Of Check Time Of Use (TOCTOU) vulnerability, as an attacker could replace
+    or modify
+
+    the contents of the file prior to it being used by the application.
+
+
+    Consider generating a random filename and opening the file directly in a single
+    `CreateFile`
+
+    or `OpenFile` call.
+
+    '
+  metadata:
+    shortDescription: Potential time of check time of use vulnerability (GetTempFileName)
+    cwe: CWE-377
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.GetTempFileName-1
+    secondary_identifiers:
+    - name: Flawfinder - GetTempFileName
+      type: flawfinder_func_name
+      value: GetTempFileName
+  pattern: GetTempFileName(...)
+  severity: WARNING
+- id: flawfinder.mkstemp-1
+  languages:
+  - c
+  - cpp
+  message: 'Some older Unix-like systems, `mkstemp` would create temp files with 0666
+    permissions,
+
+    meaning the file created would be read/write access for all users.
+
+
+    Ensure the process has called the `umask` function with restricted permissions
+    prior
+
+    to calling `mkstemp` and validate the permissions prior to using the file descriptor.
+
+
+    For more information on temporary files please see:
+
+    https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152425
+
+    '
+  metadata:
+    shortDescription: Potential file permissions issue (mkstemp)
+    cwe: CWE-377
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.mkstemp-1
+    secondary_identifiers:
+    - name: Flawfinder - mkstemp
+      type: flawfinder_func_name
+      value: mkstemp
+  pattern: mkstemp(...)
+  severity: INFO
+- id: flawfinder.mktemp-1
+  languages:
+  - c
+  - cpp
+  message: 'The `mktemp` function should no longer be used due to multiple flaws.
+    Some implementations
+
+    created random files by using known information like the process ID and a single
+    letter. This
+
+    allows for possible race conditions where an attacker could guess or manipulate
+    these files
+
+    prior to them being used.
+
+
+    Consider using the `mkstemp` function instead, but be aware it also contains possible
+
+    risks. Ensure the process has called the `umask` function with restricted permissions
+    prior
+
+    to calling `mkstemp` and validate the permissions prior to using the file descriptor.
+
+
+    For more information on temporary files please see:
+
+    https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152425
+
+    '
+  metadata:
+    shortDescription: Use of deprecated function (mktemp)
+    cwe: CWE-377
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.mktemp-1
+    secondary_identifiers:
+    - name: Flawfinder - mktemp
+      type: flawfinder_func_name
+      value: mktemp
+  pattern: mktemp(...)
+  severity: ERROR
+- id: flawfinder.tmpfile-1
+  languages:
+  - c
+  - cpp
+  message: 'There exists a possible race condition in between the time that `tmpfile`
+    returns
+
+    a pathname, and the time that the program opens it, another program might create
+
+    that pathname using `open`, or create it as a symbolic link.
+
+
+    Consider using the `mkstemp` function instead, but be aware it also contains possible
+
+    risks. Ensure the process has called the `umask` function with restricted permissions
+    prior
+
+    to calling `mkstemp` and validate the permissions prior to using the file descriptor.
+
+
+    For more information on temporary files please see:
+
+    https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152425
+
+    '
+  metadata:
+    shortDescription: Potential time of check time of use vulnerability (tmpfile)
+    cwe: CWE-377
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.tmpfile-1
+    secondary_identifiers:
+    - name: Flawfinder - tmpfile
+      type: flawfinder_func_name
+      value: tmpfile
+  pattern: tmpfile(...)
+  severity: INFO
+- id: flawfinder.tmpnam-1.tempnam-1
+  languages:
+  - c
+  - cpp
+  message: 'There exists a possible race condition in between the time that `tempnam`
+    or `tmpnam`
+
+    returns a pathname, and the time that the program opens it, another program might
+    create
+
+    that pathname using `open`, or create it as a symbolic link.
+
+
+    Consider using the `mkstemp` function instead, but be aware it also contains possible
+
+    risks. Ensure the process has called the `umask` function with restricted permissions
+    prior
+
+    to calling `mkstemp` and validate the permissions prior to using the file descriptor.
+
+
+    For more information on temporary files please see:
+
+    https://wiki.sei.cmu.edu/confluence/pages/viewpage.action?pageId=87152425
+
+    '
+  metadata:
+    shortDescription: Potential time of check time of use vulnerability (tmpnam/tempnam)
+    cwe: CWE-377
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.tmpnam-1.tempnam-1
+    secondary_identifiers:
+    - name: Flawfinder - tmpnam
+      type: flawfinder_func_name
+      value: tmpnam
+    - name: Flawfinder - tempnam
+      type: flawfinder_func_name
+      value: tempnam
+  pattern-either:
+  - pattern: tmpnam(...)
+  - pattern: tempnam(...)
+  severity: WARNING

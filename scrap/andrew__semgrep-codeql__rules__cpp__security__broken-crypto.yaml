@@ -1,0 +1,118 @@
+rules:
+  - id: codeql-cpp-weak-crypto-md5
+    message: >-
+      Use of MD5 hashing algorithm. MD5 is cryptographically broken and should
+      not be used for security purposes.
+    severity: WARNING
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      technology:
+        - cpp
+        - openssl
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/327.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-327/BrokenCryptoAlgorithm.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-327/BrokenCryptoAlgorithm.ql
+    pattern-either:
+      - pattern: MD5(...)
+      - pattern: MD5_Init(...)
+      - pattern: MD5_Update(...)
+      - pattern: MD5_Final(...)
+      - pattern: EVP_md5()
+
+  - id: codeql-cpp-weak-crypto-sha1
+    message: >-
+      Use of SHA-1 hashing algorithm. SHA-1 is cryptographically weak and
+      should not be used for security purposes.
+    severity: WARNING
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      technology:
+        - cpp
+        - openssl
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/327.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-327/BrokenCryptoAlgorithm.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-327/BrokenCryptoAlgorithm.ql
+    pattern-either:
+      - pattern: SHA1(...)
+      - pattern: SHA1_Init(...)
+      - pattern: SHA1_Update(...)
+      - pattern: SHA1_Final(...)
+      - pattern: EVP_sha1()
+
+  - id: codeql-cpp-weak-crypto-des
+    message: >-
+      Use of DES encryption algorithm. DES is cryptographically broken.
+      Use AES instead.
+    severity: ERROR
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      technology:
+        - cpp
+        - openssl
+      confidence: HIGH
+      likelihood: HIGH
+      impact: HIGH
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/327.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-327/BrokenCryptoAlgorithm.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-327/BrokenCryptoAlgorithm.ql
+    pattern-either:
+      - pattern: DES_set_key(...)
+      - pattern: DES_ecb_encrypt(...)
+      - pattern: DES_cbc_encrypt(...)
+      - pattern: EVP_des_ecb()
+      - pattern: EVP_des_cbc()
+
+  - id: codeql-cpp-weak-crypto-rc4
+    message: >-
+      Use of RC4 encryption algorithm. RC4 has known weaknesses. Use AES
+      instead.
+    severity: WARNING
+    languages:
+      - cpp
+      - c
+    metadata:
+      category: security
+      cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+      technology:
+        - cpp
+        - openssl
+      confidence: HIGH
+      likelihood: MEDIUM
+      impact: MEDIUM
+      subcategory:
+        - vuln
+      references:
+        - https://cwe.mitre.org/data/definitions/327.html
+        - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-327/BrokenCryptoAlgorithm.ql
+      source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-327/BrokenCryptoAlgorithm.ql
+    pattern-either:
+      - pattern: RC4(...)
+      - pattern: RC4_set_key(...)
+      - pattern: EVP_rc4()

@@ -1,0 +1,1022 @@
+rules:
+- id: flawfinder.umask-1
+  languages:
+  - c
+  - cpp
+  message: 'The umask function call sets the process''s file mode creation mask. umask
+    values determine
+
+    what permissions a file should be created with and who can read or write to these
+    files.
+
+    Ensure that umask is given most restrictive possible setting depending on the
+    context,
+
+    usually 066 or 077, for more information please see:
+
+    https://en.wikipedia.org/wiki/Umask#Mask_effect.
+
+    '
+  metadata:
+    shortDescription: Ensure restrictive umask values
+    cwe: CWE-732
+    owasp:
+    - A6:2017-Security Misconfiguration
+    - A05:2021-Security Misconfiguration
+    security-severity: High
+    category: security
+    primary_identifier: flawfinder.umask-1
+    secondary_identifiers:
+    - name: Flawfinder - umask
+      type: flawfinder_func_name
+      value: umask
+  pattern: umask(...)
+  severity: INFO
+- id: flawfinder.chmod-1
+  languages:
+  - c
+  - cpp
+  message: 'Usage of the `chmod` function call hints at a potential Time Of Check
+    Time Of Use (TOCTOU)
+
+    vulnerability. An attacker may be able to modify the file being specified by the
+    `chmod`
+
+    function prior to the `chmod` function being called. Since `chmod` will resolve
+    symbolic links,
+
+    an attacker may be able to exploit this fact to have files outside of their control
+    modified.
+
+
+    It is recommended that the `fchmod` function be used instead since this function
+    takes
+
+    a file descriptor instead of a file. Ensure the opened file descriptor is pointing
+    to
+
+    the correct file or directory prior to executing `fchmod` or any other file based
+    operations.
+
+
+    For more information please see:
+
+    https://wiki.sei.cmu.edu/confluence/display/c/FIO01-C.+Be+careful+using+functions+that+use+file+names+for+identification
+
+    '
+  metadata:
+    shortDescription: Potential time of check time of use vulnerability (chmod)
+    cwe: CWE-362
+    owasp:
+    - A5:2017-Broken Access Control
+    - A01:2021-Broken Access Control
+    security-severity: Medium
+    category: security
+    primary_identifier: flawfinder.chmod-1
+    secondary_identifiers:
+    - name: Flawfinder - chmod
+      type: flawfinder_func_name
+      value: chmod
+  pattern: chmod(...)
+  severity: ERROR
+- id: info-leak-on-non-formated-string
+  message: Use %s, %d, %c... to format your variables, otherwise this could leak information.
+  metadata:
+    cwe:
+    - 'CWE-532: Insertion of Sensitive Information into Log File'
+    references:
+    - http://nebelwelt.net/files/13PPREW.pdf
+    category: security
+    technology:
+    - c
+    confidence: LOW
+    owasp:
+    - A09:2021 - Security Logging and Monitoring Failures
+    - A09:2025 - Security Logging & Alerting Failures
+    subcategory:
+    - audit
+    likelihood: LOW
+    impact: MEDIUM
+  languages:
+  - c
+  severity: WARNING
+  pattern: printf(argv[$NUM]);
+- id: raptor-unchecked-ret-setuid-seteuid
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/252
+    - https://lwn.net/Articles/451985/
+    - https://www.usenix.org/legacy/events/sec02/full_papers/chen/chen.pdf
+    confidence: MEDIUM
+  message: The software does not check the return value from a method or function,
+    which can prevent it from detecting unexpected states and conditions. If an attacker
+    can force the function to fail or otherwise return a value that is not expected,
+    then the subsequent program logic could lead to a vulnerability, because the software
+    is not in a state that the programmer assumes. For example, if the program calls
+    a function to drop privileges but does not check the return code to ensure that
+    privileges were successfully dropped, then the program will continue to operate
+    with the higher privileges.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: setuid(...)
+    - pattern-not-inside: $RET = setuid(...)
+    - pattern-not-inside: <... setuid(...) == $VAL ...>
+    - pattern-not-inside: <... setuid(...) != $VAL ...>
+    - pattern-not-inside: <... setuid(...) < $VAL ...>
+    - pattern-not-inside: <... !setuid(...) ...>
+    - pattern-not-inside: return setuid(...);
+  - patterns:
+    - pattern: seteuid(...)
+    - pattern-not-inside: $RET = seteuid(...)
+    - pattern-not-inside: <... seteuid(...) == $VAL ...>
+    - pattern-not-inside: <... seteuid(...) != $VAL ...>
+    - pattern-not-inside: <... seteuid(...) < $VAL ...>
+    - pattern-not-inside: <... !seteuid(...) ...>
+    - pattern-not-inside: return seteuid(...);
+- id: raptor-unchecked-ret-setuid-seteuid-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/252
+    - https://lwn.net/Articles/451985/
+    - https://www.usenix.org/legacy/events/sec02/full_papers/chen/chen.pdf
+    - https://www.openwall.com/lists/oss-security/2023/12/30/4
+    confidence: MEDIUM
+  message: The software does not check the return value from a method or function,
+    which can prevent it from detecting unexpected states and conditions. If the program
+    calls a function to drop privileges but  does not check the return code to ensure
+    that privileges were  successfully dropped, then the program will continue to
+    operate with  the higher privileges.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: $FUN(...)
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: setuid
+      - pattern: seteuid
+  - pattern-not-inside: $RET = $FUN(...)
+  - pattern-not-inside: <... $FUN(...) == $VAL ...>
+  - pattern-not-inside: <... $VAL == $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) != $VAL ...>
+  - pattern-not-inside: <... $VAL != $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) < $VAL ...>
+  - pattern-not-inside: <... $VAL > $FUN(...) ...>
+  - pattern-not-inside: <... !$FUN(...) ...>
+  - pattern-not-inside: return $FUN(...);
+- id: raptor-unterminated-string-strncpy-stpncpy
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/170
+    - https://cwe.mitre.org/data/definitions/126
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: MEDIUM
+  message: The software does not terminate or incorrectly terminates a string or array
+    with a NUL character or equivalent terminator. If there is no NUL character byte
+    in the first n bytes of the source string, strncpy() and stpncpy() do not null-terminate
+    the destination buffer. If the program does not explicitly terminate the destination
+    buffer, this will almost certainly result in information disclosure, and possibly
+    a buffer overflow condition, which may be exploited to execute arbitrary code.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: strncpy(...)
+    - pattern-not-inside: 'strncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = NULL;
+
+        '
+    - pattern-not-inside: 'strncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = ''\0'';
+
+        '
+    - pattern-not-inside: 'strncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = 0;
+
+        '
+  - patterns:
+    - pattern: stpncpy(...)
+    - pattern-not-inside: 'stpncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = NULL;
+
+        '
+    - pattern-not-inside: 'stpncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = ''\0'';
+
+        '
+    - pattern-not-inside: 'stpncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = 0;
+
+        '
+  - patterns:
+    - pattern: wcsncpy(...)
+    - pattern-not-inside: 'wcsncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = NULL;
+
+        '
+    - pattern-not-inside: 'wcsncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = ''\0'';
+
+        '
+    - pattern-not-inside: 'wcsncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = 0;
+
+        '
+  - patterns:
+    - pattern: wcpncpy(...)
+    - pattern-not-inside: 'wcpncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = NULL;
+
+        '
+    - pattern-not-inside: 'wcpncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = ''\0'';
+
+        '
+    - pattern-not-inside: 'wcpncpy($DST, $SRC, $N);
+
+        ...
+
+        $DST[$POS] = 0;
+
+        '
+- id: raptor-unterminated-string-strncpy-stpncpy-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/170
+    - https://cwe.mitre.org/data/definitions/126
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    confidence: MEDIUM
+  message: If there is no NUL character byte in the first n bytes of the source string,
+    strncpy() and stpncpy() do not NUL-terminate the destination buffer. If the program
+    does not explicitly terminate the destination buffer, this will almost certainly
+    result in information disclosure, and possibly a buffer overflow condition.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: $FUN(...)
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: strncpy
+      - pattern: stpncpy
+      - pattern: wcsncpy
+      - pattern: wcpncpy
+  - pattern-not-inside: '$FUN($DST, $SRC, $N);
+
+      ...
+
+      $DST[$POS] = NULL;
+
+      '
+  - pattern-not-inside: '$FUN($DST, $SRC, $N);
+
+      ...
+
+      $DST[$POS] = ''\0'';
+
+      '
+  - pattern-not-inside: '$FUN($DST, $SRC, $N);
+
+      ...
+
+      $DST[$POS] = 0;
+
+      '
+- id: Use-after-free WARNING check 1
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: Returning pointer related values after releasing the pointer
+    may cause information disclosure.'
+  patterns:
+  - pattern: 'free($PTR);
+
+      ...
+
+      return $PTR[$OFFSET];
+
+      '
+  - pattern-not: 'free($PTR);
+
+      ...
+
+      $PTR = $PTR1;
+
+      ...
+
+      return $PTR[$OFFSET];
+
+      '
+- id: Use-after-free WARNING check 2
+  metadata:
+    author: FXC
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  message: 'WARNING: After releasing the pointer, call the output function to output
+    data related to the pointer, which may cause information disclosure.'
+  patterns:
+  - pattern: 'free($PTR);
+
+      ...
+
+      $FUN(..., $PTR, ...);
+
+      '
+  - pattern-not: 'free($PTR);
+
+      ...
+
+      $PTR = $PTR1;
+
+      ...
+
+      $FUN(..., $PTR, ...);
+
+      '
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: puts
+      - pattern: fputs
+      - pattern: printf
+      - pattern: fprintf
+      - pattern: send
+      - pattern: sendto
+- id: raptor-incorrect-order-setuid-setgid
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Improper Authorization
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-696: Incorrect Behavior Order'
+    owasp:
+    - A01:2025 - Broken Access Control
+    references:
+    - https://www.usenix.org/legacy/events/sec02/full_papers/chen/chen.pdf
+    - https://g.co/kgs/PCHQjJ
+    - https://github.com/struct/mms
+  message: A compromised process might be able to regain elevated group privileges
+    if set(e)gid() is called after set(e)uid(). A similar case is when  privileges
+    are temporarily dropped with seteuid() and then setuid() or  seteuid() are called
+    from while under unprivileged user.
+  severity: ERROR
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: 'setuid(...);
+
+        ...
+
+        setgid(...);
+
+        '
+    - pattern-not: 'setuid(0);
+
+        ...
+
+        setgid(...);
+
+        '
+  - patterns:
+    - pattern: 'seteuid(...);
+
+        ...
+
+        setegid(...);
+
+        '
+    - pattern-not: 'seteuid(0);
+
+        ...
+
+        setegid(...);
+
+        '
+    - pattern-not-inside: 'seteuid(...);
+
+        ...
+
+        seteuid(0);
+
+        ...
+
+        setegid(...);
+
+        '
+  - patterns:
+    - pattern: 'seteuid(...);
+
+        ...
+
+        setuid(...);
+
+        '
+    - pattern-not: 'seteuid(0);
+
+        ...
+
+        setuid(...);
+
+        '
+    - pattern-not-inside: 'seteuid(...);
+
+        ...
+
+        seteuid(0);
+
+        ...
+
+        setuid(...);
+
+        '
+  - patterns:
+    - pattern: 'seteuid(...);
+
+        ...
+
+        seteuid(...);
+
+        '
+    - pattern-not: 'seteuid(0);
+
+        ...
+
+        seteuid(...);
+
+        '
+    - pattern-not: 'seteuid(...);
+
+        ...
+
+        seteuid(0);
+
+        '
+    - pattern-not-inside: 'seteuid(...);
+
+        ...
+
+        seteuid(0);
+
+        ...
+
+        seteuid(...);
+
+        '
+- id: raptor-suspicious-assert
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://legends2k.github.io/note/assert_vs_if/
+    - https://github.com/struct/mms
+    confidence: MEDIUM
+  message: Most codebases define assertion macros which compile to a no-op on non-debug
+    builds. If assertions are the only line of defense against untrusted input, the
+    software may be exposed to attacks that leverage the lack of proper input checks.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: $ASSERT(..., <... $A < $B ...>, ...)
+    - pattern: $ASSERT(..., <... $A <= $B ...>, ...)
+    - pattern: $ASSERT(..., <... $A > $B ...>, ...)
+    - pattern: $ASSERT(..., <... $A >= $B ...>, ...)
+  - metavariable-regex:
+      metavariable: $ASSERT
+      regex: (?i)^\w*assert\w*\s*$
+- id: raptor-suspicious-assert-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Other Security
+    likelihood: MEDIUM
+    impact: HIGH
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-754: Improper Check for Unusual or Exceptional Conditions'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://legends2k.github.io/note/assert_vs_if/
+    - https://github.com/struct/mms
+  message: Most codebases define assertion macros which compile to a no-op on non-debug
+    builds. If assertions are the only line of defense against untrusted input, the
+    software may be exposed to attacks that leverage the lack of proper input checks.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: $ASSERT(..., <... $_ < $_ ...>, ...)
+    - pattern: $ASSERT(..., <... $_ <= $_ ...>, ...)
+    - pattern: $ASSERT(..., <... $_ > $_ ...>, ...)
+    - pattern: $ASSERT(..., <... $_ >= $_ ...>, ...)
+  - metavariable-regex:
+      metavariable: $ASSERT
+      regex: (?i)^\w*assert\w*\s*$
+- id: raptor-unchecked-ret-setuid-seteuid-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Improper Authorization
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-252: Unchecked Return Value'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://lwn.net/Articles/451985/
+    - https://www.usenix.org/legacy/events/sec02/full_papers/chen/chen.pdf
+    - https://www.openwall.com/lists/oss-security/2023/12/30/4
+  message: The software does not check the return value from a method or function,
+    which can prevent it from detecting unexpected states and conditions. If the program
+    calls a function to drop privileges but  does not check the return code to ensure
+    that privileges were  successfully dropped, then the program will continue to
+    operate with  the higher privileges.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: $FUN(...)
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: setuid
+      - pattern: seteuid
+  - pattern-not-inside: $_ = $FUN(...)
+  - pattern-not-inside: <... $FUN(...) == $_ ...>
+  - pattern-not-inside: <... $_ == $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) != $_ ...>
+  - pattern-not-inside: <... $_ != $FUN(...) ...>
+  - pattern-not-inside: <... $FUN(...) < $_ ...>
+  - pattern-not-inside: <... $_ > $FUN(...) ...>
+  - pattern-not-inside: <... !$FUN(...) ...>
+  - pattern-not-inside: return $FUN(...);
+- id: raptor-unterminated-string-strncpy
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Memory Issues
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-170: Improper Null Termination'
+    - 'CWE-126: Buffer Over-read'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+  message: If there is no NUL character byte in the first n bytes of the source string,
+    strncpy() and stpncpy() do not NUL-terminate the destination buffer. If the program
+    does not explicitly terminate the destination buffer, this will almost certainly
+    result in information disclosure, and possibly a buffer overflow condition.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern: $FUN(...)
+  - metavariable-pattern:
+      metavariable: $FUN
+      pattern-either:
+      - pattern: strncpy
+      - pattern: stpncpy
+      - pattern: wcsncpy
+      - pattern: wcpncpy
+      - pattern: _mbsncpy
+  - pattern-not-inside: '$FUN($DST, $_, $_);
+
+      ...
+
+      $DST[$_] = NULL;
+
+      '
+  - pattern-not-inside: '$FUN($DST, $_, $_);
+
+      ...
+
+      $DST[$_] = ''\0'';
+
+      '
+  - pattern-not-inside: '$FUN($DST, $_, $_);
+
+      ...
+
+      $DST[$_] = 0;
+
+      '
+- id: raptor-suspicious-assert-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://legends2k.github.io/note/assert_vs_if/
+    - https://github.com/struct/mms
+    confidence: MEDIUM
+  message: Most codebases define assertion macros which compile to a no-op on non-debug
+    builds. If assertions are the only line of defense against untrusted input, the
+    software may be exposed to attacks that leverage the lack of proper input checks.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  patterns:
+  - pattern-either:
+    - pattern: $ASSERT(<... $A < $B ...>)
+    - pattern: $ASSERT(<... $A < $B ...>, ...)
+    - pattern: $ASSERT(<... $A <= $B ...>)
+    - pattern: $ASSERT(<... $A <= $B ...>, ...)
+    - pattern: $ASSERT(<... $A > $B ...>)
+    - pattern: $ASSERT(<... $A > $B ...>, ...)
+    - pattern: $ASSERT(<... $A >= $B ...>)
+    - pattern: $ASSERT(<... $A >= $B ...>, ...)
+  - metavariable-regex:
+      metavariable: $ASSERT
+      regex: (?i)^\w*assert\w*\s*$
+- id: maswe-0001-c1-insecure-logging-api-objc
+  languages:
+  - c
+  - cpp
+  severity: INFO
+  message: 'Insecure logging or assertion API detected. NSLog writes to syslog and
+    is visible system-wide. printf outputs to stdout. NSAssert/NSCAssert log messages
+    on failure. Remove from production code or guard with ''#ifdef DEBUG ... #endif''.'
+  metadata:
+    masweId: MASWE-0001
+    checkId: check-1
+    category: security
+    masvs:
+    - MASVS-STORAGE-1
+    mastgRefs:
+    - MASTG-TEST-0297
+    - MASTG-TEST-0296
+    - MASTG-BEST-0022
+    confidence: MEDIUM
+  pattern-either:
+  - pattern: NSLog(...)
+  - pattern: printf(...)
+  - pattern: NSAssert(...)
+  - pattern: NSCAssert(...)
+- id: Possible-Race-Condition
+  metadata:
+    author: Victor 4ernyak <https://t.me/iter_malum>
+    confidence: MEDIUM
+    category: security
+    cwe:
+    - 'CWE-366: Race Condition within a Thread'
+    - 'CWE-367: Time-of-check Time-of-use (TOCTOU)'
+    - 'CWE-362: Concurrent Execution using Shared Resource'
+    vulnerability_class:
+    - Concurrency
+    owasp:
+    - A05:2021 - Security Misconfiguration
+    references:
+    - https://cwe.mitre.org/data/definitions/366.html
+    - https://cwe.mitre.org/data/definitions/367.html
+    - https://cwe.mitre.org/data/definitions/362.html
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    technology:
+    - c
+    - cpp
+  languages:
+  - c
+  - c++
+  severity: WARNING
+  message: 'Potential race condition detected. Multiple threads may access shared  resources
+    without proper synchronization, leading to undefined behavior,  data corruption,
+    or security vulnerabilities. Use mutexes, atomic  operations, or other synchronization
+    primitives to protect shared state.
+
+    '
+  pattern-either:
+  - patterns:
+    - pattern-either:
+      - pattern: access($PATH, $MODE)
+      - pattern: stat($PATH, $BUF)
+      - pattern: lstat($PATH, $BUF)
+    - pattern-inside: "if ($FUNC($PATH, ...) == 0) {\n  ...\n}\n"
+    - pattern-either:
+      - pattern: fopen($PATH, $MODE)
+      - pattern: open($PATH, $FLAGS)
+      - pattern: unlink($PATH)
+      - pattern: mkdir($PATH, $MODE)
+      - pattern: rename($PATH, $NEW_PATH)
+    - pattern-inside: "if ($FUNC($PATH, ...) == 0) {\n  ...\n  $OPERATION($PATH, ...);\n\
+        \  ...\n}\n"
+    - pattern-not-inside: "if ($FUNC($PATH, ...) == 0) {\n  ...\n  pthread_mutex_lock(...);\n\
+        \  ...\n  $OPERATION($PATH, ...);\n  ...\n  pthread_mutex_unlock(...);\n \
+        \ ...\n}\n"
+    - pattern-not-inside: "if ($FUNC($PATH, ...) == 0) {\n  ...\n  std::lock_guard<...>\
+        \ ...;\n  ...\n  $OPERATION($PATH, ...);\n  ...\n}\n"
+  - patterns:
+    - pattern-either:
+      - pattern: $VAR++
+      - pattern: $VAR--
+      - pattern: ++$VAR
+      - pattern: --$VAR
+      - pattern: $VAR += $EXPR
+      - pattern: $VAR -= $EXPR
+      - pattern: $VAR = $VALUE
+      - pattern: $VAR == $VALUE
+      - pattern: $VAR != $VALUE
+      - pattern: $VAR < $VALUE
+      - pattern: $VAR > $VALUE
+    - metavariable-regex:
+        metavariable: $VAR
+        regex: ^(global|shared|g_|connection|cpp_shared|logger|pool|cache|obj|singleton_instance|signal_flag).*
+    - pattern-not-inside: 'pthread_mutex_lock(...);
+
+        ...
+
+        $VAR++;
+
+        ...
+
+        pthread_mutex_unlock(...);
+
+        '
+    - pattern-not-inside: 'std::lock_guard<...> ...;
+
+        ...
+
+        $VAR++;
+
+        ...
+
+        '
+    - pattern-not-inside: 'std::atomic<...> ...;
+
+        ...
+
+        $VAR++;
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: pthread_create($THREAD, $ATTR, $FUNC, $ARG)
+      - pattern: _beginthread($FUNC, ...)
+      - pattern: _beginthreadex($FUNC, ...)
+      - pattern: CreateThread($ATTR, $SIZE, $FUNC, $ARG, ...)
+    - pattern-not-inside: 'pthread_mutex_init(...);
+
+        ...
+
+        pthread_create($THREAD, $ATTR, $FUNC, $ARG);
+
+        ...
+
+        '
+    - pattern-not-inside: 'std::mutex $MUTEX;
+
+        ...
+
+        pthread_create($THREAD, $ATTR, $FUNC, $ARG);
+
+        ...
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: $THREAD.join()
+      - pattern: $THREAD.detach()
+      - pattern: $THREAD.get_id()
+    - pattern-not-inside: 'std::mutex $MUTEX;
+
+        ...
+
+        $THREAD.join();
+
+        ...
+
+        '
+  - patterns:
+    - pattern: if ($PTR != NULL) { ... }
+    - pattern-inside: "if ($PTR != NULL) {\n  ...\n  free($PTR);\n  ...\n}\n...\n\
+        if ($PTR != NULL) {\n  ...\n  $USE = $PTR;\n  ...\n}\n"
+    - pattern-not-inside: "if ($PTR != NULL) {\n  ...\n  pthread_mutex_lock(...);\n\
+        \  ...\n  free($PTR);\n  ...\n  pthread_mutex_unlock(...);\n  ...\n}\n...\n\
+        if ($PTR != NULL) {\n  ...\n  $USE = $PTR;\n  ...\n}\n"
+    - pattern-inside: "if ($PTR) {\n  ...\n  free($PTR);\n  ...\n}\n...\nif ($PTR)\
+        \ {\n  ...\n  $USE = $PTR;\n  ...\n}\n"
+    - pattern-inside: "if ($PTR != NULL) {\n  if ($COND) {\n    ...\n    free($PTR);\n\
+        \    ...\n  }\n}\n...\nif ($PTR != NULL) {\n  ...\n  $USE = $PTR;\n  ...\n\
+        }\n"
+  - patterns:
+    - pattern: free($PTR)
+    - pattern-inside: "if ($COND) {\n  ...\n  free($PTR);\n  ...\n}\n...\nfree($PTR);\n\
+        ...\n"
+    - pattern-inside: "if ($COND) {\n  ...\n  free($PTR);\n  ...\n}\n...\nif ($PTR\
+        \ != NULL) {\n  ...\n  free($PTR);\n  ...\n}\n"
+    - pattern-not-inside: "if ($COND) {\n  ...\n  pthread_mutex_lock(...);\n  ...\n\
+        \  free($PTR);\n  ...\n  pthread_mutex_unlock(...);\n  ...\n}\n...\nfree($PTR);\n\
+        ...\n"
+  - patterns:
+    - pattern-either:
+      - pattern: close($FD)
+      - pattern: fclose($FP)
+    - pattern-inside: "if ($COND) {\n  ...\n  $CLOSE($FD);\n  ...\n}\n...\n$CLOSE($FD);\n\
+        ...\n"
+    - pattern-not-inside: "if ($COND) {\n  ...\n  pthread_mutex_lock(...);\n  ...\n\
+        \  $CLOSE($FD);\n  ...\n  pthread_mutex_unlock(...);\n  ...\n}\n...\n$CLOSE($FD);\n\
+        ...\n"
+  - patterns:
+    - pattern-either:
+      - pattern: setenv($NAME, $VALUE, $OVR)
+      - pattern: putenv($STRING)
+      - pattern: unsetenv($NAME)
+    - pattern-not-inside: 'pthread_mutex_lock(...);
+
+        ...
+
+        setenv($NAME, $VALUE, $OVR);
+
+        ...
+
+        pthread_mutex_unlock(...);
+
+        '
+  - patterns:
+    - pattern-either:
+      - pattern: signal($SIG, $HANDLER)
+      - pattern: sigaction($SIG, $ACT, $OACT)
+    - pattern-not-inside: 'pthread_mutex_lock(...);
+
+        ...
+
+        signal($SIG, $HANDLER);
+
+        ...
+
+        pthread_mutex_unlock(...);
+
+        '
+  - patterns:
+    - pattern: if (!$INSTANCE) { ... }
+    - pattern-inside: "if (!$INSTANCE) {\n  ...\n  $INSTANCE = $ALLOC(...);\n  ...\n\
+        }\n"
+    - pattern-not-inside: "if (!$INSTANCE) {\n  ...\n  pthread_mutex_lock(...);\n\
+        \  ...\n  $INSTANCE = $ALLOC(...);\n  ...\n  pthread_mutex_unlock(...);\n\
+        \  ...\n}\n"
+    - pattern-not-inside: "if (!$INSTANCE) {\n  ...\n  std::lock_guard<...> ...;\n\
+        \  ...\n  $INSTANCE = $ALLOC(...);\n  ...\n}\n"
+  - patterns:
+    - pattern-either:
+      - pattern: $OBJ.$METHOD(...)
+      - pattern: $OBJ->$METHOD(...)
+      - pattern: $OBJ.$MEMBER
+      - pattern: $OBJ->$MEMBER
+    - pattern-inside: "void $FUNC(...) {\n  ...\n  $OBJ.$MEMBER;\n  ...\n}\n"
+    - pattern-not-inside: "void $FUNC(...) {\n  ...\n  pthread_mutex_lock(...);\n\
+        \  ...\n  $OBJ.$MEMBER;\n  ...\n  pthread_mutex_unlock(...);\n  ...\n}\n"
+    - pattern-not-inside: "void $FUNC(...) {\n  ...\n  std::lock_guard<...> ...;\n\
+        \  ...\n  $OBJ.$MEMBER;\n  ...\n}\n"
+  - patterns:
+    - pattern: $OBJ.$MEMBER
+    - pattern-inside: "$RET_TYPE get_connection_vulnerable($OBJ_TYPE $OBJ) {\n  ...\n\
+        \  if ($OBJ.$MEMBER < $OBJ.$OTHER_MEMBER) {\n    ...\n    $OBJ.$MEMBER++;\n\
+        \    ...\n  }\n  ...\n}\n"
+    - pattern-inside: "void release_connection_vulnerable($OBJ_TYPE $OBJ, $ARG_TYPE\
+        \ $ARG) {\n  ...\n  $OBJ.$MEMBER--;\n  ...\n}\n"
+    - pattern-not-inside: "$RET_TYPE get_connection_safe($OBJ_TYPE $OBJ) {\n  ...\n\
+        \  pthread_mutex_lock(...);\n  ...\n  if ($OBJ.$MEMBER < $OBJ.$OTHER_MEMBER)\
+        \ {\n    ...\n    $OBJ.$MEMBER++;\n    ...\n  }\n  ...\n  pthread_mutex_unlock(...);\n\
+        \  ...\n}\n"
+    - pattern-not-inside: "void release_connection_safe($OBJ_TYPE $OBJ, $ARG_TYPE\
+        \ $ARG) {\n  ...\n  pthread_mutex_lock(...);\n  ...\n  $OBJ.$MEMBER--;\n \
+        \ ...\n  pthread_mutex_unlock(...);\n  ...\n}\n"
+  - patterns:
+    - pattern: $OBJ.$MEMBER
+    - pattern-inside: "void log_message_vulnerable($OBJ_TYPE $OBJ, $ARG_TYPE $ARG)\
+        \ {\n  ...\n  if ($OBJ.$MEMBER) {\n    ...\n    $WRITE($OBJ.$MEMBER, ...);\n\
+        \    ...\n    $OBJ.$OTHER_MEMBER++;\n    ...\n  }\n  ...\n}\n"
+    - pattern-inside: "void close_logger_vulnerable($OBJ_TYPE $OBJ, $ARG_TYPE $ARG)\
+        \ {\n  ...\n  if ($COND) {\n    ...\n    $CLOSE($OBJ.$MEMBER);\n    ...\n\
+        \  }\n  ...\n  $CLOSE($OBJ.$MEMBER);\n  ...\n}\n"
+    - pattern-not-inside: "void log_message_safe($OBJ_TYPE $OBJ, $ARG_TYPE $ARG) {\n\
+        \  ...\n  pthread_mutex_lock(...);\n  ...\n  if ($OBJ.$MEMBER) {\n    ...\n\
+        \    $WRITE($OBJ.$MEMBER, ...);\n    ...\n    $OBJ.$OTHER_MEMBER++;\n    ...\n\
+        \  }\n  ...\n  pthread_mutex_unlock(...);\n  ...\n}\n"
+    - pattern-not-inside: "void close_logger_safe($OBJ_TYPE $OBJ, $ARG_TYPE $ARG)\
+        \ {\n  ...\n  pthread_mutex_lock(...);\n  ...\n  if ($COND) {\n    ...\n \
+        \   $CLOSE($OBJ.$MEMBER);\n    ...\n  }\n  ...\n  pthread_mutex_unlock(...);\n\
+        \  ...\n}\n"
+  - patterns:
+    - pattern: $OBJ.$MEMBER
+    - pattern-inside: "char *cache_get_vulnerable($OBJ_TYPE $OBJ, $ARG_TYPE $ARG)\
+        \ {\n  ...\n  for ($INIT; $COND; $INC) {\n    ...\n    if ($COMPARE($OBJ.$MEMBER[$INDEX],\
+        \ $ARG) == 0) {\n      ...\n      return $OBJ.$OTHER_MEMBER[$INDEX];\n   \
+        \   ...\n    }\n    ...\n  }\n  ...\n}\n"
+    - pattern-inside: "void cache_set_vulnerable($OBJ_TYPE $OBJ, $ARG_TYPE $ARG1,\
+        \ $ARG_TYPE $ARG2) {\n  ...\n  if ($OBJ.$MEMBER < $OBJ.$OTHER_MEMBER) {\n\
+        \    ...\n    $OBJ.$MEMBER1[$OBJ.$MEMBER] = $ALLOC($ARG1);\n    ...\n    $OBJ.$MEMBER2[$OBJ.$MEMBER]\
+        \ = $ALLOC($ARG2);\n    ...\n    $OBJ.$MEMBER++;\n    ...\n  }\n  ...\n}\n"
+    - pattern-not-inside: "char *cache_get_safe($OBJ_TYPE $OBJ, $ARG_TYPE $ARG) {\n\
+        \  ...\n  pthread_mutex_lock(...);\n  ...\n  for ($INIT; $COND; $INC) {\n\
+        \    ...\n    if ($COMPARE($OBJ.$MEMBER[$INDEX], $ARG) == 0) {\n      ...\n\
+        \      return $OBJ.$OTHER_MEMBER[$INDEX];\n      ...\n    }\n    ...\n  }\n\
+        \  ...\n  pthread_mutex_unlock(...);\n  ...\n}\n"
+    - pattern-not-inside: "void cache_set_safe($OBJ_TYPE $OBJ, $ARG_TYPE $ARG1, $ARG_TYPE\
+        \ $ARG2) {\n  ...\n  pthread_mutex_lock(...);\n  ...\n  if ($OBJ.$MEMBER <\
+        \ $OBJ.$OTHER_MEMBER) {\n    ...\n    $OBJ.$MEMBER1[$OBJ.$MEMBER] = $ALLOC($ARG1);\n\
+        \    ...\n    $OBJ.$MEMBER2[$OBJ.$MEMBER] = $ALLOC($ARG2);\n    ...\n    $OBJ.$MEMBER++;\n\
+        \    ...\n  }\n  ...\n  pthread_mutex_unlock(...);\n  ...\n}\n"
+  - patterns:
+    - pattern: $OBJ.$MEMBER
+    - pattern-inside: "void ref_acquire_vulnerable($OBJ_TYPE $OBJ) {\n  ...\n  $OBJ.$MEMBER++;\n\
+        \  ...\n}\n"
+    - pattern-inside: "void ref_release_vulnerable($OBJ_TYPE $OBJ) {\n  ...\n  $OBJ.$MEMBER--;\n\
+        \  ...\n  if ($OBJ.$MEMBER == 0) {\n    ...\n    free($OBJ.$OTHER_MEMBER);\n\
+        \    ...\n    free($OBJ);\n    ...\n  }\n  ...\n}\n"
+    - pattern-not-inside: "void ref_acquire_safe($OBJ_TYPE $OBJ) {\n  ...\n  pthread_mutex_lock(...);\n\
+        \  ...\n  $OBJ.$MEMBER++;\n  ...\n  pthread_mutex_unlock(...);\n  ...\n}\n"
+    - pattern-not-inside: "void ref_release_safe($OBJ_TYPE $OBJ) {\n  ...\n  pthread_mutex_lock(...);\n\
+        \  ...\n  $OBJ.$MEMBER--;\n  ...\n  if ($OBJ.$MEMBER == 0) {\n    ...\n  \
+        \  free($OBJ.$OTHER_MEMBER);\n    ...\n    free($OBJ);\n    ...\n  }\n  ...\n\
+        \  pthread_mutex_unlock(...);\n  ...\n}"

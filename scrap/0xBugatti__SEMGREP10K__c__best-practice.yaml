@@ -1,0 +1,230 @@
+rules:
+- id: flawfinder.cuserid-1
+  languages:
+  - c
+  - cpp
+  message: '`cuserid()` is poorly defined (e.g., some systems use the effective
+
+    UID, like Linux, while others like System V use the real UID). Therefore, you
+    can''t trust
+
+    what it does. The cuserid function was included in the 1988 version of POSIX,
+    but removed
+
+    from the 1990 version.  Also, if passed a non-null parameter, there''s a risk
+    of a buffer
+
+    overflow if the passed-in buffer is not at least `L_cuserid` characters long.
+
+
+    Use `getpwuid(geteuid())` and extract the desired information instead.
+
+
+    For more information please see: https://linux.die.net/man/3/getpwuid
+
+    '
+  metadata:
+    shortDescription: Usage of deprecated function (cuserid)
+    cwe: CWE-120
+    owasp:
+    - A9:2017-Using Components with Known Vulnerabilities
+    - A06:2021-Vulnerable and Outdated Components
+    security-severity: Low
+    category: security
+    primary_identifier: flawfinder.cuserid-1
+    secondary_identifiers:
+    - name: Flawfinder - cuserid
+      type: flawfinder_func_name
+      value: cuserid
+  pattern: cuserid(...)
+  severity: ERROR
+- id: flawfinder.getlogin-1
+  languages:
+  - c
+  - cpp
+  message: 'The `getlogin` function suffers from many bugs or unknown behaviors depending
+    on the
+
+    system. Often, it gives only the first 8 characters of the login name. The user
+
+    currently logged in on the controlling TTY of our program does not necessarily
+    mean
+
+    it is the user who started the process.
+
+
+    Use getpwuid(geteuid()) and extract the desired information instead.
+
+
+    For more information please see: https://linux.die.net/man/3/getpwuid
+
+    '
+  metadata:
+    shortDescription: Usage of deprecated function (getlogin)
+    cwe: CWE-807
+    owasp:
+    - A9:2017-Using Components with Known Vulnerabilities
+    - A06:2021-Vulnerable and Outdated Components
+    security-severity: Low
+    category: security
+    primary_identifier: flawfinder.getlogin-1
+    secondary_identifiers:
+    - name: Flawfinder - getlogin
+      type: flawfinder_func_name
+      value: getlogin
+  pattern: getlogin(...)
+  severity: ERROR
+- id: flawfinder.getpass-1
+  languages:
+  - c
+  - cpp
+  message: 'This function is obsolete and not portable. It was in SUSv2 but removed
+    by POSIX.2. What
+
+    it does exactly varies considerably between systems, particularly in where its
+    prompt is
+
+    displayed and where it gets its data. Some systems will write to stderr instead
+    of stdout.
+
+    Some will read from stdin if it can not be read from /dev/tty. In some systems
+    the
+
+    buffer is static and limited to 127 characters, meaning the full password may
+    not be returned
+
+    properly.
+
+
+    If you want to read input without terminal echoing enabled, see the description
+    of the ECHO
+
+    flag
+
+    in the termios manual pager. If you ever read passwords from a terminal, be sure
+    to zero the
+
+    password as soon as possible, to avoid leaving the cleartext password visible
+    in the
+
+    process'' address space.
+
+    '
+  metadata:
+    shortDescription: Use of obsolete function
+    cwe: CWE-477
+    owasp:
+    - A9:2017-Using Components with Known Vulnerabilities
+    - A06:2021-Vulnerable and Outdated Components
+    security-severity: Low
+    category: security
+    primary_identifier: flawfinder.getpass-1
+    secondary_identifiers:
+    - name: Flawfinder - getpass
+      type: flawfinder_func_name
+      value: getpass
+  pattern: getpass(...)
+  severity: ERROR
+- id: flawfinder.gsignal-1.ssignal-1
+  languages:
+  - c
+  - cpp
+  message: 'The `gsignal` and `ssignal` functions are obsolete and no longer recommended.
+    Consider
+
+    using the `raise` or `sigaction` functions instead for process signaling.
+
+
+    For more information please see: https://linux.die.net/man/3/sigaction
+
+    '
+  metadata:
+    shortDescription: Deprecated function calls (ssignal/gsignal)
+    cwe: CWE-676
+    owasp:
+    - A9:2017-Using Components with Known Vulnerabilities
+    - A06:2021-Vulnerable and Outdated Components
+    security-severity: Info
+    category: security
+    primary_identifier: flawfinder.gsignal-1.ssignal-1
+    secondary_identifiers:
+    - name: Flawfinder - gsignal
+      type: flawfinder_func_name
+      value: gsignal
+    - name: Flawfinder - ssignal
+      type: flawfinder_func_name
+      value: ssignal
+  pattern-either:
+  - pattern: gsignal(...)
+  - pattern: ssignal(...)
+  severity: INFO
+- id: flawfinder.ulimit-1
+  languages:
+  - c
+  - cpp
+  message: 'The ulimit function is obsolete and no longer recommended. Use `getrlimit(2)`,
+
+    `setrlimit`, or `sysconf` instead.
+
+
+    For more information please see: https://linux.die.net/man/3/setrlimit
+
+    '
+  metadata:
+    shortDescription: Usage of deprecated function (ulimit)
+    cwe: CWE-676
+    owasp:
+    - A9:2017-Using Components with Known Vulnerabilities
+    - A06:2021-Vulnerable and Outdated Components
+    security-severity: Info
+    category: security
+    primary_identifier: flawfinder.ulimit-1
+    secondary_identifiers:
+    - name: Flawfinder - ulimit
+      type: flawfinder_func_name
+      value: ulimit
+  pattern: ulimit(...)
+  severity: INFO
+- id: flawfinder.usleep-1
+  languages:
+  - c
+  - cpp
+  message: 'The `usleep` function has been deprecated, use `nanosleep` or `setitimer`
+    instead.
+
+
+    For more information please see: https://linux.die.net/man/3/setitimer
+
+    '
+  metadata:
+    shortDescription: Usage of deprecated function (usleep)
+    cwe: CWE-676
+    owasp:
+    - A9:2017-Using Components with Known Vulnerabilities
+    - A06:2021-Vulnerable and Outdated Components
+    security-severity: Info
+    category: security
+    primary_identifier: flawfinder.usleep-1
+    secondary_identifiers:
+    - name: Flawfinder - usleep
+      type: flawfinder_func_name
+      value: usleep
+  pattern: usleep(...)
+  severity: INFO
+- id: raptor-insecure-api-signal
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/364
+    - https://cwe.mitre.org/data/definitions/479
+    - https://cwe.mitre.org/data/definitions/828
+    confidence: HIGH
+  message: The signal() API should be regarded as deprecated. When possible, sigaction()
+    should be used instead, because it allows to precisely specify the desired behavior
+    in case two signals arrive shortly after each other thus preventing many race
+    conditions.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern: signal(...)

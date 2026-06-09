@@ -1,0 +1,49 @@
+rules:
+- id: codeql-cpp-potentially-dangerous-function
+  message: Call to potentially dangerous function that is not thread-safe. Consider
+    using the thread-safe variant (e.g., gmtime_r, localtime_r).
+  severity: WARNING
+  languages:
+  - cpp
+  - c
+  metadata:
+    category: security
+    cwe: 'CWE-676: Use of Potentially Dangerous Function'
+    technology:
+    - cpp
+    confidence: HIGH
+    likelihood: MEDIUM
+    impact: MEDIUM
+    subcategory:
+    - vuln
+    references:
+    - https://cwe.mitre.org/data/definitions/676.html
+    - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-676/PotentiallyDangerousFunction.ql
+    source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-676/PotentiallyDangerousFunction.ql
+  pattern-either:
+  - pattern: gmtime(...)
+  - pattern: localtime(...)
+  - pattern: ctime(...)
+  - pattern: asctime(...)
+- id: codeql-cpp-dangerous-sprintf
+  message: Use of sprintf() without bounds checking can cause buffer overflows. Use
+    snprintf() instead.
+  severity: ERROR
+  languages:
+  - cpp
+  - c
+  metadata:
+    category: security
+    cwe: 'CWE-120: Buffer Copy without Checking Size of Input'
+    technology:
+    - cpp
+    confidence: HIGH
+    likelihood: HIGH
+    impact: HIGH
+    subcategory:
+    - vuln
+    references:
+    - https://cwe.mitre.org/data/definitions/120.html
+    - https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-676/DangerousFunctionOverflow.ql
+    source-rule-url: https://github.com/github/codeql/blob/main/cpp/ql/src/Security/CWE/CWE-676/DangerousFunctionOverflow.ql
+  pattern: sprintf(...)

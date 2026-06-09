@@ -1,0 +1,51 @@
+rules:
+- id: vuln-jerryscript-4e8d6344
+  pattern: 'JMEM_DEFINE_LOCAL_ARRAY($ARRAY, $LENGTH * $ELEMENT_SIZE, lit_utf8_byte_t);
+
+    lit_utf8_byte_t *$PASS_VALUE = $ARRAY;
+
+    ...
+
+    memcpy($PASS_VALUE, $BUFFER + $BYTE_POS, $ELEMENT_SIZE);
+
+    $PASS_VALUE += $ELEMENT_SIZE;
+
+    ...
+
+    memcpy($TARGET_BUFFER, $ARRAY, ($PASS_VALUE - $ARRAY));
+
+    '
+  pattern-not: 'ecma_collection_t *$COLLECTION = ecma_new_collection();
+
+    ...
+
+    ecma_collection_push_back($COLLECTION, $VALUE);
+
+    ...
+
+    ecma_typedarray_setter_fn_t $SETTER = ecma_get_typedarray_setter_fn($TARGET_INFO.id);
+
+    ...
+
+    $SETTER($TARGET_BUFFER + $TARGET_BYTE_INDEX, $COLLECTION->buffer_p[$IDX]);
+
+    '
+  languages:
+  - c
+  message: 'Detected unsafe memory handling in TypedArray operations. The original
+    code uses direct memory copies and pointer arithmetic, which can lead to buffer
+    overflows or memory corruption. The fix replaces this with a safer collection-based
+    approach using setter functions. To fix this, use the collection-based pattern
+    shown in the patch.
+
+    '
+  severity: ERROR
+  metadata:
+    source-url: github.com/jerryscript-project/jerryscript/commit/4e8d6344a8b5cf8f00bd3d5e869147af06d0189e
+    category: security
+    cwe:
+    - CWE-119
+    owasp:
+    - 'A8: Software and Data Integrity Failures'
+    technology:
+    - c

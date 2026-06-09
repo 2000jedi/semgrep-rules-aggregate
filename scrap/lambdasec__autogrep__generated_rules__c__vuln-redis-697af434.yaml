@@ -1,0 +1,27 @@
+rules:
+- id: vuln-redis-697af434
+  pattern: 'server.vm_enabled
+
+    '
+  pattern-not: 'server.ds_enabled
+
+    '
+  languages:
+  - c
+  message: 'Detected usage of deprecated `vm_enabled` variable, which has been replaced
+    by `ds_enabled`. This could lead to incorrect behavior or security vulnerabilities
+    due to outdated memory management logic. Update the code to use `ds_enabled` instead.
+
+    '
+  severity: ERROR
+  metadata:
+    source-url: github.com/antirez/redis/commit/697af434fbeb2e3ba2ba9687cd283ed1a2734fa5
+    category: security
+    cwe:
+    - CWE-477
+    owasp:
+    - 'A9: Using Components with Known Vulnerabilities'
+    references:
+    - https://github.com/antirez/redis/commit/697af434fbeb2e3ba2ba9687cd283ed1a2734fa5
+    technology:
+    - c

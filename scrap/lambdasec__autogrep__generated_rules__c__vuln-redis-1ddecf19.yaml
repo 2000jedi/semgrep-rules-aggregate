@@ -1,0 +1,30 @@
+rules:
+- id: vuln-redis-1ddecf19
+  pattern: 'uint32_t *$LCS = zmalloc((size_t)($ALEN+1)*($BLEN+1)*sizeof(uint32_t));
+
+    '
+  pattern-not: "unsigned long long $LCS_SIZE = (unsigned long long)($ALEN+1)*($BLEN+1);\n\
+    unsigned long long $LCS_ALLOC = $LCS_SIZE * sizeof(uint32_t);\nuint32_t *$LCS\
+    \ = NULL;\nif ($LCS_ALLOC < SIZE_MAX && $LCS_ALLOC / $LCS_SIZE == sizeof(uint32_t))\n\
+    \  $LCS = ztrymalloc($LCS_ALLOC);\nif (!$LCS) {\n  addReplyError($C, \"Insufficient\
+    \ memory\");\n  goto cleanup;\n}\n"
+  languages:
+  - c
+  message: "Potential integer overflow vulnerability in memory allocation. \nThe original\
+    \ code directly multiplies the length of two strings without checking for overflow,\
+    \ which could lead to a buffer overflow. \nThe fix introduces checks to ensure\
+    \ the allocation size does not overflow and uses a larger data type for the calculation.\n\
+    To fix this, always validate the size of memory allocations and use appropriate\
+    \ data types to prevent overflow.\n"
+  severity: ERROR
+  metadata:
+    source-url: github.com/antirez/redis/commit/1ddecf1958924b178b76a31d989ef1e05af81964
+    category: security
+    cwe:
+    - CWE-190
+    owasp:
+    - 'A1: Injection'
+    references:
+    - https://cwe.mitre.org/data/definitions/190.html
+    technology:
+    - c

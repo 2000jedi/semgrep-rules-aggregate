@@ -1,0 +1,711 @@
+rules:
+- id: raptor-insecure-api-access-stat-lstat
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/367
+    - https://g.co/kgs/PCHQjJ
+    confidence: HIGH
+  message: The software checks the state of a resource before using that resource,
+    but the resource's state can change between the check and the use in a way that
+    invalidates the results of the check. This can cause the software to perform invalid
+    actions when the resource is in an unexpected state. This weakness can be security-relevant
+    when an attacker can influence the state of the resource between check and use.
+    This can happen with shared resources such as files, memory, or even variables
+    in multithreaded programs.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: access(...)
+  - pattern: stat(...)
+  - pattern: lstat(...)
+- id: variable-printf-fmt
+  message: Avoid using non-literal format strings passed into the 'printf' family
+    of functions. If the format string is user-controllable, the application is vulnerable
+    to attack.
+  metadata:
+    references:
+    - https://www.cvedetails.com/cwe-details/134/Uncontrolled-Format-String.html
+    category: security
+    technology:
+    - c
+  languages:
+  - c
+  - c++
+  severity: INFO
+  pattern-either:
+  - patterns:
+    - pattern: printf(...)
+    - pattern-not: printf("...",...)
+  - patterns:
+    - pattern: fprintf(...)
+    - pattern-not: fprintf($DEST, "...", ...)
+  - patterns:
+    - pattern: dprintf(...)
+    - pattern-not: dprintf($DEST, "...", ...)
+  - patterns:
+    - pattern: sprintf(...)
+    - pattern-not: sprintf($DEST, "...", ...)
+  - patterns:
+    - pattern: snprintf(...)
+    - pattern-not: snprintf($DEST, $SZ, "...", ...)
+  - patterns:
+    - pattern: vprintf(...)
+    - pattern-not: vprintf("...",...)
+  - patterns:
+    - pattern: vfprintf(...)
+    - pattern-not: vfprintf($DEST, "...", ...)
+  - patterns:
+    - pattern: vdprintf(...)
+    - pattern-not: vdprintf($DEST, "...", ...)
+  - patterns:
+    - pattern: vsprintf(...)
+    - pattern-not: vsprintf($DEST, "...", ...)
+  - patterns:
+    - pattern: vsnprintf(...)
+    - pattern-not: vsnprintf($DEST, $SZ, "...", ...)
+  - patterns:
+    - pattern: gzprintf(...)
+    - pattern-not: gzprintf($DEST, "...", ...)
+- id: variable-scanf-fmt
+  message: Avoid using non-literal format strings passed into the 'scanf' family of
+    functions. If the format string is user-controllable, the application is vulnerable
+    to attack.
+  metadata:
+    references:
+    - https://www.cvedetails.com/cwe-details/134/Uncontrolled-Format-String.html
+    category: security
+    technology:
+    - c
+  languages:
+  - c
+  - c++
+  severity: INFO
+  pattern-either:
+  - patterns:
+    - pattern: scanf(...)
+    - pattern-not: scanf("...",...)
+  - patterns:
+    - pattern: fscanf(...)
+    - pattern-not: fscanf($DEST, "...", ...)
+  - patterns:
+    - pattern: sscanf(...)
+    - pattern-not: sscanf($DEST, "...", ...)
+  - patterns:
+    - pattern: vscanf(...)
+    - pattern-not: vscanf("...",...)
+  - patterns:
+    - pattern: vfscanf(...)
+    - pattern-not: vfscanf($DEST, "...", ...)
+  - patterns:
+    - pattern: vsscanf(...)
+    - pattern-not: vsscanf($DEST, "...", ...)
+- id: raptor-ret-stack-address
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/562
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    - https://rules.sonarsource.com/c/type/Bug/RSPEC-946
+    confidence: MEDIUM
+  message: A function returns the address of a stack variable, which will cause unintended
+    program behavior, typically in the form of a crash. Because local variables are
+    allocated on the stack, when a program returns a pointer to a local variable,
+    it is returning a stack address. A subsequent function call is likely to re-use
+    this same stack address, thereby overwriting the value of the pointer, which no
+    longer corresponds to the same variable since a function's stack frame is invalidated
+    when it returns. At best this will cause the value of the pointer to change unexpectedly.
+    In many cases it causes the program to crash the next time the pointer is dereferenced.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: return $PTR;
+    - pattern-either:
+      - pattern-inside: '$TYPE $PTR[$SIZE];
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $PTR[$SIZE] = $EXPR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $ARR[$SIZE];
+
+          ...
+
+          $PTR = $ARR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $ARR[$SIZE] = $EXPR;
+
+          ...
+
+          $PTR = $ARR;
+
+          ...
+
+          '
+  - patterns:
+    - pattern: return &$VAR;
+    - pattern-either:
+      - pattern-inside: '$TYPE $VAR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $VAR = $EXPR;
+
+          ...
+
+          '
+- id: Unsafe-return-value INFO check 1
+  metadata:
+    author: FXC
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  message: 'INFO: The value of snprintf(vnsprintf) is dangerous, which may lead to
+    malicious exploitation, such as information leakage.'
+  pattern-either:
+  - patterns:
+    - pattern: '$LENGTH = $FUN($BUF, $SIZE, $FMT, ...);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: snprintf
+        - pattern: vsnprintf
+    - pattern-regex: '%s'
+- id: Unsafe-return-value INFO check 2
+  metadata:
+    author: FXC
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  message: 'INFO: The value of strlcpy(strlcat) is dangerous, which may lead to malicious
+    exploitation, such as information leakage.'
+  pattern-either:
+  - patterns:
+    - pattern: '$LENGTH = $FUN($BUF, $BUF1, $SIZE);
+
+        '
+    - metavariable-pattern:
+        metavariable: $FUN
+        pattern-either:
+        - pattern: strlcpy
+        - pattern: strlcat
+- id: raptor-ret-stack-address-2
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    references:
+    - https://cwe.mitre.org/data/definitions/562
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    - https://rules.sonarsource.com/c/type/Bug/RSPEC-946
+    confidence: LOW
+  message: A function returns the address of a stack variable, which will cause unintended
+    program behavior, typically in the form of a crash.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: return $PTR;
+    - pattern-either:
+      - pattern-inside: '$TYPE $PTR[$LEN];
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $PTR[$LEN] = $EXPR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $ARR[$LEN];
+
+          ...
+
+          $PTR = $ARR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $ARR[$LEN] = $EXPR;
+
+          ...
+
+          $PTR = $ARR;
+
+          ...
+
+          '
+  - patterns:
+    - pattern: return &$VAR;
+    - pattern-either:
+      - pattern-inside: '$TYPE $VAR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $VAR = $EXPR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $VAR[$LEN];
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE $VAR[$LEN] = $EXPR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $VAR;
+
+          ...
+
+          '
+      - pattern-inside: '$TYPE * $VAR = $EXPR;
+
+          ...
+
+          '
+- id: raptor-insecure-api-access-stat
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - audit
+    vulnerability_class: Dangerous Method or Function
+    likelihood: MEDIUM
+    impact: MEDIUM
+    confidence: HIGH
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-367: Time-of-check Time-of-use (TOCTOU) Race Condition'
+    owasp:
+    - A10:2025 - Mishandling of Exceptional Conditions
+    references:
+    - https://g.co/kgs/PCHQjJ
+    - https://labs.snyk.io/resources/leaky-vessels-container-vuln-deep-dive/
+  message: The software checks the state of a resource before using it, but the  resource's
+    state can change between the check and the use in a way that  invalidates the
+    results of the check. This can cause the software to  perform invalid actions
+    when the resource is in an unexpected state.
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - pattern: access(...)
+  - pattern: faccessat(...)
+  - pattern: faccessat2(...)
+  - pattern: stat(...)
+  - pattern: lstat(...)
+  - pattern: fstatat(...)
+- id: raptor-ret-stack-address-3
+  metadata:
+    author: Marco Ivaldi <raptor@0xdeadbeef.info>
+    category: security
+    subcategory:
+    - vuln
+    vulnerability_class: Memory Issues
+    likelihood: LOW
+    impact: MEDIUM
+    confidence: MEDIUM
+    technology:
+    - c
+    - cpp
+    cwe:
+    - 'CWE-562: Return of Stack Variable Address'
+    owasp:
+    - A06:2025 - Insecure Design
+    references:
+    - https://github.com/struct/mms
+    - https://www.sei.cmu.edu/downloads/sei-cert-c-coding-standard-2016-v01.pdf
+    - https://docs.microsoft.com/en-us/cpp/sanitizers/asan-error-examples
+    - https://rules.sonarsource.com/c/type/Bug/RSPEC-946
+  message: A function returns the address of a stack variable, which will cause unintended
+    program behavior, typically in the form of a crash.
+  severity: INFO
+  languages:
+  - c
+  - cpp
+  pattern-either:
+  - patterns:
+    - pattern: return $PTR;
+    - pattern-either:
+      - patterns:
+        - pattern-inside: '$_ $PTR[$_];
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $PTR[$_];
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $PTR[$_] = ...;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $PTR[$_] = ...;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $PTR[] = ...;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $PTR[] = ...;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $ARR[$_];
+
+            ...
+
+            $PTR = $ARR;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $ARR[$_];
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $ARR[$_] = ...;
+
+            ...
+
+            $PTR = $ARR;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $ARR[$_] = ...;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $ARR[] = ...;
+
+            ...
+
+            $PTR = $ARR;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $ARR[] = ...;
+
+            ...
+
+            '
+  - patterns:
+    - pattern: return &$VAR;
+    - pattern-either:
+      - patterns:
+        - pattern-inside: '$_ $VAR;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $VAR;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $VAR = ...;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $VAR = ...;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $VAR[$_];
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $VAR[$_];
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $VAR[$_] = ...;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $VAR[$_] = ...;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ $VAR[] = ...;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ $VAR[] = ...;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ * $VAR;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ * $VAR;
+
+            ...
+
+            '
+      - patterns:
+        - pattern-inside: '$_ * $VAR = ...;
+
+            ...
+
+            '
+        - pattern-not-inside: 'static $_ * $VAR = ...;
+
+            ...
+
+            '
+- id: blender-fmt-wrappers
+  message: Avoid using non-literal format strings passed into the 'printf' family
+    of functions. If the format string is user-controllable, the application is vulnerable
+    to attack.
+  metadata:
+    references:
+    - https://www.cvedetails.com/cwe-details/134/Uncontrolled-Format-String.html
+    category: security
+    technology:
+    - c
+  languages:
+  - c
+  - c++
+  severity: INFO
+  pattern-either:
+  - patterns:
+    - pattern: PRINT_MSG(...)
+    - pattern-not: PRINT_MSG("...",...)
+    - pattern-not: PRINT_MSG(TIP_("..."),...)
+    - pattern-not: PRINT_MSG(DATA_("..."),...)
+  - patterns:
+    - pattern: PRINT_ERR(...)
+    - pattern-not: PRINT_ERR("...",...)
+    - pattern-not: PRINT_ERR(TIP_("..."),...)
+    - pattern-not: PRINT_ERR(DATA_("..."),...)
+  - patterns:
+    - pattern: CACHE_PRINTF(...)
+    - pattern-not: CACHE_PRINTF("...",...)
+    - pattern-not: CACHE_PRINTF(TIP_("..."),...)
+    - pattern-not: CACHE_PRINTF(DATA_("..."),...)
+  - patterns:
+    - pattern: _RNA_warning(...)
+    - pattern-not: _RNA_warning("...",...)
+    - pattern-not: _RNA_warning(TIP_("..."),...)
+    - pattern-not: _RNA_warning(DATA_("..."),...)
+  - patterns:
+    - pattern: exr_printf(...)
+    - pattern-not: exr_printf("...",...)
+    - pattern-not: exr_printf(TIP_("..."),...)
+    - pattern-not: exr_printf(DATA_("..."),...)
+  - patterns:
+    - pattern: BLI_sprintfN(...)
+    - pattern-not: BLI_sprintfN("...",...)
+    - pattern-not: BLI_sprintfN(TIP_("..."),...)
+    - pattern-not: BLI_sprintfN(DATA_("..."),...)
+  - patterns:
+    - pattern: DEBUG_PRINTF(...)
+    - pattern-not: DEBUG_PRINTF($ARG1,"...",...)
+    - pattern-not: DEBUG_PRINTF($ARG1,TIP_("..."),...)
+    - pattern-not: DEBUG_PRINTF($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: SNPRINTF(...)
+    - pattern-not: SNPRINTF($ARG1,"...",...)
+    - pattern-not: SNPRINTF($ARG1,TIP_("..."),...)
+    - pattern-not: SNPRINTF($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: deg_debug_fprintf(...)
+    - pattern-not: deg_debug_fprintf($ARG1,"...",...)
+    - pattern-not: deg_debug_fprintf($ARG1,TIP_("..."),...)
+    - pattern-not: deg_debug_fprintf($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: WM_reportf(...)
+    - pattern-not: WM_reportf($ARG1,"...",...)
+    - pattern-not: WM_reportf($ARG1,TIP_("..."),...)
+    - pattern-not: WM_reportf($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: BKE_gpencil_modifier_set_error(...)
+    - pattern-not: BKE_gpencil_modifier_set_error($ARG1,"...",...)
+    - pattern-not: BKE_gpencil_modifier_set_error($ARG1,TIP_("..."),...)
+    - pattern-not: BKE_gpencil_modifier_set_error($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: BLI_dynstr_appendf(...)
+    - pattern-not: BLI_dynstr_appendf($ARG1,"...",...)
+    - pattern-not: BLI_dynstr_appendf($ARG1,TIP_("..."),...)
+    - pattern-not: BLI_dynstr_appendf($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: BLI_dynstr_vappendf(...)
+    - pattern-not: BLI_dynstr_vappendf($ARG1,"...",...)
+    - pattern-not: BLI_dynstr_vappendf($ARG1,TIP_("..."),...)
+    - pattern-not: BLI_dynstr_vappendf($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: EDBM_op_call_silentf(...)
+    - pattern-not: EDBM_op_call_silentf($ARG1,"...",...)
+    - pattern-not: EDBM_op_call_silentf($ARG1,TIP_("..."),...)
+    - pattern-not: EDBM_op_call_silentf($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: BKE_reports_prependf(...)
+    - pattern-not: BKE_reports_prependf($ARG1,"...",...)
+    - pattern-not: BKE_reports_prependf($ARG1,TIP_("..."),...)
+    - pattern-not: BKE_reports_prependf($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: PyC_Err_Format_Prefix(...)
+    - pattern-not: PyC_Err_Format_Prefix($ARG1,"...",...)
+    - pattern-not: PyC_Err_Format_Prefix($ARG1,TIP_("..."),...)
+    - pattern-not: PyC_Err_Format_Prefix($ARG1,DATA_("..."),...)
+  - patterns:
+    - pattern: STR_CONCATF(...)
+    - pattern-not: STR_CONCATF($ARG1,$ARG2,"...",...)
+    - pattern-not: STR_CONCATF($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: STR_CONCATF($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BLO_reportf_wrap(...)
+    - pattern-not: BLO_reportf_wrap($ARG1,$ARG2,"...",...)
+    - pattern-not: BLO_reportf_wrap($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: BLO_reportf_wrap($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BMO_op_callf(...)
+    - pattern-not: BMO_op_callf($ARG1,$ARG2,"...",...)
+    - pattern-not: BMO_op_callf($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: BMO_op_callf($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BKE_modifier_set_error(...)
+    - pattern-not: BKE_modifier_set_error($ARG1,$ARG2,"...",...)
+    - pattern-not: BKE_modifier_set_error($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: BKE_modifier_set_error($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BKE_reportf(...)
+    - pattern-not: BKE_reportf($ARG1,$ARG2,"...",...)
+    - pattern-not: BKE_reportf($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: BKE_reportf($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BLI_vsnprintf(...)
+    - pattern-not: BLI_vsnprintf($ARG1,$ARG2,"...",...)
+    - pattern-not: BLI_vsnprintf($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: BLI_vsnprintf($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BLI_vsnprintf_rlen(...)
+    - pattern-not: BLI_vsnprintf_rlen($ARG1,$ARG2,"...",...)
+    - pattern-not: BLI_vsnprintf_rlen($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: BLI_vsnprintf_rlen($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BLI_snprintf(...)
+    - pattern-not: BLI_snprintf($ARG1,$ARG2,"...",...)
+    - pattern-not: BLI_snprintf($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: BLI_snprintf($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BLI_snprintf_rlen(...)
+    - pattern-not: BLI_snprintf_rlen($ARG1,$ARG2,"...",...)
+    - pattern-not: BLI_snprintf_rlen($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: BLI_snprintf_rlen($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: EDBM_op_callf(...)
+    - pattern-not: EDBM_op_callf($ARG1,$ARG2,"...",...)
+    - pattern-not: EDBM_op_callf($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: EDBM_op_callf($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: eevee_cryptomatte_extract_render_passes(...)
+    - pattern-not: eevee_cryptomatte_extract_render_passes($ARG1,$ARG2,"...",...)
+    - pattern-not: eevee_cryptomatte_extract_render_passes($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: eevee_cryptomatte_extract_render_passes($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: ffmpeg_log_callback(...)
+    - pattern-not: ffmpeg_log_callback($ARG1,$ARG2,"...",...)
+    - pattern-not: ffmpeg_log_callback($ARG1,$ARG2,TIP_("..."),...)
+    - pattern-not: ffmpeg_log_callback($ARG1,$ARG2,DATA_("..."),...)
+  - patterns:
+    - pattern: BMO_op_initf(...)
+    - pattern-not: BMO_op_initf($ARG1,$ARG2,$ARG3,"...",...)
+    - pattern-not: BMO_op_initf($ARG1,$ARG2,$ARG3,TIP_("..."),...)
+    - pattern-not: BMO_op_initf($ARG1,$ARG2,$ARG3,DATA_("..."),...)
+  - patterns:
+    - pattern: BMO_op_vinitf(...)
+    - pattern-not: BMO_op_vinitf($ARG1,$ARG2,$ARG3,"...",...)
+    - pattern-not: BMO_op_vinitf($ARG1,$ARG2,$ARG3,TIP_("..."),...)
+    - pattern-not: BMO_op_vinitf($ARG1,$ARG2,$ARG3,DATA_("..."),...)
+  - patterns:
+    - pattern: EDBM_op_init(...)
+    - pattern-not: EDBM_op_init($ARG1,$ARG2,$ARG3,"...",...)
+    - pattern-not: EDBM_op_init($ARG1,$ARG2,$ARG3,TIP_("..."),...)
+    - pattern-not: EDBM_op_init($ARG1,$ARG2,$ARG3,DATA_("..."),...)
+  - patterns:
+    - pattern: RNA_function_call_direct_va(...)
+    - pattern-not: RNA_function_call_direct_va($ARG1,$ARG2,$ARG3,$ARG4,"...",...)
+    - pattern-not: RNA_function_call_direct_va($ARG1,$ARG2,$ARG3,$ARG4,TIP_("..."),...)
+    - pattern-not: RNA_function_call_direct_va($ARG1,$ARG2,$ARG3,$ARG4,DATA_("..."),...)
+  - patterns:
+    - pattern: RNA_function_call_direct_va_lookup(...)
+    - pattern-not: RNA_function_call_direct_va_lookup($ARG1,$ARG2,$ARG3,$ARG4,"...",...)
+    - pattern-not: RNA_function_call_direct_va_lookup($ARG1,$ARG2,$ARG3,$ARG4,TIP_("..."),...)
+    - pattern-not: RNA_function_call_direct_va_lookup($ARG1,$ARG2,$ARG3,$ARG4,DATA_("..."),...)
+  - patterns:
+    - pattern: RNA_function_call_direct(...)
+    - pattern-not: RNA_function_call_direct($ARG1,$ARG2,$ARG3,$ARG4,"...",...)
+    - pattern-not: RNA_function_call_direct($ARG1,$ARG2,$ARG3,$ARG4,TIP_("..."),...)
+    - pattern-not: RNA_function_call_direct($ARG1,$ARG2,$ARG3,$ARG4,DATA_("..."),...)
+  - patterns:
+    - pattern: RNA_function_call_direct_lookup(...)
+    - pattern-not: RNA_function_call_direct_lookup($ARG1,$ARG2,$ARG3,$ARG4,"...",...)
+    - pattern-not: RNA_function_call_direct_lookup($ARG1,$ARG2,$ARG3,$ARG4,TIP_("..."),...)
+    - pattern-not: RNA_function_call_direct_lookup($ARG1,$ARG2,$ARG3,$ARG4,DATA_("..."),...)
+  - patterns:
+    - pattern: EDBM_op_call_and_selectf(...)
+    - pattern-not: EDBM_op_call_and_selectf($ARG1,$ARG2,$ARG3,$ARG4,"...",...)
+    - pattern-not: EDBM_op_call_and_selectf($ARG1,$ARG2,$ARG3,$ARG4,TIP_("..."),...)
+    - pattern-not: EDBM_op_call_and_selectf($ARG1,$ARG2,$ARG3,$ARG4,DATA_("..."),...)

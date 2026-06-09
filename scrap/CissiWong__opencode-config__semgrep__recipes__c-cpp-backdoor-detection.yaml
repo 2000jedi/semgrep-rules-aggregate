@@ -1,0 +1,221 @@
+rules:
+- id: c-outbound-socket
+  pattern: socket(...)
+  message: 'socket() - creating network socket.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-connect
+  pattern: connect(...)
+  message: 'connect() - outbound network connection.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-send
+  pattern: send(...)
+  message: 'send() - sending data over socket.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-sendto
+  pattern: sendto(...)
+  message: 'sendto() - sending data over socket (UDP).
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-recv
+  pattern: recv(...)
+  message: 'recv() - receiving data from socket.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-curl-easy-init
+  pattern: curl_easy_init(...)
+  message: 'curl_easy_init() - libcurl HTTP client.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-curl-easy-perform
+  pattern: curl_easy_perform(...)
+  message: 'curl_easy_perform() - executing cURL request.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-curl-easy-setopt
+  pattern: curl_easy_setopt(...)
+  message: 'curl_easy_setopt() - configuring cURL request.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-getaddrinfo
+  pattern: getaddrinfo(...)
+  message: 'getaddrinfo() - DNS resolution.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-outbound-gethostbyname
+  pattern: gethostbyname(...)
+  message: 'gethostbyname() - DNS resolution (deprecated).
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory
+- id: c-suspicious-popen
+  pattern: popen(...)
+  message: 'popen() - shell command execution with pipe.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-suspicious-execve
+  pattern: execve(...)
+  message: 'execve() - process execution.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-suspicious-execvp
+  pattern: execvp(...)
+  message: 'execvp() - process execution with PATH search.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-suspicious-fork
+  pattern: fork(...)
+  message: 'fork() - process forking.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-suspicious-dlopen
+  pattern: dlopen(...)
+  message: 'dlopen() - dynamic shared library loading.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-suspicious-dlsym
+  pattern: dlsym(...)
+  message: 'dlsym() - resolving symbol from dynamic library.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-suspicious-getprocaddress
+  pattern: GetProcAddress(...)
+  message: 'GetProcAddress() - resolving function from DLL.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-suspicious-mmap-exec
+  pattern: mmap(..., $PROT, ...)
+  message: 'mmap() - memory mapping, check for executable permissions.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-suspicious-virtualalloc
+  pattern: VirtualAlloc(...)
+  message: 'VirtualAlloc() - Windows memory allocation, common in shellcode loaders.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: suspicious
+- id: c-outbound-getenv
+  pattern: getenv(...)
+  message: 'getenv() - reading environment variable.
+
+    '
+  severity: WARNING
+  languages:
+  - c
+  - cpp
+  metadata:
+    category: network-inventory

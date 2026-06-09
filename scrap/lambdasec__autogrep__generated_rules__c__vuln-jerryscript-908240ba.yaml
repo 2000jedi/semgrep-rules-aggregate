@@ -1,0 +1,28 @@
+rules:
+- id: vuln-jerryscript-908240ba
+  pattern: 'return ecma_proxy_object_own_property_keys($OBJ);
+
+    '
+  pattern-not: "$PROXY_KEYS = ecma_proxy_object_own_property_keys($OBJ);\nif (JERRY_UNLIKELY\
+    \ ($PROXY_KEYS == NULL))\n{\n  return $PROXY_KEYS;\n}\n$RETURN_KEYS = ecma_new_collection();\n\
+    ...\necma_collection_destroy($PROXY_KEYS);\nreturn $RETURN_KEYS;\n"
+  languages:
+  - c
+  message: 'Directly returning the result of `ecma_proxy_object_own_property_keys`
+    without checking for NULL or processing the keys can lead to memory leaks and
+    undefined behavior. The patch adds proper NULL checking and key processing to
+    ensure safe handling of the proxy keys. Always validate and process the returned
+    collection before using it.
+
+    '
+  severity: ERROR
+  metadata:
+    source-url: https://github.com/jerryscript-project/jerryscript/commit/908240ba6223fb54e72c2ab85c3765db3492a968
+    category: security
+    cwe:
+    - CWE-476
+    owasp: 'A9: Using Components with Known Vulnerabilities'
+    references:
+    - https://www.ecma-international.org/ecma-262/6.0/#sec-enumerableownnames
+    technology:
+    - c
