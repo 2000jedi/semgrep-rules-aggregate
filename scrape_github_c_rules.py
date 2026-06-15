@@ -120,14 +120,17 @@ def safe_component(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "__", value).strip("_")
 
 
+def repo_folder_name(full_name: str) -> str:
+    return safe_component(full_name.replace("/", "-"))
+
+
 def clone_path(tmp_root: Path, full_name: str) -> Path:
     return tmp_root / safe_component(full_name)
 
 
-def collected_name(full_name: str, repo_root: Path, path: Path) -> str:
+def collected_name(repo_root: Path, path: Path) -> str:
     relative = path.relative_to(repo_root)
-    source_name = f"{full_name}/{relative}"
-    return Path(safe_component(str(source_name))).with_suffix(".yaml").name
+    return Path(safe_component(str(relative))).with_suffix(".yaml").name
 
 
 def clone_repository(repo: dict[str, Any], tmp_root: Path, keep_clones: bool) -> Path | None:
@@ -197,12 +200,15 @@ def file_contains_c_rule(path: Path) -> bool:
 
 
 def copy_c_rules(full_name: str, repo_root: Path, output: Path) -> int:
+    repo_output = output / repo_folder_name(full_name)
+    repo_output.mkdir(parents=True, exist_ok=True)
+
     copied = 0
     for path in iter_yaml_files(repo_root):
         if not file_contains_c_rule(path):
             continue
 
-        destination = output / collected_name(full_name, repo_root, path)
+        destination = repo_output / collected_name(repo_root, path)
         shutil.copy2(path, destination)
         copied += 1
 

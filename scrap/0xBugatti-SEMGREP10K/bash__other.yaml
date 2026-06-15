@@ -1,0 +1,19 @@
+rules:
+- id: line-length
+  pattern-regex: .{101,}
+  message: Maximum line legth of 100 characters exceeded.
+  languages:
+  - bash
+  - c
+  - cpp
+  - csharp
+  - dockerfile
+  - golang
+  - java
+  - javascript
+  - json
+  - kotlin
+  - php
+  - python
+  - yaml
+  severity: INFO

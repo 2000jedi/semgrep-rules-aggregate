@@ -49,7 +49,7 @@ def parse_args() -> argparse.Namespace:
 def iter_yaml_files(folder: Path) -> list[Path]:
     return sorted(
         path
-        for path in folder.iterdir()
+        for path in folder.rglob("*")
         if path.is_file() and path.suffix.lower() in YAML_SUFFIXES
     )
 
