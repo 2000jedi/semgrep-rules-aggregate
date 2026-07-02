@@ -4,24 +4,15 @@
 [submodule "community"]
 	path = community
 	url = https://github.com/returntocorp/semgrep-rules.git
-[submodule "dgryski"]
-	path = dgryski
-	url = https://github.com/dgryski/semgrep-go.git
 [submodule "elttam"]
 	path = elttam
 	url = https://github.com/elttam/semgrep-rules.git
 [submodule "gitlab"]
 	path = gitlab
 	url = https://gitlab.com/gitlab-org/security-products/sast-rules.git
-[submodule "kondukto"]
-	path = kondukto
-	url = https://github.com/kondukto-io/semgrep-rules.git
 [submodule "semgrep-hotspots"]
 	path = semgrep-hotspots
 	url = https://github.com/parsiya/semgrep-hotspots.git
 [submodule "semgrep_rules"]
 	path = semgrep_rules
 	url = https://github.com/convisolabs/semgrep_rules.git
-[submodule "trailofbits"]
-	path = trailofbits
-	url = https://github.com/trailofbits/semgrep-rules.git
